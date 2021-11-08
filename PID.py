@@ -30,19 +30,19 @@ def slip_ratio_a():
     make sure to double check the units of the velocity sensor and
     the revolutions sensors
     """
+    wsa=[]
+    revs_omega=[]
     for i in revolutions:
-        revs_omega = []
-        revs_omega = (revrevolutions*2*np.pi)/60
-        wsa = []
-        wsa = (revs_omega*radius)/velocity
-    return wsa # returns an array of slip ratios
+        revs_omega = (revolutions*2*np.pi)/60
+        wsa.append((revs_omega*radius)/velocity)
+    return wsa # returns an array of slip ratios 
 
 def proportional():
     # this is the error between real and expected wheel slips
     slip_a = slip_ratio_a() # call actual slip ratio
+    error=[]
     for i in slip_a:
-        error = []
-        error = i - slip_ratio_d
+        error.append(i - slip_ratio_d)
     return error # returns an array of error values
 
 def integral():
@@ -74,7 +74,7 @@ def PID():
 """
 CHECK LIST:
     
-once pid equation is cmplete we need to think about torque requests. this will
+once pid equation is complete we need to think about torque requests. this will
 likely be a slimple if statement saying "if slip ratio is too high, reduce 
 torque"
 
