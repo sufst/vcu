@@ -62,6 +62,9 @@ Drivers/*
 MDK-ARM/*
 EWARM/*
 *.settings
+*.cproject
+*.mxproject
+*.project
 
 ### Python ###
 
