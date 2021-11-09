@@ -66,6 +66,7 @@ EWARM/*
 *.mxproject
 *.project
 *.metadata
+Debug/
 
 ### Python ###
 
