@@ -1,2 +1,100 @@
-.DS_Store
+
+### C ###
+
+# Prerequisites
+*.d
+
+# object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# linker output
+*.ilk
+*.map
+*.exp
+
+# precompiled Headers
+*.gch
+*.pch
+
+# libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# shared objects
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# executables
 *.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+
+
+### STM32 ###
+
+Drivers/*
+MDK-ARM/*
+EWARM/*
+*.settings
+
+### Python ###
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
