@@ -1,2 +1,131 @@
-.DS_Store
+
+### C ###
+
+# Prerequisites
+*.d
+
+# object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# linker output
+*.ilk
+*.map
+*.exp
+
+# precompiled Headers
+*.gch
+*.pch
+
+# libraries
+*.lib
+*.a
+*.la
+*.lo
+
+# shared objects
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# executables
 *.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+# debug files
+*.dSYM/
+*.su
+*.idb
+*.pdb
+
+# kernel Module Compile Results
+*.mod*
+*.cmd
+.tmp_versions/
+modules.order
+Module.symvers
+Mkfile.old
+dkms.conf
+
+
+
+### STM32 ###
+
+Drivers/*
+MDK-ARM/*
+EWARM/*
+*.settings
+*.mxproject
+
+### Python ###
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
+### macOS ###
+
+# general
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# icon
+Icon^M
+
+# thumbnails
+._*
+
+# files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
