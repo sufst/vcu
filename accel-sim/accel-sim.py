@@ -1,6 +1,22 @@
+# -*- coding: utf-8 -*-
+"""
+Spyder Editor
+
+This is a temporary script file.
+"""
+
 import numpy as np
 import sympy as sym
 import matplotlib.pyplot as plt
+from scipy import interpolate
+from time import sleep
+
+x = np.linspace(0, 1, 11)
+y = [0, 0.78, 0.74, 0.69, 0.64, 0.59, 0.54, 0.5, 0.45, 0.42, 0.38]
+
+spline = interpolate.InterpolatedUnivariateSpline(x, y)
+
+
 
 
 cg_x, cg_y, w_b, mass, mu, w_r, g, a_x, ts, W_Izz = sym.symbols("Cg_x Cg_y W_b m mu W_r g a_x t_s W_{I_{zz}}")
@@ -10,7 +26,7 @@ cg_y_m = 0.6 #Cg_y
 cg_x_m = 1 #From front wheels Cg_x
 driven_torque_Nm = 300 #T_m
 mass_kg = 217.5
-mu_static = 0.8
+mu_static = spline(1)
 mu_dynamic = 0.7
 wheel_radius_m = 7 * 2.54 * 0.01
 time = 0
@@ -68,7 +84,7 @@ while distance < 75:
     F_x = driven_torque_Nm / wheel_radius_m
     #LOOPING BEGINS HERE
     if traction_max < F_x:
-        tractive_force = traction_max / wheel_radius_m
+        tractive_force = traction_max 
     else:
         tractive_force = F_x
         print("not traction limited after time = %f, i = %d" % (time, i))
@@ -78,16 +94,20 @@ while distance < 75:
 
     R_r = lam_Rr(cg_x_m, cg_y_m, wheel_radius_m, wheel_base_m, 9.81, mass_kg, tractive_force)
     R_rs.append(R_r)
-    distance += Vc * ts
     Ac = tractive_force / mass_kg
     Vc += Ac * ts
+    distance += (Vc * ts)
     W_acc = (driven_torque_Nm - tractive_force * wheel_radius_m) / W_Izz
     Vw_radps += W_acc * ts
-    W_accs.append(Vw_radps)
-    Vw = 2 * np.pi * wheel_radius_m / (Vw_radps / (2 * np.pi)) 
+    Vw = Vw_radps * wheel_radius_m
     time += ts
-
-
+    slip_ratio = (Vw-Vc)/(Vw)
+    if slip_ratio < 0:
+        slip_ratio = 0.0001
+    mu_static = spline(slip_ratio)
+    W_accs.append(Vc)
+    print(Vw)
+    
 print("Time: %f" % time)
 
 plt.plot(times, W_accs)
