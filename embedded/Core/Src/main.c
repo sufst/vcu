@@ -18,7 +18,6 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include <led_thread.h>
 #include "main.h"
 #include "app_threadx.h"
 

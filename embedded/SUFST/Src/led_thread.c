@@ -5,4 +5,16 @@
  * @brief  LED thread
  ***************************************************************************/
 
-#include <led_thread.h>
+#include "led_thread.h"
+
+TX_THREAD led_thread;
+
+void led_thread_entry(ULONG thread_input)
+{
+	(VOID) thread_input;
+
+	while (1)
+	{
+
+	}
+}

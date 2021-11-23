@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "led_thread.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -66,10 +66,15 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE END App_ThreadX_MEM_POOL */
 
   /* USER CODE BEGIN App_ThreadX_Init */
+  VOID* stack_ptr;
 
+  // allocate memory for LED test thread
+  tx_byte_allocate(memory_ptr, &stack_ptr, LED_THREAD_STACK_SIZE, TX_NO_WAIT);
 
-
-
+  // create LED test thread
+  tx_thread_create(&led_thread, LED_THREAD_NAME, led_thread_entry, 0, stack_ptr,
+		  LED_THREAD_STACK_SIZE, LED_THREAD_PRIORITY, LED_THREAD_PREEMPTION_THRESHOLD,
+		  TX_NO_TIME_SLICE, TX_AUTO_START);
 
   /* USER CODE END App_ThreadX_Init */
 
