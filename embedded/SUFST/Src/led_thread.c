@@ -1,8 +1,8 @@
 /***************************************************************************
- * @file   test_led.h
+ * @file   led_thread.c
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2021-11-09
- * @brief  Function prototypes for LED test
+ * @brief  LED thread
  ***************************************************************************/
 
-void test_led();
+#include <led_thread.h>

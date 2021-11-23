@@ -18,12 +18,12 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
+#include <led_thread.h>
 #include "main.h"
 #include "app_threadx.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../../SUFST/Inc/test_led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
