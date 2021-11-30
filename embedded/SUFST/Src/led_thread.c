@@ -6,6 +6,7 @@
  ***************************************************************************/
 
 #include "led_thread.h"
+#include "gpio.h"
 
 /**
  * @brief Test thread to flash an LED
@@ -26,6 +27,7 @@ void led_thread_entry(ULONG thread_input)
 	while (1)
 	{
 		// ... do stuff
+		HAL_GPIO_TogglePin(GPIOB, LED_GREEN_Pin);
 
 		// sleep this thread to allow other threads to run
 		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
