@@ -1,3 +1,10 @@
+/***************************************************************************
+ * @file   sensor_thread.h
+ * @author Cosmin-Andrei Tamas (cat1g19@soton.ac.uk)
+ * @date   2021-11-30
+ * @brief  Sensor thread
+ ***************************************************************************/
+
 #ifndef SENSOR_THREAD_H
 #define SENSOR_THREAD_H
 
