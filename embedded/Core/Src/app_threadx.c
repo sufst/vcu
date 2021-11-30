@@ -23,7 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "led_thread.h"
+#include "control_thread.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -71,13 +71,13 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   VOID* stack_ptr;	// pointer to allocated memory for thread stack
 
   // allocate memory for LED test thread from application memory pool
-  ret = tx_byte_allocate(memory_ptr, &stack_ptr, LED_THREAD_STACK_SIZE, TX_NO_WAIT);
+  ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
 
   if (ret == TX_SUCCESS)
   {
 	  // create LED test thread
-	  tx_thread_create(&led_thread, LED_THREAD_NAME, led_thread_entry, 0, stack_ptr,
-		  LED_THREAD_STACK_SIZE, LED_THREAD_PRIORITY, LED_THREAD_PREEMPTION_THRESHOLD,
+	  tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
+		  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
 		  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
   else
