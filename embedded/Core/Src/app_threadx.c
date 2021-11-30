@@ -24,6 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "led_thread.h"
+#include "sensor_thread.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -83,6 +85,32 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   else
   {
 	  // error, failed to allocate thread stack from application memory pool
+  }
+
+
+  if (ret == TX_SUCCESS)
+  {
+	  // allocate memory for the SENSOR thread from the application memory pool
+	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
+
+  }
+  else
+  {
+	  // failed to create previous thread
+	  return ret;
+  }
+
+
+  if (ret == TX_SUCCESS)
+  {
+	  // create Sensor thread
+	  tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
+	  		  SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
+	  		  TX_NO_TIME_SLICE, TX_AUTO_START);
+  }
+  else
+  {
+	  // failed to allocate stack memory from the allocation memory pool for the sensor thread
   }
 
   /* USER CODE END App_ThreadX_Init */
