@@ -27,7 +27,7 @@ void can_thread_entry(ULONG thread_input)
 	while (1)
 	{
 		// ... do stuff
-		HAL_GPIO_TogglePin(GPIOB, LED_GREEN_Pin);
+		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 
 		// sleep this thread to allow other threads to run
 		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);

@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "control_thread.h"
+#include "can_thread.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -70,19 +71,52 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
   VOID* stack_ptr;	// pointer to allocated memory for thread stack
 
-  // allocate memory for LED test thread from application memory pool
+  /**************************
+   * Control thread creation
+   **************************/
+
+  // allocate memory for control thread from application memory pool
   ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
 
   if (ret == TX_SUCCESS)
   {
-	  // create LED test thread
-	  tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
-		  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
-		  TX_NO_TIME_SLICE, TX_AUTO_START);
+	  // create control thread
+	  ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
+			  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
+			  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
   else
   {
-	  // error, failed to allocate thread stack from application memory pool
+	  // error, failed to allocate control thread stack from application memory pool
+	  return ret;
+  }
+
+  /*************************
+   * CAN thread creation
+   **************************/
+
+  // allocate memory for CAN thread from application memory pool
+  if (ret == TX_SUCCESS)
+  {
+	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
+  }
+  else
+  {
+	  // error, failed to create control thread
+	  return ret;
+  }
+
+  if (ret == TX_SUCCESS)
+  {
+	  // create CAN thread
+	  tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
+			  CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
+			  TX_NO_TIME_SLICE, TX_AUTO_START);
+  }
+  else
+  {
+	  // error, failed to allocate control thread stack from application memory pool
+	  return ret;
   }
 
   /* USER CODE END App_ThreadX_Init */
