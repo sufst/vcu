@@ -13,7 +13,7 @@
 // LED thread definitions
 #define SENSOR_THREAD_STACK_SIZE				1024
 #define SENSOR_THREAD_PRIORITY					5
-#define SENSOR_THREAD_PREEMPTION_THRESHOLD		LED_THREAD_PRIORITY
+#define SENSOR_THREAD_PREEMPTION_THRESHOLD		SENSOR_THREAD_PRIORITY
 #define SENSOR_THREAD_NAME						"Sensor Thread"
 
 // expose thread instance to files including this header
