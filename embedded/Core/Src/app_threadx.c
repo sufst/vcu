@@ -25,6 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "control_thread.h"
 #include "can_thread.h"
+#include "message.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -116,6 +117,19 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   else
   {
 	  // error, failed to allocate control thread stack from application memory pool
+	  return ret;
+  }
+
+  /*************************
+   * Other initialisation
+   **************************/
+  if (ret == TX_SUCCESS)
+  {
+	  ret = message_system_init();
+  }
+  else
+  {
+	  // error, failed to create previous thread
 	  return ret;
   }
 
