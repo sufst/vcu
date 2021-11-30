@@ -23,6 +23,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "sensor_thread.h"
 #include "control_thread.h"
 #include "can_thread.h"
 /* USER CODE END Includes */
@@ -117,6 +118,36 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   {
 	  // error, failed to allocate control thread stack from application memory pool
 	  return ret;
+  }
+  
+  /*************************
+   * Sensor thread creation
+   **************************/
+  
+  // allocate memory for sensor thread from application memory pool
+  if (ret == TX_SUCCESS)
+  {
+	  // allocate memory for the sensor thread from the application memory pool
+	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
+
+  }
+  else
+  {
+	  // failed to create CAN thread
+	  return ret;
+  }
+
+  if (ret == TX_SUCCESS)
+  {
+	  // create sensor thread
+	  tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
+	  		  SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
+	  		  TX_NO_TIME_SLICE, TX_AUTO_START);
+  }
+  else
+  {
+	  // failed to allocate stack memory from the allocation memory pool for the sensor thread
+    return ret;
   }
 
   /* USER CODE END App_ThreadX_Init */
