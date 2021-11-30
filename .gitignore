@@ -63,6 +63,9 @@ MDK-ARM/*
 EWARM/*
 *.settings
 *.mxproject
+*.metadata
+*.launch
+Debug/
 
 ### Python ###
 
@@ -102,6 +105,7 @@ venv.bak/
 
 
 ### macOS ###
+.DS_Store
 
 # general
 .DS_Store
