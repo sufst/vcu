@@ -106,3 +106,30 @@ venv.bak/
 
 ### macOS ###
 .DS_Store
+
+# general
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# icon
+Icon^M
+
+# thumbnails
+._*
+
+# files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
