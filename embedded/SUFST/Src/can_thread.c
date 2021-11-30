@@ -7,6 +7,7 @@
 
 #include "can_thread.h"
 #include "gpio.h"
+#include "fdcan.h"
 
 /**
  * @brief Thread for control task
