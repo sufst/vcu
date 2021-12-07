@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 #include "control_thread.h"
 #include "can_thread.h"
-#include "message.h"
+#include "messaging_system.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -129,7 +129,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   }
   else
   {
-	  // error, failed to create previous thread
+	  // error, failed to create CAN thread
 	  return ret;
   }
 

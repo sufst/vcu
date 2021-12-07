@@ -5,14 +5,14 @@
  * @brief  Inter-thread messaging system implementation
  ***************************************************************************/
 
-#include "messaging.h"
-#include "stdint.h"
+#include "messaging_system.h"
+#include <stdint.h>
 
 /**
  * @brief Queue for sensor messages
  */
-TX_QUEUE sensor_message_queue;
-static uint8_t sensor_queue_memory [SENSOR_QUEUE_SIZE];
+TX_QUEUE torque_request_queue;
+static uint8_t torque_request_queue_memory [TORQUE_REQUEST_QUEUE_SIZE];
 
 /**
  * @brief Initialise message passing system
@@ -21,8 +21,8 @@ UINT message_system_init()
 {
 	UINT ret;
 
-	ret = tx_queue_create(&sensor_message_queue, SENSOR_QUEUE_NAME, SENSOR_QUEUE_MESSAGE_SIZE,
-			(VOID*) sensor_queue_memory, SENSOR_QUEUE_SIZE);
+	ret = tx_queue_create(&torque_request_queue, TORQUE_REQUEST_QUEUE_NAME, TORQUE_REQUEST_QUEUE_MESSAGE_SIZE,
+			(VOID*) torque_request_queue_memory, TORQUE_REQUEST_QUEUE_SIZE);
 
 	return ret;
 }

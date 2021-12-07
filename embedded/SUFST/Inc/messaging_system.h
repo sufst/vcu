@@ -10,11 +10,11 @@
 
 #include "tx_api.h"
 
-#define SENSOR_QUEUE_MESSAGE_SIZE	4
-#define SENSOR_QUEUE_SIZE			100
-#define SENSOR_QUEUE_NAME			"Sensor Queue"
+#define TORQUE_REQUEST_QUEUE_MESSAGE_SIZE	4
+#define TORQUE_REQUEST_QUEUE_SIZE			100
+#define TORQUE_REQUEST_QUEUE_NAME			"Torque Request Queue"
 
-extern TX_QUEUE sensor_message_queue;
+extern TX_QUEUE torque_request_queue;
 
 // function prototypes
 UINT message_system_init();
