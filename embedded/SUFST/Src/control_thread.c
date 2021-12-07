@@ -6,6 +6,9 @@
  ***************************************************************************/
 
 #include "control_thread.h"
+#include "messaging_system.h"
+#include "tx_api.h"
+#include "message_types.h"
 
 /**
  * @brief Thread for control task
@@ -22,12 +25,21 @@ void control_thread_entry(ULONG thread_input)
 	// not using input, prevent compiler warning
 	(VOID) thread_input;
 
-	// loop forever
-	while (1)
-	{
-		// ... do stuff
+	UINT ret;
 
-		// sleep this thread to allow other threads to run
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
-	}
+	Torque_Request_Message temp;
+
+	temp.priority = 1;
+	temp.value = 6;
+
+	ret = tx_queue_send(&torque_request_queue, &temp, TX_WAIT_FOREVER);
+
+//	// loop forever
+//	while (1)
+//	{
+//		// ... do stuff
+//
+//		// sleep this thread to allow other threads to run
+//		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
+//	}
 }
