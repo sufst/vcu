@@ -31,3 +31,4 @@ void control_thread_entry(ULONG thread_input)
 		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
 	}
 }
+
