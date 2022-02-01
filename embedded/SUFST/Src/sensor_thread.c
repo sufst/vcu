@@ -45,7 +45,7 @@ void sensor_thread_entry(ULONG thread_input)
 
 	if (test_adc_blocking(&voltage) == ADC_OK)
 	{
-		__asm__("NOP"); // breakpoint
+ 		__asm__("NOP"); // breakpoint
 	}
 
 	// loop forever
