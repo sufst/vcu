@@ -1,6 +1,7 @@
 /***************************************************************************
  * @file   sensor_thread.c
  * @author Cosmin-Andrei Tamas (cat1g19@soton.ac.uk)
+ * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2021-11-30
  * @brief  Sensor thread
  ***************************************************************************/
@@ -18,9 +19,16 @@ uint32_t adc_raw[10];
 
 
 /*
+ * return codes
+ */
+#define ADC_OK	0x0000
+#define ADC_ERR	0x0001
+
+
+/*
  * function prototypes
  */
-void test_adc_blocking();
+UINT test_adc_blocking();
 
 /**
  * @brief Sensor thread entry function
@@ -32,7 +40,13 @@ void sensor_thread_entry(ULONG thread_input)
 	// prevent compiler warnings as input is not used for the moment
 	(VOID) thread_input;
 
-	test_adc_blocking();
+	// ADC reading test
+	float voltage;
+
+	if (test_adc_blocking(&voltage) == ADC_OK)
+	{
+		__asm__("NOP"); // breakpoint
+	}
 
 	// loop forever
 	while(1)
@@ -44,9 +58,14 @@ void sensor_thread_entry(ULONG thread_input)
 }
 
 /**
- * @brief Demo code for blocking read from ADC
+ * @brief 		Demo code for blocking read from ADC
+ *
+ * @param[in]	voltage_ptr		Pointer to float to store voltage reading
+ *
+ * @return		ADC_OK if ADC read successfully
+ * 				ADC_ERR otherwise
  */
-void test_adc_blocking()
+UINT test_adc_blocking(float* voltage_ptr)
 {
 	/*
 	 * Read from ADC
@@ -57,18 +76,19 @@ void test_adc_blocking()
 	 */
 
 	// start ADC
-	HAL_StatusTypeDef ret = HAL_ADC_Start(&hadc1);
-
 	// wait for conversion to complete
-	if (ret == HAL_OK)
+	if (HAL_ADC_Start(&hadc1) == HAL_OK)
 	{
 		// block until conversion complete
 		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 
 		// read conversion data
 		uint32_t adc_raw = HAL_ADC_GetValue(&hadc1);
-		float voltage = 3.3f * ((float) adc_raw / (float) 0xFFFF);
-		(void) voltage;
+		*voltage_ptr = 3.3f * ((float) adc_raw / (float) 0xFFFF);
+
+		return ADC_OK;
 	}
+
+	return ADC_ERR;
 }
 
