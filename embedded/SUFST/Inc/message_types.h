@@ -10,15 +10,6 @@
 #define MESSAGE_TYPES_H
 
 /**
- * @brief Enumerated message priority
- */
-typedef enum {
-	high = 1,
-	medium,
-	low
-} message_priority_t;
-
-/**
  * @brief Demo type for message
  */
 typedef struct {

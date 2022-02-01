@@ -35,7 +35,7 @@ extern TX_QUEUE torque_request_queue;
  * function prototypes
  */
 UINT message_system_init();
-UINT message_post(void* message_ptr, UINT message_size, TX_QUEUE* queue_ptr, message_priority_t priority);
+UINT message_post(void* message_ptr, TX_QUEUE* queue_ptr);
 UINT message_receive(void* dest_ptr, TX_QUEUE* queue_ptr);
 
 #endif

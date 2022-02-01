@@ -27,33 +27,22 @@ void can_thread_entry(ULONG thread_input)
 
 	UINT ret;
 
-	torque_request_message_t res;
+	torque_request_message_t received;
 
-	ret = tx_queue_receive(&torque_request_queue, &res, TX_WAIT_FOREVER);
+	ret = message_receive((void*) &received, &torque_request_queue);
 
-	if (ret == TX_SUCCESS){
-		if (res.value == 6){
-			HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-			if (res.priority == 1){
-				while (1)
-					{
-						// ... do stuff
-						HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-
-						// sleep this thread to allow other threads to run
-						tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
-					}
-			}
-		}
+	if (ret == TX_SUCCESS)
+	{
+		__asm__("NOP"); // breakpoint
 	}
 
 	// loop forever
-//	while (1)
-//	{
-//		// ... do stuff
-//		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
-//
-//		// sleep this thread to allow other threads to run
-//		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
-//	}
+	while (1)
+	{
+		// ... do stuff
+		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
+		// sleep this thread to allow other threads to run
+		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
+	}
 }

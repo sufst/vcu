@@ -28,19 +28,31 @@ UINT message_system_init()
 }
 
 /**
- * @brief Post a message to a queue with a certain priority
+ * @brief 		Post a message to a queue (blocking)
+ *
+ * @note		This is the bare minimum outline code. Need to add checks for message size etc.
+ *
+ * @param[in]	message_ptr		Pointer to message memory
+ * @param[in]	queue_ptr		Pointer to TX_QUEUE to send to
+ *
+ * @return		See TX_QUEUE API
  */
-UINT message_post(void* message_ptr, UINT message_size, TX_QUEUE* queue_ptr, message_priority_t priority)
+UINT message_post(void* message_ptr, TX_QUEUE* queue_ptr)
 {
-	return MESSAGE_OK;
+	return tx_queue_send(queue_ptr, message_ptr, TX_WAIT_FOREVER);
 }
 
 /**
- * @brief receive the highest priority message from a queue
+ * @brief 		Receive a message from a queue (blocking)
+ *
+ * @param[in]	dest_ptr		Destination to store message from queue
+ * @param[in]	queue_ptr		Pointer to TX_QUEUE to receive from
+ *
+ * @return		See TX_QUEUE API
  */
 UINT message_receive(void* dest_ptr, TX_QUEUE* queue_ptr)
 {
-	return MESSAGE_OK;
+	return tx_queue_receive(queue_ptr, dest_ptr, TX_WAIT_FOREVER);
 }
 
 
