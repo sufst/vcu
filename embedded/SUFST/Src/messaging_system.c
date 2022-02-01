@@ -26,3 +26,22 @@ UINT message_system_init()
 
 	return ret;
 }
+
+/**
+ * @brief Post a message to a queue with a certain priority
+ */
+UINT message_post(void* message_ptr, UINT message_size, TX_QUEUE* queue_ptr, message_priority_t priority)
+{
+	return MESSAGE_OK;
+}
+
+/**
+ * @brief receive the highest priority message from a queue
+ */
+UINT message_receive(void* dest_ptr, TX_QUEUE* queue_ptr)
+{
+	return MESSAGE_OK;
+}
+
+
+

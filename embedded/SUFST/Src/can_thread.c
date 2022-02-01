@@ -6,12 +6,10 @@
  ***************************************************************************/
 
 #include "can_thread.h"
+#include "tx_api.h"
 #include "gpio.h"
 #include "fdcan.h"
 #include "messaging_system.h"
-#include "tx_api.h"
-#include "message_types.h"
-
 /**
  * @brief Thread for control task
  */
@@ -29,7 +27,7 @@ void can_thread_entry(ULONG thread_input)
 
 	UINT ret;
 
-	Torque_Request_Message res;
+	torque_request_message_t res;
 
 	ret = tx_queue_receive(&torque_request_queue, &res, TX_WAIT_FOREVER);
 

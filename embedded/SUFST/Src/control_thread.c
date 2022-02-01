@@ -27,12 +27,13 @@ void control_thread_entry(ULONG thread_input)
 
 	UINT ret;
 
-	Torque_Request_Message temp;
+	torque_request_message_t temp;
 
 	temp.priority = 1;
 	temp.value = 6;
 
 	ret = tx_queue_send(&torque_request_queue, &temp, TX_WAIT_FOREVER);
+	(void) ret;
 
 //	// loop forever
 //	while (1)
