@@ -18,24 +18,21 @@
 #define TORQUE_REQUEST_QUEUE_SIZE			100
 #define TORQUE_REQUEST_QUEUE_NAME			"Torque Request Queue"
 
+#define CONTROL_INPUT_QUEUE_MESSAGE_SIZE	1
+#define CONTROL_INPUT_QUEUE_SIZE			100
+#define CONTROL_INPUT_QUEUE_NAME			"Control Input Queue"
+
 /*
  * queues for the messaging system
  */
 extern TX_QUEUE torque_request_queue;
-
-/*
- * return codes
- */
-#define MESSAGE_POSTED			0x00
-#define MESSAGE_SIZE_INVALID	0x01
-#define MESSAGE_QUEUE_FULL		0x02
-#define MESSAGE_QUEUE_INVALID	0x03
+extern TX_QUEUE control_input_queue;
 
 /*
  * function prototypes
  */
 UINT message_system_init();
-UINT message_post(void* message_ptr, TX_QUEUE* queue_ptr);
-UINT message_receive(void* dest_ptr, TX_QUEUE* queue_ptr);
+UINT message_post(VOID* message_ptr, TX_QUEUE* queue_ptr);
+UINT message_receive(VOID* dest_ptr, TX_QUEUE* queue_ptr);
 
 #endif

@@ -10,7 +10,7 @@
 #define MESSAGE_TYPES_H
 
 /**
- * @brief Demo type for message
+ * @brief Torque request message
  */
 typedef struct {
 
@@ -18,5 +18,12 @@ typedef struct {
 	UINT value;
 
 } torque_request_message_t;
+
+/**
+ * @brief ADC reading message
+ */
+typedef struct {
+	UINT raw_reading;
+} adc_reading_message_t;
 
 #endif
