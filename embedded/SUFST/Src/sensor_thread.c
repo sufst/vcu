@@ -28,7 +28,7 @@ uint32_t adc_raw[10];
 /*
  * function prototypes
  */
-UINT test_adc_blocking();
+UINT read_adc_blocking();
 
 /**
  * @brief Sensor thread entry function
@@ -43,7 +43,7 @@ void sensor_thread_entry(ULONG thread_input)
 	// ADC reading test
 	float voltage;
 
-	if (test_adc_blocking(&voltage) == ADC_OK)
+	if (read_adc_blocking(&voltage) == ADC_OK)
 	{
  		__asm__("NOP"); // breakpoint
 	}
@@ -65,7 +65,7 @@ void sensor_thread_entry(ULONG thread_input)
  * @return		ADC_OK if ADC read successfully
  * 				ADC_ERR otherwise
  */
-UINT test_adc_blocking(float* voltage_ptr)
+UINT read_adc_blocking(float* voltage_ptr)
 {
 	/*
 	 * Read from ADC
