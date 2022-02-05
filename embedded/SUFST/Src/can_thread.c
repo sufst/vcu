@@ -28,15 +28,6 @@ void can_thread_entry(ULONG thread_input)
 
 	UINT ret;
 
-	torque_request_message_t received;
-
-	ret = message_receive((void*) &received, &torque_request_queue);
-
-	if (ret == TX_SUCCESS)
-	{
-		__asm__("NOP"); // breakpoint
-	}
-
 	// loop forever
 	while (1)
 	{
