@@ -52,12 +52,6 @@
 									<listOptionValue builtIn="false" value="../AZURE_RTOS/App"/>
 									<listOptionValue builtIn="false" value="/Users/tim/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/common/inc/"/>
 									<listOptionValue builtIn="false" value="/Users/tim/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/STM32H7xx_HAL_Driver/Inc"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/common/inc/"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.486348985" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>
@@ -141,12 +135,6 @@
 									<listOptionValue builtIn="false" value="../AZURE_RTOS/App"/>
 									<listOptionValue builtIn="false" value="/Users/tim/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/common/inc/"/>
 									<listOptionValue builtIn="false" value="/Users/tim/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/STM32H7xx_HAL_Driver/Inc"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/STM32H7xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/CMSIS/Device/ST/STM32H7xx/Include"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository/STM32Cube_FW_H7_V1.9.0/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/common/inc/"/>
-									<listOptionValue builtIn="false" value="/Users/rorywilson/STM32Cube/Repository//Packs/STMicroelectronics/X-CUBE-AZRTOS-H7/2.0.0/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/"/>
 								</option>
 								<inputType id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c.1299345535" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.input.c"/>
 							</tool>

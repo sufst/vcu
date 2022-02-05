@@ -10,6 +10,7 @@
 #include "gpio.h"
 #include "fdcan.h"
 #include "messaging_system.h"
+
 /**
  * @brief Thread for control task
  */

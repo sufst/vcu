@@ -24,9 +24,8 @@ void control_thread_entry(ULONG thread_input)
 {
 	// not using input, prevent compiler warning
 	(VOID) thread_input;
-
+  
 	UINT ret;
-
 	torque_request_message_t message;
 
 	message.priority = 1;
