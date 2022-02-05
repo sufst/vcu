@@ -14,16 +14,15 @@
  */
 typedef struct {
 
-	UINT priority;
 	UINT value;
 
 } torque_request_message_t;
 
 /**
- * @brief ADC reading message
+ * @brief Control input message
  */
 typedef struct {
-	UINT raw_reading;
-} adc_reading_message_t;
+	UINT input;
+} control_input_message_t;
 
 #endif

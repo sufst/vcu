@@ -26,24 +26,18 @@ void can_thread_entry(ULONG thread_input)
 	// not using input, prevent compiler warning
 	(VOID) thread_input;
 
-	UINT ret;
-
-	torque_request_message_t received;
-
-	ret = message_receive((void*) &received, &torque_request_queue);
-
-	if (ret == TX_SUCCESS)
-	{
-		__asm__("NOP"); // breakpoint
-	}
-
 	// loop forever
 	while (1)
 	{
-		// ... do stuff
-		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 
-		// sleep this thread to allow other threads to run
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
+		// wait for message to enter torque request queue
+		// -> thread suspended until message arrives
+		torque_request_message_t message;
+		UINT ret = message_receive((VOID*) &message, &torque_request_queue);
+
+		if (ret != TX_SUCCESS) continue; // should never happen but handle it for safety
+
+		// ... do something with the message
+		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
 	}
 }

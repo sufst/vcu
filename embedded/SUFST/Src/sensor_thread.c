@@ -9,6 +9,8 @@
 #include "sensor_thread.h"
 #include "gpio.h"
 #include "adc.h"
+#include "messaging_system.h"
+
 #include <stdint.h>
 
 /**
@@ -28,7 +30,7 @@ uint32_t adc_raw[10];
 /*
  * function prototypes
  */
-UINT test_adc_blocking();
+UINT read_adc_blocking(UINT* data_ptr);
 
 /**
  * @brief Sensor thread entry function
@@ -40,17 +42,18 @@ void sensor_thread_entry(ULONG thread_input)
 	// prevent compiler warnings as input is not used for the moment
 	(VOID) thread_input;
 
-	// ADC reading test
-	float voltage;
-
-	if (test_adc_blocking(&voltage) == ADC_OK)
-	{
- 		__asm__("NOP"); // breakpoint
-	}
-
 	// loop forever
 	while(1)
 	{
+		// read from the ADC
+		control_input_message_t message;
+
+		if (read_adc_blocking(&message.input) == ADC_OK)
+		{
+			// send message to the control thread
+			message_post((VOID*) &message, &control_input_queue);
+		}
+
 		// sleep thread to allow other threads to run
 		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
 	}
@@ -60,12 +63,12 @@ void sensor_thread_entry(ULONG thread_input)
 /**
  * @brief 		Demo code for blocking read from ADC
  *
- * @param[in]	voltage_ptr		Pointer to float to store voltage reading
+ * @param[in]	data_ptr		Pointer to UINT to store 16 bit reading
  *
  * @return		ADC_OK if ADC read successfully
  * 				ADC_ERR otherwise
  */
-UINT test_adc_blocking(float* voltage_ptr)
+UINT read_adc_blocking(UINT* data_ptr)
 {
 	/*
 	 * Read from ADC
@@ -83,9 +86,12 @@ UINT test_adc_blocking(float* voltage_ptr)
 		HAL_ADC_PollForConversion(&hadc1, HAL_MAX_DELAY);
 
 		// read conversion data
-		uint32_t adc_raw = HAL_ADC_GetValue(&hadc1);
-		*voltage_ptr = 3.3f * ((float) adc_raw / (float) 0xFFFF);
+		*data_ptr = HAL_ADC_GetValue(&hadc1);
 
+		/*
+		 * alternatively to convert to float:
+		 * *data_ptr = 3.3f * ((float) adc_raw / (float) 0xFFFF);
+		 */
 		return ADC_OK;
 	}
 
