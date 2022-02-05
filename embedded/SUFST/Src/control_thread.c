@@ -33,15 +33,21 @@ void control_thread_entry(ULONG thread_input)
 	while (1)
 	{
 		// wait for a message to enter the control input queue
-		control_input_message_t message;
-		UINT ret = message_receive(&message, &control_input_queue);
+		// -> thread suspended until message received
+		control_input_message_t input_message;
+		UINT ret = message_receive(&input_message, &control_input_queue);
+
+		if (ret != TX_SUCCESS) continue; // should never happen, drop message if it does
 
 		// TODO: pass input to *actual* control algorithm and produce torque request
 		// 		(using placeholder function at the moment)
-		UINT torque_request = pid_control(message.input);
+		UINT torque_request = pid_control(input_message.input);
 
-		// TODO: send the torque request to the can thread
-		(void) torque_request;
+		// send the torque request to the can thread
+		torque_request_message_t torque_message;
+		torque_message.value = torque_request;
+
+		message_post((VOID*) &torque_message, &torque_request_queue);
 
 	}
 }

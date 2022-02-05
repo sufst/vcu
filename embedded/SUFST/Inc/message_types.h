@@ -14,7 +14,6 @@
  */
 typedef struct {
 
-	UINT priority;
 	UINT value;
 
 } torque_request_message_t;
