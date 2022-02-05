@@ -23,9 +23,12 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+
 #include "sensor_thread.h"
 #include "control_thread.h"
 #include "can_thread.h"
+#include "messaging_system.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -68,6 +71,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE END App_ThreadX_MEM_POOL */
 
   /* USER CODE BEGIN App_ThreadX_Init */
+
   VOID* stack_ptr;	// pointer to allocated memory for thread stack
 
   /**************************
@@ -148,6 +152,19 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
     return ret;
   }
 
+  /*************************
+   * Other initialisation
+   **************************/
+  if (ret == TX_SUCCESS)
+  {
+	  ret = message_system_init();
+  }
+  else
+  {
+	  // error, failed to create CAN thread
+	  return ret;
+  }
+  
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
