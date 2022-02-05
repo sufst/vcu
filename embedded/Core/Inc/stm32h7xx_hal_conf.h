@@ -33,7 +33,8 @@
   * @brief This is the list of modules to be used in the HAL driver
   */
 #define HAL_MODULE_ENABLED
-#define HAL_ADC_MODULE_ENABLED
+
+  #define HAL_ADC_MODULE_ENABLED
 #define HAL_FDCAN_MODULE_ENABLED
 /* #define HAL_FMAC_MODULE_ENABLED   */
 /* #define HAL_CEC_MODULE_ENABLED   */
