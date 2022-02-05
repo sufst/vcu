@@ -43,9 +43,10 @@ void control_thread_entry(ULONG thread_input)
 		// 		(using placeholder function at the moment)
 		UINT torque_request = pid_control(input_message.input);
 
-		// send the torque request to the can thread
+		// create and send the torque request to the can thread
 		torque_request_message_t torque_message;
 		torque_message.value = torque_request;
+		torque_message.timestamp = input_message.timestamp;
 
 		message_post((VOID*) &torque_message, &torque_request_queue);
 

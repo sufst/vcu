@@ -8,6 +8,8 @@
 #include "messaging_system.h"
 #include <stdint.h>
 
+#define TIMESTAMP_TO_MS		(1000 / TX_TIMER_TICKS_PER_SECOND)
+
 /**
  * @brief Queue for sensor messages
  */
@@ -65,6 +67,24 @@ UINT message_receive(VOID* dest_ptr, TX_QUEUE* queue_ptr)
 {
 	return tx_queue_receive(queue_ptr, dest_ptr, TX_WAIT_FOREVER);
 }
+
+/**
+ * @brief 		Sets the timestamp of the message
+ *
+ * @details		At the moment this uses the time since processor startup in milliseconds as
+ * 				the timestamp. In future this might need to be synchronised with other parts
+ * 				of the larger system.
+ *
+ * @note		The timestamp will overflow after around 49.7 days.
+ *
+ * @param[in]	timestamp_ptr	UINT pointer to message struct field to store timestamp in
+ */
+void message_set_timestamp(UINT* timestamp_ptr)
+{
+	ULONG current_time = tx_time_get() * TIMESTAMP_TO_MS;
+	*timestamp_ptr = (UINT) current_time;	// this cast is safe on this ThreadX port as sizeof(UINT) is the same as sizeof(ULONG)
+}
+
 
 
 

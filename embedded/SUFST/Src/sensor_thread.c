@@ -50,12 +50,15 @@ void sensor_thread_entry(ULONG thread_input)
 
 		if (read_adc_blocking(&message.input) == ADC_OK)
 		{
+			// timestamp the message
+			message_set_timestamp(&message.timestamp);
+
 			// send message to the control thread
 			message_post((VOID*) &message, &control_input_queue);
 		}
 
 		// sleep thread to allow other threads to run
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
+		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
 	}
 
 }

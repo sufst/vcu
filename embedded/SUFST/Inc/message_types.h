@@ -13,15 +13,15 @@
  * @brief Torque request message
  */
 typedef struct {
-
+	UINT timestamp;
 	UINT value;
-
 } torque_request_message_t;
 
 /**
  * @brief Control input message
  */
 typedef struct {
+	UINT timestamp;
 	UINT input;
 } control_input_message_t;
 
