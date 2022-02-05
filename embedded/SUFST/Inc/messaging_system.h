@@ -18,7 +18,7 @@
 #define TORQUE_REQUEST_QUEUE_SIZE			100
 #define TORQUE_REQUEST_QUEUE_NAME			"Torque Request Queue"
 
-#define CONTROL_INPUT_QUEUE_MESSAGE_SIZE	1
+#define CONTROL_INPUT_QUEUE_MESSAGE_SIZE	2
 #define CONTROL_INPUT_QUEUE_SIZE			100
 #define CONTROL_INPUT_QUEUE_NAME			"Control Input Queue"
 
@@ -34,5 +34,6 @@ extern TX_QUEUE control_input_queue;
 UINT message_system_init();
 UINT message_post(VOID* message_ptr, TX_QUEUE* queue_ptr);
 UINT message_receive(VOID* dest_ptr, TX_QUEUE* queue_ptr);
+void message_set_timestamp(UINT* timestamp_ptr);
 
 #endif
