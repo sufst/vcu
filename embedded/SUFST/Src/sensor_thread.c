@@ -69,13 +69,15 @@ void sensor_thread_entry(ULONG thread_input)
 	{
 		// read throttle and send it to control thread
 		control_input_message_t message;
-		message.input = read_throttle();
-
+    message.input = read_throttle();
+    
+    message_set_timestamp(&message.timestamp);
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
 		// TODO: this is temporary, need to decide on wake up rate
 		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
+
 	}
 
 }
