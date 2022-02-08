@@ -132,7 +132,7 @@ UINT read_throttle()
 
 #endif
 
-	// return average (right shift 1 faster equivalent of divide by 2)
+	// input legal and throttle outside dead-zone
 	return average;
 }
 
