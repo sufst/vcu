@@ -1,7 +1,7 @@
 /***************************************************************************
  * @file   sensor_thread.c
- * @author Cosmin-Andrei Tamas (cat1g19@soton.ac.uk)
  * @author Tim Brewis (tab1g19@soton.ac.uk)
+ * @author Cosmin-Andrei Tamas (cat1g19@soton.ac.uk)
  * @date   2021-11-30
  * @brief  Sensor thread
  ***************************************************************************/
@@ -19,10 +19,10 @@
  */
 #define THROTTLE_INPUT_RESOLUTION	16		// resolution of ADC
 #define THROTTLE_SCALED_RESOLUTION	10		// scaled resolution sent to control thread
-#define THROTTLE_DEADZONE_FRACTION	0.02	// fractional dead-zone below which throttle always zero
+#define THROTTLE_DEADZONE_FRACTION	0.01	// fractional dead-zone below which throttle always zero
 #define THROTTLE_MAX_DIFF_FRACTION	0.05	// fractional maximum allowed difference between ADC readings
 #define THROTTLE_ENABLE_DIFF_CHECK	1		// set to 1 to enable check for discrepancy between ADC readings
-#define THROTTLE_ENABLE_DEADZONE	1		// set to 1 to enable dead-zone
+#define THROTTLE_ENABLE_DEADZONE	0		// set to 1 to enable dead-zone
 
 /*
  * macros
@@ -69,9 +69,9 @@ void sensor_thread_entry(ULONG thread_input)
 	{
 		// read throttle and send it to control thread
 		control_input_message_t message;
-    message.input = read_throttle();
+		message.input = read_throttle();
     
-    message_set_timestamp(&message.timestamp);
+    	message_set_timestamp(&message.timestamp);
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
@@ -139,7 +139,7 @@ UINT read_throttle()
 }
 
 /**
- * @brief 		Demo code for blocking read from ADC
+ * @brief 		Blocking read from ADC
  *
  * @param[in]	adc_handle		ADC handle
  * @param[in]	data_ptr		Pointer to UINT to store 16 bit reading

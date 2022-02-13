@@ -6,6 +6,7 @@
  ***************************************************************************/
 
 #include "control_thread.h"
+#include "driver_profiles.h"
 #include "messaging_system.h"
 #include "tx_api.h"
 
@@ -17,6 +18,7 @@ TX_THREAD control_thread;
 /*
  * function prototypes
  */
+UINT map_input(UINT input);
 UINT pid_control(UINT input);
 
 /*
@@ -39,9 +41,8 @@ void control_thread_entry(ULONG thread_input)
 
 		if (ret != TX_SUCCESS) continue; // should never happen, drop message if it does
 
-		// TODO: pass input to *actual* control algorithm and produce torque request
-		// 		(using placeholder function at the moment)
-		UINT torque_request = pid_control(input_message.input);
+		// apply the thottle curve
+		UINT torque_request = map_input(input_message.input);
 
 		// create and send the torque request to the can thread
 		torque_request_message_t torque_message;
@@ -49,8 +50,30 @@ void control_thread_entry(ULONG thread_input)
 		torque_message.timestamp = input_message.timestamp;
 
 		message_post((VOID*) &torque_message, &torque_request_queue);
-
 	}
+}
+
+/**
+ * @brief 	Apply the throttle map
+ *
+ * @note	This uses the default driver profile for now
+ */
+UINT map_input(UINT input)
+{
+	UINT ret;
+
+	// look-up the driver profile
+	const driver_profile_t* driver_profile;
+	ret = driver_profile_lookup(&driver_profile, DRIVER_PROFILE_DEFAULT);
+
+	// apply mapping if the profile was found
+	if (ret == DRIVER_PROFILE_FOUND)
+	{
+		return driver_profile->throttle_curve[input];
+	}
+
+	// if driver profile wasn't found, don't do any mapping
+	return input;
 }
 
 /**
