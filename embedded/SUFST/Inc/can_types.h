@@ -136,13 +136,13 @@ typedef enum CAN_input_e
 //PM-100DZ
 
 // General CAN struct
-/* Struct to hold CAN input map (follows big endian) */
-typedef struct input_map_s
+/* Struct to hold CAN segment map (follows big endian) */
+typedef struct segment_map_s
 {
 	CAN_input_t 	index;			/* index in inputs array */
 	uint8_t 		start_byte;		/* input start byte (MSB) in CAN data field */
 	uint8_t 		size;			/* input size in bytes */
-} input_map_t;
+} segment_map_t;
 
 /* Struct to hold messages used in CAN message queues */
 typedef struct queue_msg_s
@@ -164,7 +164,7 @@ typedef struct CAN_msg_s
 	uint32_t		msg_ID;			// Message ID
 	uint32_t		msg_type;		// STD or EXT
 	char 			name[20];		// internal message name
-	input_map_t *   input_map;		// input_map for data
+	segment_map_t*   segment_map;		// input_map for data
 	uint8_t			num_inputs;		// number of inputs
 	CAN_parser_t	parser;			// parser function
 

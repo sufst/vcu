@@ -10,11 +10,11 @@ static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx);
 
 /* Private Variables ---------------------------------------------------------------*/
 static uint8_t Notification_flag = 0;
-/* CAN message input maps */
+/* CAN message segment maps */
 /* INPUT_INDEX, START BYTE, BYTE SIZE */
 
-/* Input maps for Inverter, PM100DZ --------------------------------------------------------------*/
-input_map_t TEMP1_map[] =
+/* Segments maps for Inverter, PM100DZ --------------------------------------------------------------*/
+segment_map_t TEMP1_map[] =
 {
 		{MODULE_A_TEMP, 0, 2},
 		{MODULE_B_TEMP, 2, 2},
@@ -22,7 +22,7 @@ input_map_t TEMP1_map[] =
 		{GATE_DRIVER_BOARD_TEMP, 6, 2},
 };
 
-input_map_t TEMP2_map[] =
+segment_map_t TEMP2_map[] =
 {
 		{CONTROL_BOARD_TEMPERATURE, 0, 2},
 		{RTD_1_TEMP, 2, 2},
@@ -30,7 +30,7 @@ input_map_t TEMP2_map[] =
 		{RTD_3_TEMP, 6, 2},
 };
 
-input_map_t TEMP3_map[] =
+segment_map_t TEMP3_map[] =
 {
 		{COOLANT_TEMP, 0, 2},
 		{HOT_SPOT_TEMP, 2, 2},
@@ -38,14 +38,14 @@ input_map_t TEMP3_map[] =
 		{TORQUE_SHUDDER, 6, 2},
 };
 
-input_map_t ANALOG_map[] =
+segment_map_t ANALOG_map[] =
 {
 		{OIL_TEMP, 0, 2},
 		{OIL_PRESSURE, 2, 2},
 		// Special Parser for 10-bit analog voltage 4,5,6
 };
 
-input_map_t DIGI_map[] =
+segment_map_t DIGI_map[] =
 {
 		{DIGITAL_INPUT_1, 0, 1},
 		{DIGITAL_INPUT_2, 1, 1},
@@ -57,7 +57,7 @@ input_map_t DIGI_map[] =
 		{DIGITAL_INPUT_8, 7, 1},
 };
 
-input_map_t MOTORPOS_map[] =
+segment_map_t MOTORPOS_map[] =
 {
 		{MOTOR_ANGLE_ELECTRICAL, 0, 2},
 		{MOTOR_SPEED, 2, 2},
@@ -65,7 +65,7 @@ input_map_t MOTORPOS_map[] =
 		{DELTA_RESOLVER_FILTERED, 6, 2},
 };
 
-input_map_t CURRENTINF_map[] =
+segment_map_t CURRENTINF_map[] =
 {
 
 		{PHASE_A_CURRENT, 0, 2},
@@ -74,7 +74,7 @@ input_map_t CURRENTINF_map[] =
 		{DC_BUS_CURRENT, 6, 2},
 };
 
-input_map_t VOLTINF_map[] =
+segment_map_t VOLTINF_map[] =
 {
 		{DC_BUS_VOLTAGE, 0, 2},
 		{OUTPUT_VOLTAGE, 2, 2},
@@ -82,7 +82,7 @@ input_map_t VOLTINF_map[] =
 		{VBC_VQ_VOLTAGE, 6, 2},
 };
 
-input_map_t FLUXINF_map[] =
+segment_map_t FLUXINF_map[] =
 {
 		{FLUX_COMMAND, 0, 2},
 		{FLUX_FEEDBACK, 2, 2},
@@ -90,7 +90,7 @@ input_map_t FLUXINF_map[] =
 		{IQ_FEEDBACK, 6, 2},
 };
 
-input_map_t INTVOLT_map[] =
+segment_map_t INTVOLT_map[] =
 {
 
 		{REFERENCE_VOLTAGE_1V5, 0, 2},
@@ -100,7 +100,7 @@ input_map_t INTVOLT_map[] =
 
 };
 
-input_map_t FAULTCODES_map[] =
+segment_map_t FAULTCODES_map[] =
 {
 
 		{POST_FAULT_LO, 0, 2},
@@ -109,14 +109,14 @@ input_map_t FAULTCODES_map[] =
 		{RUN_FAULT_HI, 6, 2},
 };
 
-input_map_t TORQTIM_map[] =
+segment_map_t TORQTIM_map[] =
 {
 		{COMMANDED_TORQUE, 0, 2},
 		{TORQUE_FEEDBACK, 2, 2},
 		{POWER_ON_TIMER, 4, 4},
 };
 
-input_map_t MODFLUX_map[] =
+segment_map_t MODFLUX_map[] =
 {
 
 		{MODULATION_INDEX, 0, 2},
@@ -125,7 +125,7 @@ input_map_t MODFLUX_map[] =
 		{IQ_COMMAND, 6, 2},
 };
 
-input_map_t FIRMINF_map[] =
+segment_map_t FIRMINF_map[] =
 {
 
 		{EEPROM_VERSION, 0, 2},
@@ -134,7 +134,7 @@ input_map_t FIRMINF_map[] =
 		{DATE_CODE_YY, 6, 2},
 };
 
-input_map_t HIGHSPEED_map[] =
+segment_map_t HIGHSPEED_map[] =
 {
 
 		{FAST_COMMANDED_TORQUE, 0, 2},
@@ -143,7 +143,7 @@ input_map_t HIGHSPEED_map[] =
 		{FAST_DC_BUS_VOLTAGE, 6, 2},
 };
 
-input_map_t PARAMETER_RESPONSE_map[] =
+segment_map_t PARAMETER_RESPONSE_map[] =
 {
 
 		{PARAMETER_RESPONSE_ADDRESS, 0, 2},
@@ -246,7 +246,7 @@ static void CAN_parser_std(queue_msg_t q_msg, uint8_t CAN_idx)
 	for (int i = 0; i < CAN_dict[CAN_idx].num_inputs; i++)
 	{
 		uint32_t result = 0;
-		input_map_t input = CAN_dict[CAN_idx].input_map[i];
+		segment_map_t input = CAN_dict[CAN_idx].segment_map[i];
 
 		/* iterate over all bytes of input */
 		for (int j = 0; j < input.size; j++)
@@ -274,7 +274,7 @@ static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
 	for (int i = 0; i < CAN_dict[CAN_idx].num_inputs; i++)
 	{
 		uint32_t result = 0;
-		input_map_t input = CAN_dict[CAN_idx].input_map[i];
+		segment_map_t input = CAN_dict[CAN_idx].segment_map[i];
 
 		/* iterate over all bytes of input */
 		for (int j = input.size - 1; j >=0; j--)
