@@ -42,6 +42,7 @@ void pm100_init(){
 	uint16_t INVERTER_RUN_MODE_ADDR = 0x8E;
 	uint16_t INVERTER_COMMAND_MODE_ADDR = 0x8F;
 	uint16_t CAN_TERM_RESISTOR_PRESENT_ADDR = 0x91;
+	uint16_t RAW_CAN_TERM_RESISTOR_PRESENT_ADDR = 0x11e;
 	uint16_t CAN_COMMAND_MESSAGE_ACTIVE_ADDR = 0x92;
 	uint16_t CAN_BIT_RATE_ADDR = 0x93;
 	uint16_t CAN_ACTIVE_MESSAGES_LO_WORD_ADDR = 0x94;
@@ -51,6 +52,7 @@ void pm100_init(){
 	parameter_write_command(INVERTER_RUN_MODE_ADDR, 0);
 	parameter_write_command(INVERTER_COMMAND_MODE_ADDR, 0);
 	parameter_write_command(CAN_TERM_RESISTOR_PRESENT_ADDR, 1);
+	parameter_write_command(RAW_CAN_TERM_RESISTOR_PRESENT_ADDR, 1);
 	parameter_write_command(CAN_COMMAND_MESSAGE_ACTIVE_ADDR, 1);
 	parameter_write_command(CAN_BIT_RATE_ADDR, 1000);
 	parameter_write_command(CAN_ACTIVE_MESSAGES_LO_WORD_ADDR, 0xFF); //enable all messages
@@ -73,6 +75,16 @@ void parameter_write_command(uint16_t parameter_address, uint16_t data)
 	pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
 	pm100_parameter_write_msg.data[4] = (data & 0x00FF);
 	CAN_Send(pm100_parameter_write_msg);
+	uint32_t suc = 0;
+	// Wait until write success
+    while(!suc){
+        suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
+        uint32_t res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+        // printf("Wrtie Addr: %u, Response Addess: %lu, Success: %lu\n",parameter_address,res_ad,suc);
+        HAL_Delay(100);
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+        CAN_Send(pm100_parameter_write_msg);
+    }
 }
 
 /**

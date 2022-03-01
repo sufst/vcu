@@ -180,7 +180,13 @@ static CAN_msg_t CAN_dict[]	=
 /* CAN Inputs Vector ----------------------------------------------------------------*/
 volatile uint32_t CAN_inputs[NUM_INPUTS];
 
-
+/**
+ * @brief 		Fetch and Parse a CAN message from CAN FIFO
+ *
+ * @details		Use Notification_flag for polling. Parsed data is stored in CAN_inputs.
+ *
+ * @return		None
+ */
 void CAN_Rx(){
 	FDCAN_RxHeaderTypeDef		RxHeader;
 	uint8_t						RxData[8];
@@ -223,7 +229,11 @@ void CAN_Rx(){
 }
 
 
-/* Non-Task Functions ---------------------------------------------------------------*/
+/**
+ * @brief 				Push CAN message to CAN bus
+ * @param[in] Tx_msg: 	outgoing CAN message
+ * 
+ */
 
 void CAN_Send(queue_msg_t Tx_msg)
 {
@@ -352,7 +362,25 @@ static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx){
 
 }
 
+/**
+  * @brief  Rx Fifo 0 message callback
+  * @param  hfdcan1: pointer to a FDCAN_HandleTypeDef structure that contains
+  *         the configuration information for the specified FDCAN.
+  * @retval None
+  */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+	if((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
+	{
+		Notification_flag = 1;
+	}
+	else {
+//		can_fault=4;
+		Error_Handler();
+	}
 
+	// CAN_Rx()
+}
 
 
 
