@@ -48,7 +48,7 @@ void control_thread_entry(ULONG thread_input)
 		torque_message.value = torque_request;
 		torque_message.timestamp = input_message.timestamp;
 
-		message_post((VOID*) &torque_message, &torque_request_queue);
+		//message_post((VOID*) &torque_message, &torque_request_queue);
 
 	}
 }

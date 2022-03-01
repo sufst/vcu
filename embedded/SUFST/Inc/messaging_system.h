@@ -34,6 +34,7 @@ extern TX_QUEUE control_input_queue;
 UINT message_system_init();
 UINT message_post(VOID* message_ptr, TX_QUEUE* queue_ptr);
 UINT message_receive(VOID* dest_ptr, TX_QUEUE* queue_ptr);
+UINT message_alloc(VOID** msg_dest_ptr, UINT mge_size);
 void message_set_timestamp(UINT* timestamp_ptr);
 
 #endif

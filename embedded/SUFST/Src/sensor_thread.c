@@ -54,7 +54,7 @@ void sensor_thread_entry(ULONG thread_input)
 			message_set_timestamp(&message.timestamp);
 
 			// send message to the control thread
-			message_post((VOID*) &message, &control_input_queue);
+			//message_post((VOID*) &message, &control_input_queue);
 		}
 
 		// sleep thread to allow other threads to run
