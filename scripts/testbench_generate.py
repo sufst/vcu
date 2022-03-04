@@ -1,6 +1,6 @@
 ############################################################
 #               :
-#   File        :   lapsim.py
+#   File        :   testbench_generate.py
 #               :
 #   Author(s)   :   Tim Brewis (tab1g19@soton.ac.uk)
 #               :
@@ -112,10 +112,10 @@ def run():
         # cleanup
         file.close()
 
-    # finish up output file
+    # finish up files
     h_file.write('\n\n#endif \n')
 
-    # done
+    # cleanup and exit
     c_file.close()
     h_file.close()
     print(Colours.Green + 'Done.\n' + Colours.End)
