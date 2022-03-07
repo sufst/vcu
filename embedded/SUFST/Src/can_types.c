@@ -174,7 +174,7 @@ static CAN_msg_t CAN_dict[]	=
 		{CAN_ID_OFFSET+0x0E, STD, "Firm_Info", FIRMINF_map, 4, CAN_parser_std_little_endian},
 		{CAN_ID_OFFSET+0x0F, STD, "Diagnostic", NULL, 0, CAN_parser_DIAGNOSTIC},
 		{CAN_ID_OFFSET+0x10, STD, "High_Speed_Message", HIGHSPEED_map, 4, CAN_parser_std_little_endian},
-		{CAN_ID_OFFSET+0x22, STD, "Parameter_Response", PARAMETER_RESPONSE_map, 0, CAN_parser_std_little_endian},
+		{CAN_ID_OFFSET+0x22, STD, "Parameter_Response", PARAMETER_RESPONSE_map, 3, CAN_parser_std_little_endian},
 };
 
 /* CAN Inputs Vector ----------------------------------------------------------------*/
@@ -183,7 +183,7 @@ volatile uint32_t CAN_inputs[NUM_INPUTS];
 /**
  * @brief 		Fetch and Parse a CAN message from CAN FIFO
  *
- * @details		Use Notification_flag for polling. Parsed data is stored in CAN_inputs.
+ * @details		Activated through HAL_FDCAN notification interrupt. Parsed data is stored in CAN_inputs.
  *
  * @return		None
  */
@@ -192,39 +192,39 @@ void CAN_Rx(){
 	uint8_t						RxData[8];
 
 	queue_msg_t Rx_msg;
-	if(Notification_flag == 1){
+        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
 
 		/* Get RX message */
 		if (HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &(RxHeader), RxData) != HAL_OK)
 		{
-	//		cvc_error_handler(CVC_HARD_FAULT, CAN_ERR);
+			// GetRx Error
 		}
-
 		/* Add message to RxQueue */
 		Rx_msg.Rx_header = RxHeader;
 		for (int i=0; i<sizeof(RxData); i++)	{
 		  Rx_msg.data[i] = RxData[i];
 		}
-		/* filter messages */
-			uint8_t done = 0;
-			uint8_t i = 0;
+		/* TODO: Split task into receive and parse CAN messages from queue*/
 
-			/* search through CAN dictionary until message is found */
-			while(i < sizeof(CAN_dict)/sizeof(CAN_msg_t) && !done)
+		/* find matched messages from CAN_dict */
+		uint8_t done = 0;
+		uint8_t i = 0;
+		uint8_t CAN_dict_length = sizeof(CAN_dict)/sizeof(CAN_msg_t);
+
+		/* search through CAN dictionary until message is found */
+		while(i < CAN_dict_length && !done)
+		{
+			if (Rx_msg.Rx_header.Identifier == CAN_dict[i].msg_ID)
 			{
-				if (Rx_msg.Rx_header.Identifier == CAN_dict[i].msg_ID)
-				{
-						CAN_dict[i].parser(Rx_msg, i);	// call message parser
-						done = 1;
-
-
-				}
-				i++;
+					CAN_dict[i].parser(Rx_msg, i);	// call message parser
+					done = 1;
 			}
-			/* Reactivate notification */
-			Notification_flag = 0;
-			HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
-	}
+			i++;
+		}
+
+		/* Reactivate notification */
+		HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+		HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14); // Debug LED blink
 
 }
 
@@ -240,8 +240,8 @@ void CAN_Send(queue_msg_t Tx_msg)
 	/* TODO: check that CAN message is valid */
 	if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Tx_msg.Tx_header, Tx_msg.data) != HAL_OK)
 		{
+		printf("Error_CAN_send\r\n");
 		}
-
 }
 
 /**
@@ -275,11 +275,10 @@ static void CAN_parser_std(queue_msg_t q_msg, uint8_t CAN_idx)
 /**
  * @brief standard parser for unpacking Rinehart messages (and other little endian messages) into CAN_inputs table (little endian to big endian)
  * @param q_msg: incoming CAN message
- * @param CAN_msg: reference message from CAN_dict w/ message metadata
+ * @param CAN_idx: the index of message in CAN_dict w/ message metadata
  */
 static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
 {
-	volatile int FLAG = 0;
 	/* iterate over all inputs in data field */
 	for (int i = 0; i < CAN_dict[CAN_idx].num_inputs; i++)
 	{
@@ -292,10 +291,8 @@ static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
 			result = result << 8 | (uint32_t) (q_msg.data[input.start_byte + j]);
 		}
 
-
 		/* store result in CAN_inputs table */
 		CAN_inputs[input.index] = result;
-
 	}
 }
 
@@ -364,7 +361,7 @@ static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx){
 
 /**
   * @brief  Rx Fifo 0 message callback
-  * @param  hfdcan1: pointer to a FDCAN_HandleTypeDef structure that contains
+  * @param  hfdcan: pointer to a FDCAN_HandleTypeDef structure that contains
   *         the configuration information for the specified FDCAN.
   * @retval None
   */
@@ -372,15 +369,10 @@ void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
 {
 	if((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
 	{
-		Notification_flag = 1;
+		CAN_Rx();
 	}
 	else {
-//		can_fault=4;
 		Error_Handler();
 	}
-
-	// CAN_Rx()
 }
-
-
 

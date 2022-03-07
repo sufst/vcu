@@ -164,8 +164,8 @@ typedef struct CAN_msg_s
 	uint32_t		msg_ID;			// Message ID
 	uint32_t		msg_type;		// STD or EXT
 	char 			name[20];		// internal message name
-	segment_map_t*   segment_map;		// input_map for data
-	uint8_t			num_inputs;		// number of inputs
+	segment_map_t*   segment_map;	// segment_map for data
+	uint8_t			num_inputs;		// number of segments
 	CAN_parser_t	parser;			// parser function
 
 } CAN_msg_t;
@@ -179,4 +179,5 @@ extern volatile uint32_t CAN_inputs[NUM_INPUTS];
 void CAN_Rx();
 void CAN_Send(queue_msg_t Tx_msg);
 
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 #endif /* CAN_TYPES_H_ */
