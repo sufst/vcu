@@ -1,7 +1,7 @@
 
 #include "pm100.h"
 
-#define DIRECTION_COMMAND 1 // 1: Forward
+#define DIRECTION_COMMAND 1 // // 0: Reverse, 1: Forward (Refer Datasheet)
 
 /* pm100 Command Message*/
 static queue_msg_t pm100_command_msg =
@@ -33,35 +33,6 @@ static queue_msg_t pm100_parameter_read_msg =
 };
 
 /**
- * @brief Configure inverter
- *
- */
-void pm100_init(){
-	/* TODO: Set up some start up values. E.g. activate/deactivate broadcast messages */
-	/* EEPROM addresses */
-	uint16_t INVERTER_RUN_MODE_ADDR = 0x8E;
-	uint16_t INVERTER_COMMAND_MODE_ADDR = 0x8F;
-	uint16_t CAN_TERM_RESISTOR_PRESENT_ADDR = 0x91;
-	uint16_t RAW_CAN_TERM_RESISTOR_PRESENT_ADDR = 0x11e;
-	uint16_t CAN_COMMAND_MESSAGE_ACTIVE_ADDR = 0x92;
-	uint16_t CAN_BIT_RATE_ADDR = 0x93;
-	uint16_t CAN_ACTIVE_MESSAGES_LO_WORD_ADDR = 0x94;
-	uint16_t CAN_DIAGNOSTIC_DATA_TRANSMIT_ACTIVE_ADDR = 0x9E;
-	uint16_t CAN_INVERTER_ENABLE_SWITCH_ACTIVE_ADDR = 0x9F;
-	uint16_t CAN_TIMEOUT_ADDR = 0xAC;
-	parameter_write_command(INVERTER_RUN_MODE_ADDR, 0);
-	parameter_write_command(INVERTER_COMMAND_MODE_ADDR, 0);
-	parameter_write_command(CAN_TERM_RESISTOR_PRESENT_ADDR, 1);
-	parameter_write_command(RAW_CAN_TERM_RESISTOR_PRESENT_ADDR, 1);
-	parameter_write_command(CAN_COMMAND_MESSAGE_ACTIVE_ADDR, 1);
-	parameter_write_command(CAN_BIT_RATE_ADDR, 1000);
-	parameter_write_command(CAN_ACTIVE_MESSAGES_LO_WORD_ADDR, 0xFF); //enable all messages
-	parameter_write_command(CAN_DIAGNOSTIC_DATA_TRANSMIT_ACTIVE_ADDR, 1);
-	parameter_write_command(CAN_INVERTER_ENABLE_SWITCH_ACTIVE_ADDR, 0);
-	parameter_write_command(CAN_TIMEOUT_ADDR, 3); // 3x333ms == 999ms timeout
-}
-
-/**
  * @brief a way to send parameter write messages to inverter
  * @param parameter_address the Parameter Address for the message
  * @param data the data to send in bytes 4 and 5, should already be formatted in order [byte 4][byte 5] (formatting described in documentation)
@@ -76,13 +47,13 @@ void parameter_write_command(uint16_t parameter_address, uint16_t data)
 	pm100_parameter_write_msg.data[4] = (data & 0x00FF);
 	CAN_Send(pm100_parameter_write_msg);
 	uint32_t suc = 0;
-	// Wait until write success
-    while(!suc){
+	uint16_t res_ad = 0;
+    while(res_ad != parameter_address || !suc){
         suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
-        uint32_t res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-        // printf("Wrtie Addr: %u, Response Addess: %lu, Success: %lu\n",parameter_address,res_ad,suc);
+        res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+        printf("Wrtie Addr: %x, Response Addess: %x, Success: %x\r\n",parameter_address,res_ad,suc);
         HAL_Delay(100);
-        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
+//        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
         CAN_Send(pm100_parameter_write_msg);
     }
 }
@@ -97,9 +68,16 @@ void parameter_read_command(uint16_t parameter_address)
 
 	pm100_parameter_read_msg.data[0] = (parameter_address & 0x00FF);
 	pm100_parameter_read_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-
-
 	CAN_Send(pm100_parameter_read_msg);
+	uint32_t res_data = 0;
+	uint16_t res_ad = 0;
+    while(res_ad != parameter_address){
+        res_data = CAN_inputs[PARAMETER_RESPONSE_DATA];
+        res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+        printf("Read Addr: %x, Response Addess: %x, Data: %lx\r\n",parameter_address,res_ad,res_data);
+        HAL_Delay(100);
+        CAN_Send(pm100_parameter_read_msg);
+    }
 }
 
 
@@ -131,15 +109,17 @@ void command_msg(uint16_t torque_command, uint16_t speed_command, uint8_t direct
 
 /**
  * @brief a way to send torque messages to inverter (will disable lockout if lockout is enabled by sending empty message)
- * @param torque_command the torque command to send in N*m times 10 (does parsing locally)
+ * @param torque_command the torque command to send in N*m (Range(-3276.8..3276.7 Nm))
  */
-void pm100_torque_command(uint16_t torque_command){
+void pm100_torque_command(float torque_command){
 
 	if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1){
 		command_msg(0,0,0,0,0,0,0);
 	}
 	else{
-		command_msg(torque_command, 0, DIRECTION_COMMAND, 1, 0, 0, 0);
+		// Scaling factor of 10
+		uint16_t uint_torque_command = (uint16_t)(torque_command*10);
+		command_msg(uint_torque_command, 0, DIRECTION_COMMAND, 1, 0, 0, 0);
 	}
 
 }
