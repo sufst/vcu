@@ -60,6 +60,8 @@ def run():
     h_file.write('#ifndef ' + include_guard + '\n')
     h_file.write('#define ' + include_guard + '\n\n')
 
+    c_file.write('#include \"' + h_file_name.split('/')[-1] + '\"\n\n')
+
     # go through each file in ./csv
     csv_dir = script_path + '/csv/'
     csv_files = [csv_dir + f for f in os.listdir(csv_dir) if os.path.isfile(os.path.join(csv_dir, f))]
@@ -166,9 +168,9 @@ def to_hex_array_code(data, array_name, elements_per_line=16, num_hex_digits=4):
 
     max_data = int('0x' + 'F' * num_hex_digits, 16)
 
-    array = 'const uint16_t ' + array_name + ' []'
+    array = 'const uint16_t ' + array_name + ' [' + str(len(data)) + ']'
     prototype = 'extern ' + array + ';'
-    source = array + '= {\n\t'
+    source = array + ' = {\n\t'
 
     for i in range(len(data)):
 
