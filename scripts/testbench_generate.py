@@ -68,6 +68,7 @@ def run():
 
     print(Colours.Header + '\nGenerating lookup tables:' + Colours.End)
 
+    file_count = 0
     for file_name in csv_files:
 
         print('->', file_name)
@@ -99,11 +100,11 @@ def run():
             sys.exit(error_str)
 
         # generate C code lookup tables
-        prototype, array = to_hex_array_code(times_ms, 'time_lookup')
+        prototype, array = to_hex_array_code(times_ms, 'time_lookup_' + str(file_count))
         c_code = array + '\n\n'
         h_code = prototype + '\n'
 
-        prototype, array = to_hex_array_code(throttles, 'throttle_lookup')
+        prototype, array = to_hex_array_code(throttles, 'throttle_lookup_' + str(file_count))
         c_code += array
         h_code += prototype
 
@@ -111,8 +112,12 @@ def run():
         c_file.write(c_code)
         h_file.write(h_code)
 
+        c_file.write('\n\n')
+        h_file.write('\n\n')
+
         # cleanup
         file.close()
+        file_count += 1
 
     # finish up files
     h_file.write('\n\n#endif \n')
