@@ -29,7 +29,6 @@ void can_thread_entry(ULONG thread_input)
 	// loop forever
 	while (1)
 	{
-
 		// wait for message to enter torque request queue
 		// -> thread suspended until message arrives
 		torque_request_message_t message;
