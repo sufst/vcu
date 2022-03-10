@@ -40,7 +40,6 @@ bool ready_to_drive_state()
 #if (READY_TO_DRIVE_OVERRIDE)
 	return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin) == GPIO_PIN_SET;
 #else
-#error "Actual ready to drive signal not implemented"
-	return false;
+	return HAL_GPIO_ReadPin(READY_TO_DRIVE_Port, READY_TO_DRIVE_Pin) == GPIO_PIN_SET;
 #endif
 }

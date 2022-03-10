@@ -7,7 +7,6 @@
 
 #include "can_thread.h"
 #include "tx_api.h"
-#include "gpio.h"
 #include "fdcan.h"
 #include "messaging_system.h"
 
@@ -37,6 +36,6 @@ void can_thread_entry(ULONG thread_input)
 		if (ret != TX_SUCCESS) continue; // should never happen but handle it for safety
 
 		// ... do something with the message
-		HAL_GPIO_TogglePin(LED_GREEN_GPIO_Port, LED_GREEN_Pin);
+
 	}
 }
