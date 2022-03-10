@@ -28,6 +28,7 @@
 #include "control_thread.h"
 #include "can_thread.h"
 #include "messaging_system.h"
+#include "ready_to_drive.h"
 
 /* USER CODE END Includes */
 
@@ -165,6 +166,11 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 	  return ret;
   }
   
+  /*************************
+   * Ready-to-drive wait
+   **************************/
+  wait_for_ready_to_drive();
+
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
