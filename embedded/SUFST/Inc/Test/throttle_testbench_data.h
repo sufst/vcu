@@ -17,8 +17,8 @@
 	// lookup tables for time / throttle input
 	extern const uint16_t standing_start_time_lookup [1001];
 	extern const uint16_t standing_start_throttle_lookup [1001];
-	extern const uint16_t flying_lap_time_lookup [5];
-	extern const uint16_t flying_lap_throttle_lookup [5];
+	extern const uint16_t flying_lap_time_lookup [999];
+	extern const uint16_t flying_lap_throttle_lookup [999];
 #endif
 
 #endif 
