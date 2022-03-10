@@ -7,8 +7,11 @@
  ***************************************************************************/
 
 #include "sensor_thread.h"
-#include "gpio.h"
+#include "config.h"
+#include "Test/testbench.h"
+
 #include "adc.h"
+#include "gpio.h"
 #include "messaging_system.h"
 
 #include <stdint.h>
@@ -16,19 +19,15 @@
 
 /*
  * configuration
+ * TODO: move these to config.h
  */
-#define THROTTLE_INPUT_RESOLUTION	16		// resolution of ADC
-#define THROTTLE_SCALED_RESOLUTION	10		// scaled resolution sent to control thread
-#define THROTTLE_DEADZONE_FRACTION	0.01	// fractional dead-zone below which throttle always zero
-#define THROTTLE_MAX_DIFF_FRACTION	0.05	// fractional maximum allowed difference between ADC readings
-#define THROTTLE_ENABLE_DIFF_CHECK	1		// set to 1 to enable check for discrepancy between ADC readings
-#define THROTTLE_ENABLE_DEADZONE	0		// set to 1 to enable dead-zone
+
 
 /*
  * macros
  */
-#define THROTTLE_ADC_HANDLE_1	&hadc1	// PA3 (A0 on CN9)
-#define THROTTLE_ADC_HANDLE_2	&hadc2	// PB1 (A3 on CN9)
+#define THROTTLE_ADC_HANDLE_1		&hadc1	// PA3 (A0 on CN9)
+#define THROTTLE_ADC_HANDLE_2		&hadc2	// PB1 (A3 on CN9)
 
 #define THROTTLE_INPUT_MAX			((1 << THROTTLE_INPUT_RESOLUTION) - 1)
 #define THROTTLE_SCALED_MAX			((1 << THROTTLE_SCALED_RESOLUTION) - 1)
@@ -51,8 +50,10 @@ TX_THREAD sensor_thread;
 /*
  * function prototypes
  */
+#if (!RUN_THROTTLE_TESTBENCH && !RUN_ENDURANCE_TESTBENCH)
 UINT read_throttle();
 UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr);
+#endif
 
 /**
  * @brief Sensor thread entry function
@@ -69,19 +70,25 @@ void sensor_thread_entry(ULONG thread_input)
 	{
 		// read throttle and send it to control thread
 		control_input_message_t message;
-		message.input = read_throttle();
+
+#if (RUN_THROTTLE_TESTBENCH)
+		message.input = testbench_throttle();
+#elif (RUN_ENDURANCE_TESTBENCH)
+
+#else
+	message.input = read_throttle();
+#endif
     
     	message_set_timestamp(&message.timestamp);
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
 		// TODO: this is temporary, need to decide on wake up rate
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
-
+		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 100);
 	}
-
 }
 
+#if (!RUN_THROTTLE_TESTBENCH && !RUN_ENDURANCE_TESTBENCH)
 /**
  * @brief 	Read throttle
  *
@@ -174,4 +181,4 @@ UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr)
 
 	return ADC_ERR;
 }
-
+#endif
