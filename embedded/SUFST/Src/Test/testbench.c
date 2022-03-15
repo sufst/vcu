@@ -118,8 +118,7 @@ VOID testbench_fault_state()
 
 	if (user_button_state == GPIO_PIN_SET)
 	{
-		tx_thread_resume(&fault_state_thread);
-		tx_thread_relinquish();
+		enter_fault_state();
 	}
 }
 

@@ -23,7 +23,16 @@
 #define FAULT_STATE_LED_BLINK_RATE 	2		// in Hz
 
 /***************************************************************************
- * sensor thread
+ * thread priorities
+ ***************************************************************************/
+
+#define FAULT_STATE_THREAD_PRIORITY	0		// maximum priority
+#define SENSOR_THREAD_PRIORITY		3
+#define CONTROL_THREAD_PRIORITY		3
+#define CAN_THREAD_PRIORITY			2
+
+/***************************************************************************
+ * sensors
  ***************************************************************************/
 
 #define THROTTLE_INPUT_RESOLUTION	16		// resolution of ADC

@@ -7,7 +7,6 @@
  ***************************************************************************/
 
 #include "sensor_thread.h"
-#include "config.h"
 #include "Test/testbench.h"
 
 #include "adc.h"

@@ -6,7 +6,6 @@
  ***************************************************************************/
 
 #include "fault_state_thread.h"
-#include "config.h"
 
 #include "can_thread.h"
 #include "control_thread.h"
@@ -17,6 +16,15 @@
  * @brief Thread for fault state
  */
 TX_THREAD fault_state_thread;
+
+/**
+ * @brief	Enter the fault state
+ */
+void enter_fault_state()
+{
+	tx_thread_resume(&fault_state_thread);
+	tx_thread_relinquish();
+}
 
 /**
  * @brief 		Fault state thread entry function
