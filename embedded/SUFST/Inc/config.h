@@ -15,7 +15,7 @@
  ***************************************************************************/
 
 #define READY_TO_DRIVE_OVERRIDE		1		// set to 0 to use the 'USER' button as the ready-to-drive signal
-#define READY_TO_DRIVE_BUZZER_TIME	3		// in seconds
+#define READY_TO_DRIVE_BUZZER_TIME	2		// in seconds
 
 /***************************************************************************
  * fault state
