@@ -33,7 +33,11 @@ void enter_fault_state()
  */
 void fault_state_thread_entry(ULONG thread_input)
 {
-	// TODO: time-critical actions
+	// drive fault output pin low
+	HAL_GPIO_WritePin(FAULT_GPIO_Port, FAULT_Pin, GPIO_PIN_RESET);
+
+	// TODO: zero torque request to inverter
+
 
 	// shut down other threads
 	// note: this thread has the highest priority and will not be pre-empted

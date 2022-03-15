@@ -64,6 +64,8 @@ void Error_Handler(void);
 #define GREEN_LED_GPIO_Port GPIOB
 #define READY_TO_DRIVE_Pin GPIO_PIN_2
 #define READY_TO_DRIVE_GPIO_Port GPIOB
+#define FAULT_Pin GPIO_PIN_9
+#define FAULT_GPIO_Port GPIOE
 #define RED_LED_Pin GPIO_PIN_14
 #define RED_LED_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
