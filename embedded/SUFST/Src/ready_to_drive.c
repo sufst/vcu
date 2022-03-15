@@ -15,14 +15,19 @@
 /*
  * function prototypes
  */
-bool ready_to_drive_state();
+static bool ready_to_drive_state();
+static void sound_buzzer();
+
 
 /**
  * @brief Wait for ready-to-drive signal to become active
  */
 void wait_for_ready_to_drive()
 {
+	// red LED on
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+
+	// wait for active high
 	while (!ready_to_drive_state());
 
 	// if ready to drive overridden ('USER' button input)
@@ -31,6 +36,10 @@ void wait_for_ready_to_drive()
 	while (ready_to_drive_state());
 #endif
 
+	// produce sound
+	sound_buzzer();
+
+	// red LED off
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
 
@@ -50,3 +59,14 @@ bool ready_to_drive_state()
 	return HAL_GPIO_ReadPin(READY_TO_DRIVE_Port, READY_TO_DRIVE_Pin) == GPIO_PIN_SET;
 #endif
 }
+
+/**
+ * @brief Output a high signal to the pin connected to the ready-to-drive buzzer
+ */
+void sound_buzzer()
+{
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
+	tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * READY_TO_DRIVE_BUZZER_TIME);
+	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+}
+
