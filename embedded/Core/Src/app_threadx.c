@@ -24,11 +24,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "sensor_thread.h"
-#include "control_thread.h"
 #include "can_thread.h"
+#include "control_thread.h"
+#include "fault_state_thread.h"
 #include "messaging_system.h"
 #include "ready_to_drive.h"
+#include "sensor_thread.h"
 
 /* USER CODE END Includes */
 
@@ -82,17 +83,12 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   // allocate memory for control thread from application memory pool
   ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
 
+  // create control thread
   if (ret == TX_SUCCESS)
   {
-	  // create control thread
 	  ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
-			  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
-			  TX_NO_TIME_SLICE, TX_AUTO_START);
-  }
-  else
-  {
-	  // error, failed to allocate control thread stack from application memory pool
-	  return ret;
+			  	  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
+				  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
 
   /*************************
@@ -104,23 +100,13 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   {
 	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
   }
-  else
-  {
-	  // error, failed to create control thread
-	  return ret;
-  }
 
+  // create CAN thread
   if (ret == TX_SUCCESS)
   {
-	  // create CAN thread
-	  tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
-			  CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
-			  TX_NO_TIME_SLICE, TX_AUTO_START);
-  }
-  else
-  {
-	  // error, failed to allocate control thread stack from application memory pool
-	  return ret;
+	  ret = tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
+			  	  CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
+				  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
   
   /*************************
@@ -130,46 +116,58 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   // allocate memory for sensor thread from application memory pool
   if (ret == TX_SUCCESS)
   {
-	  // allocate memory for the sensor thread from the application memory pool
 	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
 
   }
-  else
-  {
-	  // failed to create CAN thread
-	  return ret;
-  }
 
+  // create sensor thread
   if (ret == TX_SUCCESS)
   {
-	  // create sensor thread
-	  tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
-	  		  SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
-	  		  TX_NO_TIME_SLICE, TX_AUTO_START);
+	  ret = tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
+			  	  SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
+				  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
-  else
+
+
+  /*************************
+   * Fault thread creation
+   **************************/
+
+  // allocate memory for fault state thread from application memory pool
+  if (ret == TX_SUCCESS)
   {
-	  // failed to allocate stack memory from the allocation memory pool for the sensor thread
-    return ret;
+	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, FAULT_STATE_THREAD_STACK_SIZE, TX_NO_WAIT);
   }
+
+  // create fault state thread
+  // -> don't auto start it
+  if (ret == TX_SUCCESS)
+  {
+	  ret = tx_thread_create(&fault_state_thread, FAULT_STATE_THREAD_NAME, fault_state_thread_entry, 0, stack_ptr,
+			  	  FAULT_STATE_THREAD_STACK_SIZE, FAULT_STATE_THREAD_PRIORITY, FAULT_STATE_THREAD_PREEMPTION_THRESHOLD,
+				  TX_NO_TIME_SLICE, TX_DONT_START);
+  }
+
 
   /*************************
    * Other initialisation
    **************************/
+
+  // message system
   if (ret == TX_SUCCESS)
   {
 	  ret = message_system_init();
   }
   else
-  {
-	  // error, failed to create CAN thread
-	  return ret;
-  }
-  
+
   /*************************
    * Ready-to-drive wait
    **************************/
-  wait_for_ready_to_drive();
+
+  if (ret == TX_SUCCESS)
+  {
+	  wait_for_ready_to_drive();
+  }
 
   /* USER CODE END App_ThreadX_Init */
 

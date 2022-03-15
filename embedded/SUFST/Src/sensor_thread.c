@@ -18,12 +18,6 @@
 #include <stdbool.h>
 
 /*
- * configuration
- * TODO: move these to config.h
- */
-
-
-/*
  * macros
  */
 #define THROTTLE_ADC_HANDLE_1		&hadc1	// PA3 (A0 on CN9)
