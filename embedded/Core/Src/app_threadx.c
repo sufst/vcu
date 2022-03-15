@@ -158,7 +158,6 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   {
 	  ret = message_system_init();
   }
-  else
 
   /*************************
    * Ready-to-drive wait

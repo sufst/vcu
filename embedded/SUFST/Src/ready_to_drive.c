@@ -24,6 +24,13 @@ void wait_for_ready_to_drive()
 {
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 	while (!ready_to_drive_state());
+
+	// if ready to drive overridden ('USER' button input)
+	// wait for button to be released
+#if (READY_TO_DRIVE_OVERRIDE)
+	while (ready_to_drive_state());
+#endif
+
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
 

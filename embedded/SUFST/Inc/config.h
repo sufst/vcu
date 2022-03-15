@@ -17,6 +17,12 @@
 #define READY_TO_DRIVE_OVERRIDE		1		// set to 0 to use the 'USER' button as the ready-to-drive signal
 
 /***************************************************************************
+ * fault state
+ ***************************************************************************/
+
+#define FAULT_STATE_LED_BLINK_RATE 	2		// in Hz
+
+/***************************************************************************
  * sensor thread
  ***************************************************************************/
 
@@ -33,7 +39,7 @@
 
 // enable flags
 #define RUN_THROTTLE_TESTBENCH		1		// throttle input from lookup table
-#define RUN_SOME_OTHER_TESTBENCH	0		// placeholder
+#define RUN_FAULT_STATE_TESTBENCH	1		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
 #define THROTTLE_TESTBENCH_LAPS 	4		// 1 for standing start only, 2+ to add flying laps
@@ -42,10 +48,14 @@
  * safeguards
  ***************************************************************************/
 
-// allow only one testbench to run at once
-#if ((RUN_THROTTLE_TESTBENCH \
-	  + RUN_SOME_OTHER_TESTBENCH) > 1)
-	#error "Only one testbench can run at once"
-#endif
+// TODO: prevent illegal combinations of test benches from running (if any)
+// TODO: if no test benches, make sure config values match the rules
+
+
+#define NUM_TESTBENCHES_RUNNING		(RUN_THROTTLE_TESTBENCH \
+									 +	RUN_FAULT_STATE_TESTBENCH)
+
+#define TESTBENCHES_RUNNING			(NUM_TESTBENCHES_RUNNING > 0)
+
 
 #endif

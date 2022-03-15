@@ -24,7 +24,16 @@ UINT testbench_throttle();
 #endif
 
 /***************************************************************************
- * ... other testbenches
+ * fault state testbench
  ***************************************************************************/
+
+#if RUN_FAULT_STATE_TESTBENCH
+
+#include "gpio.h"
+#include "fault_state_thread.h"
+
+VOID testbench_fault_state();
+
+#endif
 
 #endif
