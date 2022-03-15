@@ -3,12 +3,20 @@
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2022-02-08
  * @brief  System configuration
+ *
+ * @note   See config_rules.c which checks these parameters are valid
 ***************************************************************************/
 
 #ifndef CONFIG_H
 #define CONFIG_H
 
 #include "tx_api.h"
+
+/***************************************************************************
+ * competition mode -- set to 1 to apply strict checks on config
+ ***************************************************************************/
+
+#define COMPETITION_MODE			1
 
 /***************************************************************************
  * ready-to-drive
@@ -53,19 +61,5 @@
 
 // testbench parameters
 #define THROTTLE_TESTBENCH_LAPS 	4		// 1 for standing start only, 2+ to add flying laps
-
-/***************************************************************************
- * safeguards
- ***************************************************************************/
-
-// TODO: prevent illegal combinations of test benches from running (if any)
-// TODO: if no test benches, make sure config values match the rules
-
-
-#define NUM_TESTBENCHES_RUNNING		(RUN_THROTTLE_TESTBENCH \
-									 +	RUN_FAULT_STATE_TESTBENCH)
-
-#define TESTBENCHES_RUNNING			(NUM_TESTBENCHES_RUNNING > 0)
-
 
 #endif
