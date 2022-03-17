@@ -16,7 +16,7 @@
  * competition mode -- set to 1 to apply strict checks on config
  ***************************************************************************/
 
-#define COMPETITION_MODE			1
+#define COMPETITION_MODE			0
 
 /***************************************************************************
  * ready-to-drive
