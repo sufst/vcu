@@ -2,11 +2,22 @@
 The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
 
 
+## System Outline
 ```mermaid
 graph TB
 
     classDef QueueClass fill:#cc99ff,stroke-width:0px;
-       
+    
+    subgraph Initialisation
+        IH[Hardware Initialisation]
+        IT[Thread Creation]
+        IR[Ready-to-Drive Procedure]
+        IK[RTOS Kernel Entry]
+        IH --> IT --> IR --> IK
+    end
+    
+    IK --> SE & CE & BE
+
     subgraph Sensor Thread
         SE[Thread Entry]--> SR
         SR[Read Throttle Input]
@@ -15,7 +26,7 @@ graph TB
         SM[Send Message]
         SR --> SV --> SS --> SM --> SR
     end
-    
+
     subgraph Control Thread
         CE[Thread Entry]
         CW[Wait for Input]
@@ -24,7 +35,7 @@ graph TB
         CM[Send Torque Request]
         CE --> CW --> CD --> CT --> CM --> CW
     end
-    
+
     subgraph CAN Thread
         BE[Thread Entry]
         BW[Wait for Tx Request]
@@ -32,7 +43,7 @@ graph TB
         BT[Transmit CAN Message]
         BE --> BW --> BG --> BT --> BW
     end
-  
+
     SM -- Throttle --> QT
     QT -- Throttle --> CW
     CM -- Torque Request --> QC
