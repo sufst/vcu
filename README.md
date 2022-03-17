@@ -18,7 +18,7 @@ graph TB
     
     IK --> SE & CE & BE
 
-    subgraph Sensor Thread
+    subgraph "Sensor Thread&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
         SE[Thread Entry]--> SR
         SR[Read Throttle Input]
         SV[Validate Input]
@@ -26,8 +26,8 @@ graph TB
         SM[Send Message]
         SR --> SV --> SS --> SM --> SR
     end
-
-    subgraph Control Thread
+  
+    subgraph "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Control Thread"
         CE[Thread Entry]
         CW[Wait for Input]
         CD[Apply Driver Profile]
@@ -36,7 +36,7 @@ graph TB
         CE --> CW --> CD --> CT --> CM --> CW
     end
 
-    subgraph CAN Thread
+    subgraph "CAN Thread&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
         BE[Thread Entry]
         BW[Wait for Tx Request]
         BG[Generate CAN Message]
