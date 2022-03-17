@@ -3,19 +3,43 @@ The VCU is responsible for taking driver throttle inputs and communicating with 
 
 
 ```mermaid
-graph LR
+graph TB
 
-    classDef QueueClass fill:#DCDCDC,stroke-width:0px;
+    classDef QueueClass fill:#cc99ff,stroke-width:0px;
+       
+    subgraph Sensor Thread
+        SE[Thread Entry]--> SR
+        SR[Read Throttle Input]
+        SV[Validate Input]
+        SS[Scale Input]
+        SM[Send Message]
+        SR --> SV --> SS --> SM --> SR
+    end
     
-    A[Sensor Thread] -- Throttle Input --> T
-    B[Control Thread] -- Torque Request --> P
-    C[CAN Thread]
+    subgraph Control Thread
+        CE[Thread Entry]
+        CW[Wait for Input]
+        CD[Apply Driver Profile]
+        CT[Create Torque Request]
+        CM[Send Torque Request]
+        CE --> CW --> CD --> CT --> CM --> CW
+    end
     
-    T --> B
-    P --> C
-    
-    P[CAN Priority Queue]:::QueueClass
-    T[Throttle FIFO Queue]:::QueueClass
+    subgraph CAN Thread
+        BE[Thread Entry]
+        BW[Wait for Tx Request]
+        BG[Generate CAN Message]
+        BT[Transmit CAN Message]
+        BE --> BW --> BG --> BT --> BW
+    end
+  
+    SM -- Throttle --> QT
+    QT -- Throttle --> CW
+    CM -- Torque Request --> QC
+    QC -- CAN Tx Request --> BW
+
+    QC[CAN Priority Queue]:::QueueClass
+    QT[Throttle FIFO Queue]:::QueueClass
     
 ```
 
