@@ -2,6 +2,24 @@
 The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
 
 
+```mermaid
+graph LR
+
+    classDef QueueClass fill:#DCDCDC,stroke-width:0px;
+    
+    A[Sensor Thread] -- Throttle Input --> T
+    B[Control Thread] -- Torque Request --> P
+    C[CAN Thread]
+    
+    T --> B
+    P --> C
+    
+    P[CAN Priority Queue]:::QueueClass
+    T[Throttle FIFO Queue]:::QueueClass
+    
+```
+
+
 ## Useful Resources
 
 Documentation:
