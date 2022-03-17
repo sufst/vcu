@@ -7,7 +7,6 @@
  ***************************************************************************/
 
 #include "sensor_thread.h"
-#include "config.h"
 #include "Test/testbench.h"
 
 #include "adc.h"
@@ -16,12 +15,6 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-
-/*
- * configuration
- * TODO: move these to config.h
- */
-
 
 /*
  * macros
@@ -68,15 +61,19 @@ void sensor_thread_entry(ULONG thread_input)
 	// loop forever
 	while(1)
 	{
+
+		// check for fault state
+#if (RUN_FAULT_STATE_TESTBENCH)
+		testbench_fault_state();
+#endif
+
 		// read throttle and send it to control thread
 		control_input_message_t message;
 
 #if (RUN_THROTTLE_TESTBENCH)
 		message.input = testbench_throttle();
-#elif (RUN_ENDURANCE_TESTBENCH)
-
 #else
-	message.input = read_throttle();
+		message.input = read_throttle();
 #endif
     
     	message_set_timestamp(&message.timestamp);

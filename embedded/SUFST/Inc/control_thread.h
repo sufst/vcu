@@ -9,10 +9,10 @@
 #define CONTROL_THREAD_H
 
 #include "tx_api.h"
+#include "config.h"
 
 // LED thread definitions
 #define CONTROL_THREAD_STACK_SIZE			1024
-#define CONTROL_THREAD_PRIORITY				3
 #define CONTROL_THREAD_PREEMPTION_THRESHOLD CONTROL_THREAD_PRIORITY
 #define CONTROL_THREAD_NAME					"Control Thread"
 
