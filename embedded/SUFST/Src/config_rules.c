@@ -37,11 +37,21 @@
 
 #if (COMPETITION_MODE)
 
-// restrict buzzer on time
+// testbenches must be disables
+#if TESTBENCHES_RUNNING
+#error "Testbenches are enabled"
+#endif
+
+// ready-to-drive cannot be bypassed
+#if READY_TO_DRIVE_OVERRIDE
+#error "Ready-to-drive overridden"
+#endif
+
+// restrict ready-to-drive buzzer time
 #if (READY_TO_DRIVE_BUZZER_TIME > MAX_READY_TO_DRIVE_BUZZER_TIME)
-#error "Ready to drive buzzer will sound for too long"
+#error "Ready-to-drive buzzer will sound for too long"
 #elif (READY_TO_DRIVE_BUZZER_TIME < MIN_READY_TO_DRIVE_BUZZER_TIME)
-#error "Ready to drive buzzer will not sound for long enough"
+#error "Ready-to-drive buzzer will not sound for long enough"
 #endif
 
 
