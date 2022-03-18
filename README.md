@@ -1,2 +1,0 @@
-# vcu
-Vehicle Control Unit
