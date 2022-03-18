@@ -70,6 +70,10 @@ ThreadX RTOS:
 - [ThreadX Overview](https://docs.microsoft.com/en-us/azure/rtos/threadx/overview-threadx)
 - [ThreadX API](https://docs.microsoft.com/en-us/azure/rtos/threadx/chapter4)
 
+CAN / inverter:
+- [PM100 Datasheet](https://www.cascadiamotion.com/images/catalog/DataSheets/PM100.pdf)
+- [Cascadia Motion CAN Protocol](https://app.box.com/s/vf9259qlaadhzxqiqrt5cco8xpsn84hk/file/27334613044)
+
 
 ## Related Projects
 
