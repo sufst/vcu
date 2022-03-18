@@ -102,3 +102,24 @@ UINT testbench_throttle()
 #endif
 
 
+/***************************************************************************
+ * fault state testbench
+ ***************************************************************************/
+
+#if RUN_FAULT_STATE_TESTBENCH
+
+/**
+ * @brief	Causes the system to enter the fault state if the 'USER' button
+ * 			is pressed
+ */
+VOID testbench_fault_state()
+{
+	GPIO_PinState user_button_state = HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
+
+	if (user_button_state == GPIO_PIN_SET)
+	{
+		enter_fault_state();
+	}
+}
+
+#endif

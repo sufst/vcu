@@ -6,9 +6,10 @@
  ***************************************************************************/
 
 #include "control_thread.h"
+#include "tx_api.h"
+
 #include "driver_profiles.h"
 #include "messaging_system.h"
-#include "tx_api.h"
 
 /**
  * @brief Thread for control task
