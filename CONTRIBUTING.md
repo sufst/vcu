@@ -1,0 +1,2 @@
+- [SUFST contributing guidelines](https://docs.sufst.co.uk/en/latest/general/software-tools/git/guidelines.html#guidelines)
+- [Embedded C coding guidelines for the VCU](https://github.com/sufst/vcu/wiki/Embedded-C-Coding-Guidelines)
