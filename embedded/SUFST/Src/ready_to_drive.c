@@ -11,7 +11,8 @@
 
 #include "gpio.h"
 #include "stdbool.h"
-#include "rtc.h"
+
+#include "rtc_time.h"
 
 /*
  * function prototypes
@@ -66,25 +67,8 @@ bool ready_to_drive_state()
  */
 void sound_buzzer()
 {
-	// start at time 0
-	RTC_TimeTypeDef time;
-	memset((VOID*) &time, 0, sizeof(time));
-	HAL_RTC_SetTime(&hrtc, &time, RTC_FORMAT_BIN);
-
-	// sound on
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
-
-	// wait for however many seconds
-	UINT time_elapsed = 0;
-
-	while (time_elapsed < READY_TO_DRIVE_BUZZER_TIME)
-	{
-		HAL_RTC_GetTime(&hrtc, &time, RTC_FORMAT_BIN);
-		HAL_RTC_GetDate(&hrtc, NULL, RTC_FORMAT_BIN);
-		time_elapsed = time.Seconds;
-	}
-
-	// sound off
+	rtc_delay(READY_TO_DRIVE_BUZZER_TIME);
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
 
