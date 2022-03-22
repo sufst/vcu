@@ -233,13 +233,10 @@ void CAN_Rx(){
  * 
  */
 
-void CAN_Send(queue_msg_t Tx_msg)
+HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg)
 {
 	/* TODO: check that CAN message is valid */
-	if (HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Tx_msg.Tx_header, Tx_msg.data) != HAL_OK)
-		{
-		printf("Error_CAN_send\r\n");
-		}
+	return HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Tx_msg.Tx_header, Tx_msg.data);
 }
 
 /**
