@@ -10,6 +10,8 @@
 
 #include "fdcan.h"
 #include "messaging_system.h"
+#include "can_types.h"
+#include "pm100.h"
 
 /**
  * @brief Thread for control task
