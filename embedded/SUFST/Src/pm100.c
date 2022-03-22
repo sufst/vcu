@@ -8,6 +8,8 @@
 #include "pm100.h"
 #include "config.h"
 
+#include "rtc_time.h"
+
 /*
  * PM100 addresses
  */
@@ -93,8 +95,10 @@ void pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
 		attempts++;
 
 		// allow time for a response
-		// TODO: HAL delay doesn't work under RTOS
-		HAL_Delay(CAN_EEPROM_RETRY_DELAY);
+		// -> have to use RTC for delay because EEPROM write happens on system initialisation
+		//    before the scheduler starts
+		// -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
+		rtc_delay(CAN_EEPROM_RETRY_DELAY);
 
 		// check for success
 		suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
@@ -127,8 +131,11 @@ void pm100_eeprom_read_blocking(uint16_t parameter_address)
     	CAN_Send(pm100_parameter_read_msg);
     	attempts++;
 
-    	// allow time for a response
-    	HAL_Delay(CAN_EEPROM_RETRY_DELAY);
+		// allow time for a response
+		// -> have to use RTC for delay because EEPROM write happens on system initialisation
+		//    before the scheduler starts
+		// -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
+    	rtc_delay(CAN_EEPROM_RETRY_DELAY);
 
     	// check for success
         res_data = CAN_inputs[PARAMETER_RESPONSE_DATA];
