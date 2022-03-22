@@ -30,6 +30,7 @@
 #include "messaging_system.h"
 #include "pm100.h"
 #include "ready_to_drive.h"
+#include "rtc_time.h"
 #include "sensor_thread.h"
 
 /* USER CODE END Includes */
@@ -151,6 +152,12 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /*************************
    * Other initialisation
    **************************/
+
+  // RTC timestamps
+  if (ret == TX_SUCCESS)
+  {
+	  rtc_time_init();
+  }
 
   // message system
   if (ret == TX_SUCCESS)

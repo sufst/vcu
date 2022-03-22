@@ -8,9 +8,9 @@
 #include "can_thread.h"
 #include "tx_api.h"
 
+#include "can_types.h"
 #include "fdcan.h"
 #include "messaging_system.h"
-#include "can_types.h"
 #include "pm100.h"
 
 /**
@@ -39,6 +39,5 @@ void can_thread_entry(ULONG thread_input)
 		if (ret != TX_SUCCESS) continue; // should never happen but handle it for safety
 
 		// ... do something with the message
-
 	}
 }
