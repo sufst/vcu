@@ -54,7 +54,7 @@ void pm100_init(){
  * @param parameter_address the Parameter Address for the message
  * @param data the data to send in bytes 4 and 5, should already be formatted in order [byte 4][byte 5] (formatting described in documentation)
  */
-void pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
+pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
 {
 
 	pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
@@ -84,7 +84,7 @@ void pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
  *
  * @param parameter_address the Parameter Address for the message
  */
-void pm100_eeprom_read_blocking(uint16_t parameter_address)
+pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
 {
 
 	pm100_parameter_read_msg.data[0] = (parameter_address & 0x00FF);
@@ -112,19 +112,25 @@ void pm100_eeprom_read_blocking(uint16_t parameter_address)
  * @param speed_mode_enable 0= do not override mode 1= will change from torque to speed mode (see manual "using speed mode")
  * @param commanded_torque_limit the max torque limit in N*m times 10, if zero will default to parameter in EEPROM
  */
-void pm100_command_tx(uint16_t torque_command, uint16_t speed_command, uint8_t direction_command, uint8_t inverter_enable, uint8_t inverter_discharge, uint8_t speed_mode_enable, uint16_t commanded_torque_limit){
-	pm100_command_msg.data[0] = (torque_command & 0x00FF);
-	pm100_command_msg.data[1] = ((torque_command & 0xFF00) >> 8);
-	pm100_command_msg.data[2] = (speed_command & 0x00FF);
-	pm100_command_msg.data[3] = ((speed_command & 0xFF00) >> 8);
-	pm100_command_msg.data[4] = direction_command;
-	pm100_command_msg.data[5] = inverter_enable;
-	pm100_command_msg.data[5] |= inverter_discharge << 1;
-	pm100_command_msg.data[5] |= speed_mode_enable << 2;
-	pm100_command_msg.data[6] = (commanded_torque_limit & 0x00FF);
-	pm100_command_msg.data[7] = ((commanded_torque_limit & 0xFF00) >> 8);
+pm100_status_t pm100_command_tx(pm100_command_t* command_data)
+{
+	pm100_command_msg.data[0] = (command_data->torque_command & 0x00FF);
+	pm100_command_msg.data[1] = ((command_data->torque_command & 0xFF00) >> 8);
+	pm100_command_msg.data[2] = (command_data->speed_command & 0x00FF);
+	pm100_command_msg.data[3] = ((command_data->speed_command & 0xFF00) >> 8);
+	pm100_command_msg.data[4] = command_data->direction;
+	pm100_command_msg.data[5] = command_data->inverter_enable;
+	pm100_command_msg.data[5] |= command_data->inverter_discharge << 1;
+	pm100_command_msg.data[5] |= command_data->speed_mode_enable << 2;
+	pm100_command_msg.data[6] = (command_data->commanded_torque_limit & 0x00FF);
+	pm100_command_msg.data[7] = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
 
-	CAN_Send(pm100_command_msg);
+	if (CAN_Send(pm100_command_msg) != HAL_OK)
+	{
+		return PM100_ERROR;
+	}
+	return PM100_OK;
+
 }
 
 
@@ -132,16 +138,23 @@ void pm100_command_tx(uint16_t torque_command, uint16_t speed_command, uint8_t d
  * @brief a way to send torque messages to inverter (will disable lockout if lockout is enabled by sending empty message)
  * @param torque_command the torque command to send in N*m (Range(-3276.8..3276.7 Nm), scaling: 10)
  */
-void pm100_torque_command_tx(UINT torque_command)
+pm100_status_t pm100_torque_command_tx(UINT torque_command)
 {
+	// Initialise pm100 command data to 0
+	pm100_command_t pm100_cmd = {0};
+	pm100_status_t status;
 
 	if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
 	{
-		pm100_command_tx(0,0,0,0,0,0,0);
+		status = pm100_command_tx(&pm100_cmd);
 	}
 	else
 	{
-		pm100_command_tx((uint16_t) torque_command, 0, DIRECTION_COMMAND, 1, 0, 0, 0);
+		pm100_cmd.direction = DIRECTION_COMMAND;
+		pm100_cmd.torque = (uint16_t) torque_command;
+		pm100_cmd.inverter_enable = 1;
+		status = pm100_command_tx(&pm100_cmd);
 	}
+	return status;
 
 }
