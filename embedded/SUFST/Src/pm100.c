@@ -109,17 +109,15 @@ void command_msg(uint16_t torque_command, uint16_t speed_command, uint8_t direct
 
 /**
  * @brief a way to send torque messages to inverter (will disable lockout if lockout is enabled by sending empty message)
- * @param torque_command the torque command to send in N*m (Range(-3276.8..3276.7 Nm))
+ * @param torque_command the torque command to send in N*m (Range(-3276.8..3276.7 Nm), scaling: 10)
  */
-void pm100_torque_command(float torque_command){
+void pm100_torque_command(UINT torque_command){
 
 	if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1){
 		command_msg(0,0,0,0,0,0,0);
 	}
 	else{
-		// Scaling factor of 10
-		uint16_t uint_torque_command = (uint16_t)(torque_command*10);
-		command_msg(uint_torque_command, 0, DIRECTION_COMMAND, 1, 0, 0, 0);
+		command_msg((uint16_t)(torque_command), 0, DIRECTION_COMMAND, 1, 0, 0, 0);
 	}
 
 }

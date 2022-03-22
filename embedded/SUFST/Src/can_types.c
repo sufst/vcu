@@ -38,13 +38,6 @@ segment_map_t TEMP3_map[] =
 		{TORQUE_SHUDDER, 6, 2},
 };
 
-segment_map_t ANALOG_map[] =
-{
-		{OIL_TEMP, 0, 2},
-		{OIL_PRESSURE, 2, 2},
-		// Special Parser for 10-bit analog voltage 4,5,6
-};
-
 segment_map_t DIGI_map[] =
 {
 		{DIGITAL_INPUT_1, 0, 1},
@@ -160,7 +153,7 @@ static CAN_msg_t CAN_dict[]	=
 		{CAN_ID_OFFSET+0x00, STD, "Temp_1", TEMP1_map, 4, CAN_parser_std_little_endian},
 		{CAN_ID_OFFSET+0x01, STD, "Temp_2", TEMP2_map, 4, CAN_parser_std_little_endian},
 		{CAN_ID_OFFSET+0x02, STD, "Temp_3_Torq_Shud", TEMP3_map, 4, CAN_parser_std_little_endian},
-		{CAN_ID_OFFSET+0x03, STD, "Analog_Input_Volt", ANALOG_map, 2, CAN_parser_ANALOGVOLT},
+		{CAN_ID_OFFSET+0x03, STD, "Analog_Input_Volt", NULL, 0, CAN_parser_ANALOGVOLT},
 		{CAN_ID_OFFSET+0x04, STD, "Digital_Input_Status", DIGI_map, 8, CAN_parser_std_little_endian},
 		{CAN_ID_OFFSET+0x05, STD, "Motor_Position_Info", MOTORPOS_map, 4, CAN_parser_std_little_endian},
 		{CAN_ID_OFFSET+0x06, STD, "Current_Info", CURRENTINF_map, 4, CAN_parser_std_little_endian},
@@ -308,16 +301,25 @@ static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx){
 
 	//store individual analog inputs in CAN_inputs array
 
-	//store the inputs after bit 31(byte4) in little endian in order (7 6 5 4) instead of (4 5 6 7)
-	uint32_t analog_voltage_32bits = (uint32_t) q_msg.data[7] << 24 | (uint32_t) q_msg.data[6] << 16 | (uint32_t) q_msg.data[5] << 8 | (uint32_t) q_msg.data[4];
+	//store the inputs bytes in little endian in order (7 6 5 4 ...) instead of (0 1 2 ...)
+	uint32_t first32bits = (uint32_t) q_msg.data[3] << 24 | (uint32_t) q_msg.data[2] << 16 | (uint32_t) q_msg.data[1] << 8 | (uint32_t) q_msg.data[0];
+	uint32_t second32bits = (uint32_t) q_msg.data[7] << 24 | (uint32_t) q_msg.data[6] << 16 | (uint32_t) q_msg.data[5] << 8 | (uint32_t) q_msg.data[4];
 
-	//do analog inputs 4 - 6 from byte 4:7
-		for(int i = 0; i<3; i++){
-			uint32_t temp = analog_voltage_32bits << 22; // 32-10
-			CAN_inputs[ANALOG_INPUT_4 + i] = temp >> 22;
-			analog_voltage_32bits = analog_voltage_32bits >> 10;
+	//do analog inputs 1 - 3 from byte 0:3
+	for(int i = 0; i<3; i++){
+		uint32_t temp = first32bits << 22; // 32-10
+		CAN_inputs[ANALOG_INPUT_1 + i] = temp >> 22;
+		first32bits = first32bits >> 10;
 
-		}
+	}
+
+	//do inputs 4-7 from byte 4:7
+	for(int i = 0; i<3; i++){
+		uint32_t temp = second32bits << 22; // 32-10
+		CAN_inputs[ANALOG_INPUT_4 +  i] = temp >> 22;
+		second32bits = second32bits >> 10;
+
+	}
 
 }
 /**

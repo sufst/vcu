@@ -33,14 +33,15 @@ typedef enum CAN_input_e
 	RTD_1_TEMP,
 	RTD_2_TEMP,
 	RTD_3_TEMP,
-	//** 0x0A2 – Temperatures #3 & Torque Shudder -> Not Gen 2
+	//** 0x0A2 – Temperatures #3 & Torque Shudder 
 	COOLANT_TEMP,
 	HOT_SPOT_TEMP,
 	MOTOR_TEMP,
 	TORQUE_SHUDDER,
-	//** 0x0A3 – Analog Input Voltages (for Gen 5 / CM firmware where iM-225 motor type is used)
-	OIL_TEMP,
-	OIL_PRESSURE,
+	// 0x0A3 – Analog Input Voltages (for firmware version 1995 and after)
+	ANALOG_INPUT_1,
+	ANALOG_INPUT_2,
+	ANALOG_INPUT_3,
 	ANALOG_INPUT_4,
 	ANALOG_INPUT_5,
 	ANALOG_INPUT_6,
