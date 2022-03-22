@@ -28,7 +28,9 @@
 #include "control_thread.h"
 #include "fault_state_thread.h"
 #include "messaging_system.h"
+#include "pm100.h"
 #include "ready_to_drive.h"
+#include "rtc_time.h"
 #include "sensor_thread.h"
 
 /* USER CODE END Includes */
@@ -128,7 +130,6 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 				  TX_NO_TIME_SLICE, TX_AUTO_START);
   }
 
-
   /*************************
    * Fault thread creation
    **************************/
@@ -148,15 +149,26 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 				  TX_NO_TIME_SLICE, TX_DONT_START);
   }
 
-
   /*************************
    * Other initialisation
    **************************/
+
+  // RTC timestamps
+  if (ret == TX_SUCCESS)
+  {
+	  rtc_time_init();
+  }
 
   // message system
   if (ret == TX_SUCCESS)
   {
 	  ret = message_system_init();
+  }
+
+  // CAN
+  if (ret == TX_SUCCESS)
+  {
+	  //pm100_init();
   }
 
   /*************************
@@ -169,7 +181,6 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   }
 
   /* USER CODE END App_ThreadX_Init */
-
   return ret;
 }
 
