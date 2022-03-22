@@ -1,3 +1,9 @@
+/***************************************************************************
+ * @file   pm100.c
+ * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @date   2022-01-09
+ * @brief  Inverter CAN communication implementation
+ ***************************************************************************/
 
 #include "pm100.h"
 
@@ -33,6 +39,17 @@ static queue_msg_t pm100_parameter_read_msg =
 };
 
 /**
+ * @brief Configure inverter e.g. set timeout
+ *
+ */
+void pm100_init(){
+	/* TODO: Set up some start up values. E.g. activate/deactivate broadcast messages */
+	/* EEPROM addresses */
+	uint16_t CAN_TIMEOUT_ADDR = 172; // 172
+	parameter_write_command(CAN_TIMEOUT_ADDR, 3); // 3x333ms == 999ms timeout
+}
+
+/**
  * @brief a way to send parameter write messages to inverter
  * @param parameter_address the Parameter Address for the message
  * @param data the data to send in bytes 4 and 5, should already be formatted in order [byte 4][byte 5] (formatting described in documentation)
@@ -51,7 +68,7 @@ void parameter_write_command(uint16_t parameter_address, uint16_t data)
     while(res_ad != parameter_address || !suc){
         suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
         res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-        printf("Wrtie Addr: %x, Response Addess: %x, Success: %x\r\n",parameter_address,res_ad,suc);
+        printf("Wrtie Addr: %lu, Response Addess: %x, Success: %x\r\n",parameter_address,res_ad,suc);
         HAL_Delay(100);
 //        HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_14);
         CAN_Send(pm100_parameter_write_msg);

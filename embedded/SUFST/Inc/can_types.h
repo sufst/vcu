@@ -1,3 +1,10 @@
+/***************************************************************************
+ * @file   can_types.h
+ * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @date   2022-01-09
+ * @brief  CAN prototypes and CAN broadcast signals database
+ ***************************************************************************/
+
 #ifndef CAN_TYPES_H_
 #define CAN_TYPES_H_
 
@@ -30,7 +37,7 @@ typedef enum CAN_input_e
 	GATE_DRIVER_BOARD_TEMP,
 	// 0x0A1 – Temperatures #2
 	CONTROL_BOARD_TEMPERATURE,
-	RTD_1_TEMP,
+	RTD_1_TEMP, 
 	RTD_2_TEMP,
 	RTD_3_TEMP,
 	//** 0x0A2 – Temperatures #3 & Torque Shudder 

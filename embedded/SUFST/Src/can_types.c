@@ -1,15 +1,20 @@
+/***************************************************************************
+ * @file   can_types.c
+ * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @date   2022-01-09
+ * @brief  Implementation of CAN communication
+ ***************************************************************************/
+
 #include "can_types.h"
 
 
 /* Private Function Prototypes ---------------------------------------------------------------*/
-static void CAN_parser_std(queue_msg_t q_msg, uint8_t CAN_idx);
 static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx);
 static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx);
 static void CAN_parser_INTST(queue_msg_t q_msg, uint8_t CAN_idx);
 static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx);
 
 /* Private Variables ---------------------------------------------------------------*/
-static uint8_t Notification_flag = 0;
 /* CAN message segment maps */
 /* INPUT_INDEX, START BYTE, BYTE SIZE */
 
@@ -238,34 +243,6 @@ void CAN_Send(queue_msg_t Tx_msg)
 }
 
 /**
- * @brief standard parser for unpacking CAN functions into CAN_inputs table (big endian messages)
- * @param q_msg: incoming CAN message
- * @param CAN_msg: reference message from CAN_dict w/ message metadata
- */
-static void CAN_parser_std(queue_msg_t q_msg, uint8_t CAN_idx)
-{
-	volatile int FLAG = 0;
-	/* iterate over all inputs in data field */
-	for (int i = 0; i < CAN_dict[CAN_idx].num_inputs; i++)
-	{
-		uint32_t result = 0;
-		segment_map_t input = CAN_dict[CAN_idx].segment_map[i];
-
-		/* iterate over all bytes of input */
-		for (int j = 0; j < input.size; j++)
-		{
-			result = (result << 8) | (uint32_t) (q_msg.data[input.start_byte + j]);
-		}
-
-
-		/* store result in CAN_inputs table */
-		CAN_inputs[input.index] = result;
-
-	}
-}
-
-
-/**
  * @brief standard parser for unpacking Rinehart messages (and other little endian messages) into CAN_inputs table (little endian to big endian)
  * @param q_msg: incoming CAN message
  * @param CAN_idx: the index of message in CAN_dict w/ message metadata
@@ -296,10 +273,6 @@ static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
  * @param CAN_msg: reference message from CAN_dict w/ message metadata
  */
 static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx){
-
-	CAN_parser_std_little_endian(q_msg, CAN_idx); // Process OIL_TEMP and OIL_PRESSURE
-
-	//store individual analog inputs in CAN_inputs array
 
 	//store the inputs bytes in little endian in order (7 6 5 4 ...) instead of (0 1 2 ...)
 	uint32_t first32bits = (uint32_t) q_msg.data[3] << 24 | (uint32_t) q_msg.data[2] << 16 | (uint32_t) q_msg.data[1] << 8 | (uint32_t) q_msg.data[0];
