@@ -61,11 +61,11 @@ static queue_msg_t pm100_parameter_read_msg =
 /**
  * @brief	Initialise PM100
  */
-void pm100_init(){
+pm100_status_t pm100_init(){
 
 	/* TODO: Set up some start up values. E.g. activate/deactivate broadcast messages */
 
-	pm100_eeprom_write_blocking(PM100_TIMEOUT_ADDR, PM100_TIMEOUT_VALUE);
+	return pm100_eeprom_write_blocking(PM100_TIMEOUT_ADDR, PM100_TIMEOUT_VALUE);
 }
 
 /**
@@ -76,34 +76,36 @@ void pm100_init(){
  */
 pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
 {
-  // construct message
-  pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
-  pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-  pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
-  pm100_parameter_write_msg.data[4] = (data & 0x00FF);
+	// construct message
+	pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
+	pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
+	pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
+	pm100_parameter_write_msg.data[4] = (data & 0x00FF);
 
-  // loop until parameter set successfully or max retry attempts reached
-  uint32_t suc = 0;
-  uint16_t res_ad = 0;
-  UINT attempts = 0;
+	// loop until parameter set successfully or max retry attempts reached
+	uint32_t suc = 0;
+	uint16_t res_ad = 0;
+	UINT attempts = 0;
 
-  while ((res_ad != parameter_address || !suc)
-      && (attempts < CAN_EEPROM_MAX_RETRY))
-  {
-    // transmit message
-    CAN_Send(pm100_parameter_write_msg);
-    attempts++;
+	while ((res_ad != parameter_address || !suc)
+	  && (attempts < CAN_EEPROM_MAX_RETRY))
+	{
+		// transmit message
+		CAN_Send(pm100_parameter_write_msg);
+		attempts++;
 
-    // allow time for a response
-    // -> have to use RTC for delay because EEPROM write happens on system initialisation
-    //    before the scheduler starts
-    // -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
-    rtc_delay(CAN_EEPROM_RETRY_DELAY);
+		// allow time for a response
+		// -> have to use RTC for delay because EEPROM write happens on system initialisation
+		//    before the scheduler starts
+		// -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
+		rtc_delay(CAN_EEPROM_RETRY_DELAY);
 
-    // check for success
-    suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
-    res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-  }
+		// check for success
+		suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
+		res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+	}
+
+	return PM100_OK;
 }
 
 /**
@@ -143,6 +145,7 @@ pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
     }
 
     (void) res_data; // unused for now, keep for future use
+    return PM100_OK;
 }
 
 /**
@@ -195,7 +198,7 @@ pm100_status_t pm100_torque_command_tx(UINT torque)
 	else
 	{
 		pm100_cmd.direction = DIRECTION_COMMAND;
-		pm100_cmd.torque = (uint16_t) torque;
+		pm100_cmd.torque_command = (uint16_t) torque;
 		pm100_cmd.inverter_enable = 1;
 		status = pm100_command_tx(&pm100_cmd);
 	}
