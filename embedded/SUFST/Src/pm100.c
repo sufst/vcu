@@ -74,36 +74,36 @@ void pm100_init(){
  * @param[in] 	parameter_address 	the Parameter Address for the message
  * @param[in] 	data 				the data to send in bytes 4 and 5, should already be formatted in order [byte 4][byte 5] (formatting described in documentation)
  */
-void pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
+pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
 {
-	// construct message
-	pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
-	pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-	pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
-	pm100_parameter_write_msg.data[4] = (data & 0x00FF);
+  // construct message
+  pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
+  pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
+  pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
+  pm100_parameter_write_msg.data[4] = (data & 0x00FF);
 
-	// loop until parameter set successfully or max retry attempts reached
-	uint32_t suc = 0;
-	uint16_t res_ad = 0;
-	UINT attempts = 0;
+  // loop until parameter set successfully or max retry attempts reached
+  uint32_t suc = 0;
+  uint16_t res_ad = 0;
+  UINT attempts = 0;
 
-	while ((res_ad != parameter_address || !suc)
-			&& (attempts < CAN_EEPROM_MAX_RETRY))
-	{
-		// transmit message
-		CAN_Send(pm100_parameter_write_msg);
-		attempts++;
+  while ((res_ad != parameter_address || !suc)
+      && (attempts < CAN_EEPROM_MAX_RETRY))
+  {
+    // transmit message
+    CAN_Send(pm100_parameter_write_msg);
+    attempts++;
 
-		// allow time for a response
-		// -> have to use RTC for delay because EEPROM write happens on system initialisation
-		//    before the scheduler starts
-		// -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
-		rtc_delay(CAN_EEPROM_RETRY_DELAY);
+    // allow time for a response
+    // -> have to use RTC for delay because EEPROM write happens on system initialisation
+    //    before the scheduler starts
+    // -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
+    rtc_delay(CAN_EEPROM_RETRY_DELAY);
 
-		// check for success
-		suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
-        res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-    }
+    // check for success
+    suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
+    res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+  }
 }
 
 /**
@@ -113,7 +113,7 @@ void pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
  *
  * @param[in]	parameter_address	Parameter address to read
  */
-void pm100_eeprom_read_blocking(uint16_t parameter_address)
+pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
 {
 	// construct message
 	pm100_parameter_read_msg.data[0] = (parameter_address & 0x00FF);
@@ -148,30 +148,29 @@ void pm100_eeprom_read_blocking(uint16_t parameter_address)
 /**
  * @brief 		Transmit a command to the inverter
  *
- * @param[in]	torque_command 			Torque request in [Nm times 10] (does parsing locally)
- * @param[in]	speed_command 			Angular speed request [RPM]
- * @param[in]	direction_command 		Direction - 1 or 0 (see documentation for use with brake regen)
- * @param[in]	inverter_enable 		Enable inverter - 1 or 0 (on / off)
- * @param[in]	inverter_discharge 		Enable inverter discharge - 1 or 0 (enable / disable)
- * @param[in]	speed_mode_enable 		0 = do not override mode, 1 = will change from torque to speed mode
- * @param[in]	commanded_torque_limit 	Maximum torque request [Nm times 10], if zero will default to parameter in EEPROM
+ * @param[in]	command_data  PM100 command data struct
  */
-void pm100_command_tx(uint16_t torque_command, uint16_t speed_command, uint8_t direction_command, uint8_t inverter_enable, uint8_t inverter_discharge, uint8_t speed_mode_enable, uint16_t commanded_torque_limit)
+pm100_status_t pm100_command_tx(pm100_command_t* command_data)
 {
-	// construct message
-	pm100_command_msg.data[0] = (torque_command & 0x00FF);
-	pm100_command_msg.data[1] = ((torque_command & 0xFF00) >> 8);
-	pm100_command_msg.data[2] = (speed_command & 0x00FF);
-	pm100_command_msg.data[3] = ((speed_command & 0xFF00) >> 8);
-	pm100_command_msg.data[4] = direction_command;
-	pm100_command_msg.data[5] = inverter_enable;
-	pm100_command_msg.data[5] |= inverter_discharge << 1;
-	pm100_command_msg.data[5] |= speed_mode_enable << 2;
-	pm100_command_msg.data[6] = (commanded_torque_limit & 0x00FF);
-	pm100_command_msg.data[7] = ((commanded_torque_limit & 0xFF00) >> 8);
+  // construct message
+	pm100_command_msg.data[0] = (command_data->torque_command & 0x00FF);
+	pm100_command_msg.data[1] = ((command_data->torque_command & 0xFF00) >> 8);
+	pm100_command_msg.data[2] = (command_data->speed_command & 0x00FF);
+	pm100_command_msg.data[3] = ((command_data->speed_command & 0xFF00) >> 8);
+	pm100_command_msg.data[4] = command_data->direction;
+	pm100_command_msg.data[5] = command_data->inverter_enable;
+	pm100_command_msg.data[5] |= command_data->inverter_discharge << 1;
+	pm100_command_msg.data[5] |= command_data->speed_mode_enable << 2;
+	pm100_command_msg.data[6] = (command_data->commanded_torque_limit & 0x00FF);
+	pm100_command_msg.data[7] = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
 
-	// send message
-	CAN_Send(pm100_command_msg);
+  // send message
+	if (CAN_Send(pm100_command_msg) != HAL_OK)
+	{
+		return PM100_ERROR;
+	}
+  
+	return PM100_OK;
 }
 
 /**
@@ -181,16 +180,24 @@ void pm100_command_tx(uint16_t torque_command, uint16_t speed_command, uint8_t d
  *
  * @param[in]	torque	The torque request to send [Nm * 10]
  */
-void pm100_torque_command_tx(UINT torque)
+pm100_status_t pm100_torque_command_tx(UINT torque)
 {
-	// handle lockout
-	if (CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
+	// initialise command data to 0
+	pm100_command_t pm100_cmd = {0};
+	pm100_status_t status;
+
+  // handle lockout
+	if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
 	{
-		pm100_command_tx(0,0,0,0,0,0,0);
+		status = pm100_command_tx(&pm100_cmd);
 	}
 	// transmit torque request
 	else
 	{
-		pm100_command_tx((uint16_t) torque, 0, PM100_DIRECTION_COMMAND, 1, 0, 0, 0);
+		pm100_cmd.direction = DIRECTION_COMMAND;
+		pm100_cmd.torque = (uint16_t) torque;
+		pm100_cmd.inverter_enable = 1;
+		status = pm100_command_tx(&pm100_cmd);
 	}
+	return status;
 }

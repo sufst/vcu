@@ -185,7 +185,7 @@ extern volatile uint32_t CAN_inputs[NUM_INPUTS];
 /* Function Prototypes ------------------------------------------------------------------------*/
 //void Error_Handler(void);
 void CAN_Rx();
-void CAN_Send(queue_msg_t Tx_msg);
+HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg);
 
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 #endif /* CAN_TYPES_H_ */
