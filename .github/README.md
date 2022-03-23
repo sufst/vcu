@@ -4,9 +4,10 @@ The VCU is responsible for taking driver throttle inputs and communicating with 
 
 ## Useful Resources
 
-Documentation:
+Documentation and rules:
 - [VCU Wiki](https://github.com/sufst/vcu/wiki)
 - [SUFST Docs Site](https://docs.sufst.co.uk/en/latest/)
+- [FSUK 2022 rules](https://www.imeche.org/docs/default-source/1-oscar/formula-student/2022/rules/fsuk-2022-rules---final.pdf?sfvrsn=2)
 
 Microcontroller:
 - [STM32H723ZG MCU Datasheet](https://www.st.com/resource/en/datasheet/stm32h723vg.pdf)
