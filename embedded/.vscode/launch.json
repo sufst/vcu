@@ -9,6 +9,7 @@
             "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "stutil",
+            "svdFile": "STM32H7x3.svd",
             "osx": {
                 "armToolchainPath": "/Applications/ARM/bin",
                 "serverpath": "st-util",
