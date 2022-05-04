@@ -1,2 +1,4 @@
 build
-.ftl
+*.ftl
+.mxproject
+*.scratch
