@@ -28,6 +28,11 @@
                 "build/VCU.bin",
                 "0x08000000",   // flash memory address
             ]
+        },
+        {
+            "label": "generate code",
+            "type": "shell",
+            "command": "python3 code_gen.py",
         }
     ]
 }
