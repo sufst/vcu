@@ -181,6 +181,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   }
 
   /* USER CODE END App_ThreadX_Init */
+
   return ret;
 }
 
