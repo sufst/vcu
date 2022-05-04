@@ -9,6 +9,6 @@
         ".mxproject": true,
         "**.ftl": true,
         "build": true,
-        ".vscode/.cortex-debug.registers.state.json": true,
+        ".vscode/.cortex-debug.*": true,
     }
 }
