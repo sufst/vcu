@@ -1,0 +1,32 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "make -j8",
+            "problemMatcher": "$gcc",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        {
+            "label": "clean",
+            "type": "shell",
+            "command": "make clean"
+        },
+        {
+            "label": "flash",
+            "type": "shell",
+            "osx": {
+                "command": "st-flash"
+            },
+            "args": [
+                "write",
+                "build/VCU.bin",
+                "0x08000000",   // flash memory address
+            ]
+        }
+    ]
+}
