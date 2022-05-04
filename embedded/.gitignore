@@ -2,4 +2,4 @@ build
 *.ftl
 .mxproject
 *.scratch
-.vscode/.cortex-debug.registers.state.json
+.vscode/.cortex-debug.*
