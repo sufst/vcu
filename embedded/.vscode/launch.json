@@ -15,6 +15,10 @@
                 "armToolchainPath": "/Applications/ARM/bin",
                 "serverpath": "st-util",
             },
+            "linux": {
+                "armToolchainPath": "?",
+                "serverpath": "?",
+            }
         },
         // debug with openocd
         {
@@ -33,6 +37,10 @@
             "osx": {
                 "armToolchainPath": "/Applications/ARM/bin",
                 "serverpath": "openocd",
+            },
+            "linux": {
+                "armToolchainPath": "?",
+                "serverpath": "?",
             }
         }
     ]
