@@ -5,11 +5,19 @@
         {
             "label": "build",
             "type": "shell",
-            "command": "make -j$(nproc)",
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
                 "isDefault": true
+            },
+            "osx": {
+                "command": "make -j$(nproc)",
+            },
+            "linux": {
+                "command": "make -j$(nproc)",
+            },
+            "windows": {
+                "command": "make",
             }
         },
         // clean build directory
@@ -23,9 +31,7 @@
             "label": "flash",
             "type": "shell",
             "dependsOn": "build",
-            "osx": {
-                "command": "st-flash"
-            },
+            "command": "st-flash",
             "args": [
                 "write",
                 "build/VCU.bin",
