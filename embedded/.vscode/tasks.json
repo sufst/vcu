@@ -1,9 +1,9 @@
 {
     "version": "2.0.0",
     "tasks": [
-        // make build task (maximum number of processors)
+        // make build task (DEBUG)
         {
-            "label": "build",
+            "label": "build (DEBUG)",
             "type": "shell",
             "problemMatcher": "$gcc",
             "group": {
@@ -11,14 +11,53 @@
                 "isDefault": true
             },
             "osx": {
-                "command": "make -j$(nproc)",
+                "command": "make",
+                "args": [
+                    "-j$(nproc)",
+                ]
             },
             "linux": {
-                "command": "make -j$(nproc)",
+                "command": "make",
+                "args": [
+                    "-j$(nproc)",
+                ]
             },
             "windows": {
                 "command": "make",
             }
+        },
+        // make build task (RELEASE)
+        {
+            "label": "build (RELEASE)",
+            "type": "shell",
+            "problemMatcher": "$gcc",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "osx": {
+                "command": "make",
+                "args": [
+                    "-j$(nproc)",
+                    "DEBUG=0",
+                    "OPT=-O3",
+                ]
+            },
+            "linux": {
+                "command": "make",
+                "args": [
+                    "-j$(nproc)",
+                    "DEBUG=0",
+                    "OPT=-O3",
+                ]
+            },
+            "windows": {
+                "command": "make",
+                "args": [
+                    "DEBUG=0",
+                    "OPT=-O3",
+                ]
+            },
         },
         // clean build directory
         {
