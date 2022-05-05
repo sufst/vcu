@@ -3,4 +3,4 @@ build
 .mxproject
 *.scratch
 .vscode/.cortex-debug.*
-Middlewares/ST/threadx/ports/iar
+Middlewares/ST/threadx/ports/cortex_m7/iar
