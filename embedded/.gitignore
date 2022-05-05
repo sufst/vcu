@@ -14,6 +14,9 @@ build
 *.ftl
 Middlewares/ST/threadx/ports/cortex_m7/iar
 
-# VS Code files
-.vscode/.cortex-debug.*
-.vscode/*.log
+# VS Code files (with some exceptions)
+.vscode
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
