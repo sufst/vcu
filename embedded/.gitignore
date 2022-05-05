@@ -1,6 +1,18 @@
+# build files
 build
-*.ftl
+*.bin
+*.elf
+*.d 
+*.o
+*.lst
+
+# STM32Cube related files
 .mxproject
+.cproject
+.project
 *.scratch
-.vscode/.cortex-debug.*
+*.ftl
 Middlewares/ST/threadx/ports/cortex_m7/iar
+
+# VS Code files
+.vscode/.cortex-debug.*
