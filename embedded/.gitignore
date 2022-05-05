@@ -16,3 +16,4 @@ Middlewares/ST/threadx/ports/cortex_m7/iar
 
 # VS Code files
 .vscode/.cortex-debug.*
+.vscode/*.log

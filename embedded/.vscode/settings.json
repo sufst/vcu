@@ -10,5 +10,6 @@
         "**.ftl": true,
         "build": true,
         ".vscode/.cortex-debug.*": true,
+        ".vscode/*.log": true,
     }
 }
