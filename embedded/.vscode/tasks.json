@@ -1,6 +1,7 @@
 {
     "version": "2.0.0",
     "tasks": [
+        // make build task (maximum number of processors)
         {
             "label": "build",
             "type": "shell",
@@ -11,11 +12,13 @@
                 "isDefault": true
             }
         },
+        // clean build directory
         {
             "label": "clean",
             "type": "shell",
             "command": "make clean"
         },
+        // flash VCU.bin
         {
             "label": "flash",
             "type": "shell",
@@ -29,6 +32,7 @@
                 "0x08000000",   // flash memory address
             ]
         },
+        // open STM32CubeMX
         {
             "label": "STM32CubeMX",
             "type": "shell",
@@ -47,6 +51,7 @@
                 "${workspaceRoot}/VCU.ioc",
             ]
         },
+        // run code generation script (fix STM32CubeMX generated makefile)
         {
             "label": "generate makefile",
             "type": "shell",
