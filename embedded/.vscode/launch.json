@@ -1,5 +1,6 @@
 {
     "configurations": [
+        // debug with stutil
         {
             "cwd": "${workspaceFolder}",
             "executable": "build/VCU.elf",
@@ -15,6 +16,7 @@
                 "serverpath": "st-util",
             },
         },
+        // debug with openocd
         {
             "cwd": "${workspaceFolder}",
             "executable": "build/VCU.elf",
