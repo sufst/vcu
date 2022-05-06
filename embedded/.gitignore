@@ -1,0 +1,22 @@
+# build files
+build
+*.bin
+*.elf
+*.d 
+*.o
+*.lst
+
+# STM32Cube related files
+.mxproject
+.cproject
+.project
+*.scratch
+*.ftl
+Middlewares/ST/threadx/ports/cortex_m7/iar
+
+# VS Code files (with some exceptions)
+.vscode
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
