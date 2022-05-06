@@ -11,7 +11,6 @@
 #               :
 ###############################################################################
 
-DEBUG=0
 SOURCE_FOLDERS=(SUFST/Src)
 INCLUDE_FOLDERS=(SUFST/Inc)
 MAKEFILE=Makefile
