@@ -67,12 +67,13 @@ function main()
     update_flags
     update_defines
     update_optimisation
+    add_flash_target
     ensure_asm_lowercase
     fix_rtos_port
 }
 
 ###############################################################################
-# checks host system capabilities
+# toolchain checks
 ###############################################################################
 function check_toolchain()
 {
@@ -367,9 +368,27 @@ function ensure_asm_lowercase()
 }
 
 ###############################################################################
+# flash target
+###############################################################################
+function add_flash_target()
+{
+    local TARGET="flash: \$(BUILD_DIR)/\$(TARGET).bin\n\tst-flash write $< 0x08000000"
+    local TMP_FILE="Makefile.tmp"
+
+    # add target if not already there
+    cat "$MAKEFILE" | grep "st-flash write" > /dev/null 
+
+    if [[ $? != 0 ]]; then 
+        step "Adding flash target"
+        echo -e "\n#######################################\n# flash\n#######################################" >> "$MAKEFILE"
+        echo -e "$TARGET" >> "$MAKEFILE"
+        echo -e "$TARGET\n"
+    fi
+}
+
+###############################################################################
 # printing
 ###############################################################################
-
 function step() 
 {
     tput setaf $TPUT_MAGENTA

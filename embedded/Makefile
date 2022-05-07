@@ -378,7 +378,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR)
 	$(BIN) $< $@	
 	
 $(BUILD_DIR):
-	mkdir $@		
+	mkdir $@
 
 #######################################
 # clean up
@@ -391,4 +391,9 @@ clean:
 #######################################
 -include $(wildcard $(BUILD_DIR)/*.d)
 
-# *** EOF ***
+
+#######################################
+# flash
+#######################################
+flash: $(BUILD_DIR)/$(TARGET).bin
+	st-flash write $< 0x08000000

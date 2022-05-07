@@ -5,6 +5,7 @@ build
 *.d 
 *.o
 *.lst
+*.tmp
 
 # STM32Cube related files
 .mxproject
