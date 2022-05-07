@@ -11,8 +11,35 @@
 #               :
 ###############################################################################
 
+# compiler flags
+DEBUG_CFLAGS=(
+    A
+    B
+)
+
+RELEASE_CFLAGS=(
+    C 
+    D
+)
+
+# C defines
+DEBUG_DEFINES=(
+    DEBUG
+)
+
+RELEASE_DEFINES=(
+    COMPETITION_MODE=1
+)
+
+# optimisation levels
+DEBUG_OPT=-Og
+RELEASE_OPT=-O3
+
+# folders with source code and headers (recursively searched)
 SOURCE_FOLDERS=(SUFST/Src)
 INCLUDE_FOLDERS=(SUFST/Inc)
+
+# name of makefile
 MAKEFILE=Makefile
 
 ###############################################################################
@@ -32,12 +59,14 @@ TPUT_RESET=sgr0
 ###############################################################################
 # script task
 ###############################################################################
-
 function main()
 {
     echo
     check_toolchain
     update_sufst_files
+    update_flags
+    update_defines
+    update_optimisation
     ensure_asm_lowercase
     fix_rtos_port
 }
@@ -45,7 +74,6 @@ function main()
 ###############################################################################
 # checks host system capabilities
 ###############################################################################
-
 function check_toolchain()
 {
     step "Checking toolchain installation"
@@ -87,7 +115,6 @@ function check_toolchain()
 ###############################################################################
 # update SUFST sources and headers in makefile
 ###############################################################################
-
 function update_sufst_files()
 {
     step "Updating SUFST files"
@@ -181,6 +208,82 @@ function update_sufst_files()
 }
 
 ###############################################################################
+# update flags in makefile
+###############################################################################
+function update_flags()
+{
+    step "Updating compiler flags"
+
+    # debug build
+    echo -n "Debug:    "
+    for FLAG in "${DEBUG_CFLAGS[@]}"
+    do 
+        echo -n "$FLAG "
+    done
+    echo
+
+    # release build
+    echo -n "Release:  "
+    for FLAG in "${RELEASE_CFLAGS[@]}"
+    do 
+        echo -n "$FLAG "
+    done
+    echo
+
+    echo
+}
+
+###############################################################################
+# update defines in makefile
+###############################################################################
+function update_defines()
+{
+    step "Updating #defines"
+
+    # debug build
+    echo -n "Debug:    "
+    for FLAG in "${DEBUG_DEFINES[@]}"
+    do 
+        echo -n "$FLAG "
+    done
+    echo
+
+    # release build
+    echo -n "Release:  "
+    for FLAG in "${RELEASE_DEFINES[@]}"
+    do 
+        echo -n "$FLAG "
+    done
+    echo -e "\n"
+}
+
+###############################################################################
+# update optimisation levels in makefile
+###############################################################################
+function update_optimisation()
+{
+    # first check if an update is needed
+    cat "$MAKEFILE" | grep "OPT =" > /dev/null 
+
+    if [[ $? != 0 ]]; then 
+        return
+    fi
+
+    # replace existing code setting OPT
+    step "Updating optimisation levels"
+    local TMP_FILE=Makefile.tmp
+    echo "Debug:    $DEBUG_OPT"
+    echo "Release:  $RELEASE_OPT"
+
+    local CODE="ifeq (\$(DEBUG), 1)\\n\\tOPT=$DEBUG_OPT\\nelse\\n\\tOPT=$RELEASE_OPT\\nendif\\n"
+    local TO_REPLACE=$(cat "$MAKEFILE" | grep "OPT =")
+
+    cat "$MAKEFILE" | sed "s/$TO_REPLACE/$CODE/g"  > $TMP_FILE 
+    mv "$TMP_FILE" "$MAKEFILE"
+    echo
+}
+
+###############################################################################
 # fixes bug in STM32CubeMX that causes incorrect RTOS port to be used
 ###############################################################################
 function fix_rtos_port()
@@ -225,7 +328,6 @@ function fix_rtos_port()
 ###############################################################################
 # ensures that assembly files have lowercase .s extension
 ###############################################################################
-
 function ensure_asm_lowercase()
 {
     # first check if anything needs to be done
@@ -346,5 +448,4 @@ function modified_file()
 ###############################################################################
 # driver code
 ###############################################################################
-
 main "$@"; exit
