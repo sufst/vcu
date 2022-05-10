@@ -37,7 +37,14 @@ void can_thread_entry(ULONG thread_input)
 		UINT ret = message_receive((VOID*) &message, &torque_request_queue);
 
 		if (ret != TX_SUCCESS) continue; // should never happen but handle it for safety
+#if RUN_SPEED_MODE
+		// Map torque to speed request and send to inverter through CAN
+		// UINT speed = foo(message.value);
+		pm100_speed_command_tx(message.value);
+#else
+		// Send the torque request to inverter through CAN
+		pm100_torque_command_tx(message.value);
+#endif
 
-		// ... do something with the message
 	}
 }
