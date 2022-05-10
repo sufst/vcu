@@ -59,6 +59,7 @@ TPUT_RESET=sgr0
 ###############################################################################
 # script task
 ###############################################################################
+
 function main()
 {
     echo
@@ -75,6 +76,7 @@ function main()
 ###############################################################################
 # toolchain checks
 ###############################################################################
+
 function check_toolchain()
 {
     step "Checking toolchain installation"
@@ -116,6 +118,7 @@ function check_toolchain()
 ###############################################################################
 # update SUFST sources and headers in makefile
 ###############################################################################
+
 function update_sufst_files()
 {
     step "Updating SUFST files"
@@ -211,6 +214,7 @@ function update_sufst_files()
 ###############################################################################
 # update flags in makefile
 ###############################################################################
+
 function update_flags()
 {
     step "Updating compiler flags"
@@ -237,6 +241,7 @@ function update_flags()
 ###############################################################################
 # update defines in makefile
 ###############################################################################
+
 function update_defines()
 {
     step "Updating #defines"
@@ -261,6 +266,7 @@ function update_defines()
 ###############################################################################
 # update optimisation levels in makefile
 ###############################################################################
+
 function update_optimisation()
 {
     # first check if an update is needed
@@ -287,6 +293,7 @@ function update_optimisation()
 ###############################################################################
 # fixes bug in STM32CubeMX that causes incorrect RTOS port to be used
 ###############################################################################
+
 function fix_rtos_port()
 {
     # first check if anything needs to be done 
@@ -329,6 +336,7 @@ function fix_rtos_port()
 ###############################################################################
 # ensures that assembly files have lowercase .s extension
 ###############################################################################
+
 function ensure_asm_lowercase()
 {
     # first check if anything needs to be done
@@ -370,6 +378,7 @@ function ensure_asm_lowercase()
 ###############################################################################
 # flash target
 ###############################################################################
+
 function add_flash_target()
 {
     local TARGET="flash: \$(BUILD_DIR)/\$(TARGET).bin\n\tst-flash write $< 0x08000000"
