@@ -204,3 +204,36 @@ pm100_status_t pm100_torque_command_tx(UINT torque)
 	}
 	return status;
 }
+
+#if RUN_SPEED_MODE
+/**
+ * @brief 		Transmit speed request to inverter
+ *
+ * @details		Will disable lockout if lockout is enabled by sending an empty message
+ *
+ * @param[in]	speed	The signed speed request to send [RPM]
+ */
+pm100_status_t pm100_speed_command_tx(UINT speed)
+{
+	// initialise command data to 0
+	pm100_command_t pm100_cmd = {0};
+	pm100_status_t status;
+
+  	// handle lockout
+	if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
+	{
+		pm100_cmd.speed_mode_enable = 1;
+		status = pm100_command_tx(&pm100_cmd);
+	}
+	// transmit speed request
+	else
+	{
+		pm100_cmd.direction = DIRECTION_COMMAND;
+		pm100_cmd.speed_command = (uint16_t) speed;
+		pm100_cmd.inverter_enable = 1;
+		pm100_cmd.speed_mode_enable = 1;
+		status = pm100_command_tx(&pm100_cmd);
+	}
+	return status;
+}
+#endif
