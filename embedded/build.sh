@@ -83,7 +83,6 @@ function check_toolchain()
         arm-none-eabi-objdump
         arm-none-eabi-objcopy
         arm-none-eabi-size
-        arm-none-eabi-gdb
     )
 
     local WARNINGS=0

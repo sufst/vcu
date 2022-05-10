@@ -11,7 +11,7 @@
 
 source utility.sh 
 
-ARM_NONE_EABI_LINK="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.pkg"
+ARM_NONE_EABI_URL="https://developer.arm.com/-/media/Files/downloads/gnu-rm/10.3-2021.10/gcc-arm-none-eabi-10.3-2021.10-mac.pkg"
 ARM_NONE_EABI_PATH="/Applications/ARM/bin"
 
 # make sure this is macOS
@@ -32,7 +32,6 @@ function check_toolchain()
         arm-none-eabi-objdump
         arm-none-eabi-objcopy
         arm-none-eabi-size
-        arm-none-eabi-gdb
     )
 
     TO_INSTALL=""
@@ -70,12 +69,12 @@ if [[ $? == 0 ]]; then
     step "\nInstalling arm-none-eabi..."
     DOWNLOAD_LOCATION="$HOME/Downloads"
 
-    # download latest (if the file isn't already there)
+    # download (if the file isn't already there)
     FILE=$(find "$DOWNLOAD_LOCATION" -type f -name "gcc-arm-none-eabi-*" | head -n 1 | grep .)
 
     if [[ $? != 0 ]]; then 
-        info "Downloading: $ARM_NONE_EABI_LINK"
-        (cd "$DOWNLOAD_LOCATION"; curl -OsSL "$ARM_NONE_EABI_LINK" > /dev/null) 
+        info "Downloading: $ARM_NONE_EABI_URL"
+        (cd "$DOWNLOAD_LOCATION"; curl -OsSL "$ARM_NONE_EABI_URL" > /dev/null) 
     else 
         info "Found file: $FILE"
     fi
