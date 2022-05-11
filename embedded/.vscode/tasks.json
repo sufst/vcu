@@ -12,7 +12,6 @@
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
-                "isDefault": true
             },
         },
         // make build task (RELEASE)
@@ -27,21 +26,25 @@
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
-                "isDefault": true
             },
         },
         // clean build directory
         {
             "label": "clean",
             "type": "shell",
-            "command": "make clean"
+            "command": "make clean",
+            "group": {
+                "kind": "build",
+            },
         },
         // flash VCU.bin
         {
             "label": "flash",
             "type": "shell",
-            "dependsOn": "build",
             "command": "make flash",
+            "group": {
+                "kind": "build",
+            },
         },
         // open STM32CubeMX
         {
@@ -65,11 +68,5 @@
                 "${workspaceRoot}/VCU.ioc",
             ]
         },
-        // run code generation script (fix STM32CubeMX generated makefile)
-        {
-            "label": "generate makefile",
-            "type": "shell",
-            "command": "${workspaceFolder}/build.sh",
-        }
     ]
 }
