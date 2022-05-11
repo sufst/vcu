@@ -11,5 +11,6 @@
         "build": true,
         ".vscode/.cortex-debug.*": true,
         ".vscode/*.log": true,
+        "null.d": true,
     }
 }

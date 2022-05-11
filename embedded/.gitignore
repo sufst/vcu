@@ -5,6 +5,7 @@ build
 *.d 
 *.o
 *.lst
+*.tmp
 
 # STM32Cube related files
 .mxproject
@@ -13,6 +14,9 @@ build
 *.scratch
 *.ftl
 Middlewares/ST/threadx/ports/cortex_m7/iar
+
+# unnecessary dependency files
+Drivers/CMSIS/DSP/DSP_Lib_TestSuite
 
 # VS Code files (with some exceptions)
 .vscode

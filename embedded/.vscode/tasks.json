@@ -5,77 +5,46 @@
         {
             "label": "build (DEBUG)",
             "type": "shell",
+            "command": "make",
+            "args": [
+                "-j$(nproc)",
+            ],
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
-                "isDefault": true
             },
-            "osx": {
-                "command": "make",
-                "args": [
-                    "-j$(nproc)",
-                ]
-            },
-            "linux": {
-                "command": "make",
-                "args": [
-                    "-j$(nproc)",
-                ]
-            },
-            "windows": {
-                "command": "make",
-            }
         },
         // make build task (RELEASE)
         {
             "label": "build (RELEASE)",
             "type": "shell",
+            "command": "make",
+            "args": [
+                "-j$(nproc)",
+                "DEBUG=0",
+            ],
             "problemMatcher": "$gcc",
             "group": {
                 "kind": "build",
-                "isDefault": true
-            },
-            "osx": {
-                "command": "make",
-                "args": [
-                    "-j$(nproc)",
-                    "DEBUG=0",
-                    "OPT=-O3",
-                ]
-            },
-            "linux": {
-                "command": "make",
-                "args": [
-                    "-j$(nproc)",
-                    "DEBUG=0",
-                    "OPT=-O3",
-                ]
-            },
-            "windows": {
-                "command": "make",
-                "args": [
-                    "DEBUG=0",
-                    "OPT=-O3",
-                ]
             },
         },
         // clean build directory
         {
             "label": "clean",
             "type": "shell",
-            "command": "make clean"
+            "command": "make clean",
+            "group": {
+                "kind": "build",
+            },
         },
         // flash VCU.bin
         {
             "label": "flash",
             "type": "shell",
-            "dependsOn": "build",
-            "command": "st-flash",
-            "args": [
-                "write",
-                "build/VCU.bin",
-                "0x08000000",   // flash memory address
-            ]
+            "command": "make flash",
+            "group": {
+                "kind": "build",
+            },
         },
         // open STM32CubeMX
         {
@@ -95,18 +64,9 @@
             "linux": {
                 "command": "?",
             },
-            "windows": {
-                "command": "?",
-            },
             "args": [
                 "${workspaceRoot}/VCU.ioc",
             ]
         },
-        // run code generation script (fix STM32CubeMX generated makefile)
-        {
-            "label": "generate makefile",
-            "type": "shell",
-            "command": "python3 code_gen.py",
-        }
     ]
 }

@@ -1,51 +1,39 @@
 
+### specific files / folders ###
+/datasheets
+/scripts/*.h
+/scripts/*.c
+.vscode/**
+
 ### C ###
-
-# Prerequisites
 *.d
-
-# object files
 *.o
 *.ko
 *.obj
 *.elf
-
-# linker output
 *.ilk
 *.map
 *.exp
-
-# precompiled Headers
 *.gch
 *.pch
-
-# libraries
 *.lib
 *.a
 *.la
 *.lo
-
-# shared objects
 *.dll
 *.so
 *.so.*
 *.dylib
-
-# executables
 *.exe
 *.out
 *.app
 *.i*86
 *.x86_64
 *.hex
-
-# debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
-
-# kernel Module Compile Results
 *.mod*
 *.cmd
 .tmp_versions/
@@ -55,9 +43,7 @@ Mkfile.old
 dkms.conf
 
 
-
 ### STM32 ###
-
 Drivers/*
 MDK-ARM/*
 EWARM/*
@@ -68,13 +54,9 @@ EWARM/*
 Debug/
 
 ### Python ###
-
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
-
-# distribution / packaging
 .Python
 build/
 develop-eggs/
@@ -93,8 +75,6 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-
-# environments
 .env
 .venv
 env/
@@ -103,22 +83,12 @@ ENV/
 env.bak/
 venv.bak/
 
-
 ### macOS ###
-.DS_Store
-
-# general
 .DS_Store
 .AppleDouble
 .LSOverride
-
-# icon
 Icon^M
-
-# thumbnails
 ._*
-
-# files that might appear in the root of a volume
 .DocumentRevisions-V100
 .fseventsd
 .Spotlight-V100
@@ -126,15 +96,8 @@ Icon^M
 .Trashes
 .VolumeIcon.icns
 .com.apple.timemachine.donotpresent
-
-# directories potentially created on remote AFP share
 .AppleDB
 .AppleDesktop
 Network Trash Folder
 Temporary Items
 .apdisk
-
-### Root level folders ###
-/datasheets
-/scripts/*.h
-/scripts/*.c
