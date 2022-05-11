@@ -24,7 +24,7 @@ function step()
 {
     tput setaf $TPUT_MAGENTA
     tput bold
-    echo -e $*
+    echo $*
     tput $TPUT_RESET
 }
 
@@ -32,13 +32,13 @@ function header()
 {
     tput setaf $TPUT_WHITE
     tput bold
-    echo -e $* 
+    echo $* 
     tput $TPUT_RESET
 }
 
 function info()
 {
-    echo -e $*
+    echo $*
 }
 
 function info_tick()
@@ -60,7 +60,7 @@ function info_cross()
 function error()
 {
     tput setaf $TPUT_RED
-    echo -n "Error: "
+    printf "Error: "
     tput $TPUT_RESET
     echo $*
     exit 1

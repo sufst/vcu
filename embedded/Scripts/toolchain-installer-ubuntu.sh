@@ -57,7 +57,7 @@ function check_toolchain()
     echo "$TO_INSTALL" | grep . > /dev/null 
 
     if [[ $? != 0 ]]; then 
-        success "All tools installed."
+        success "All tools installed"
         exit 0
     fi
 }
@@ -72,7 +72,7 @@ echo "$TO_INSTALL" | grep "arm-none-eabi" > /dev/null
 
 if [[ $? == 0 ]]; then 
     
-    step "\nInstalling arm-none-eabi..."
+    step -e "\nInstalling arm-none-eabi..."
     sudo apt-get update 
     sudo apt-get install gcc-arm-none-eabi
 
@@ -88,7 +88,7 @@ echo "$TO_INSTALL" | grep "st-" > /dev/null
 
 if [[ $? == 0 ]]; then 
 
-    step "\nInstalling stlink..."
+    step -e "\nInstalling stlink..."
     DOWNLOAD_LOCATION="$HOME/Downloads"
 
     # download (if the file isn't already there)
@@ -111,5 +111,5 @@ if [[ $? == 0 ]]; then
 fi
 
 # check toolchain
-step "\nChecking toolchain post installation..."
+step -e "\nChecking toolchain post installation..."
 check_toolchain

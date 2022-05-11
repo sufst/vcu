@@ -34,7 +34,12 @@ DEBUG_ASM_DEFS = \
 RELEASE_ASM_DEFS = \
 
 # flags
-ALWAYS_FLAGS = -Wall -fdata-sections -ffunction-sections
+ALWAYS_FLAGS = \
+-Wall \
+-Werror=implicit-function-declaration \
+-fdata-sections \
+-ffunction-sections \
+
 DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -g -gdwarf-2
 RELEASE_C_FLAGS = $(ALWAYS_FLAGS)
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
@@ -391,11 +396,18 @@ $(BUILD_DIR):
 
 # clean
 clean:
-	-rm -fR $(BUILD_DIR)
+	@tput setaf 5; tput bold; echo "Cleaning build directory..."
+	@-rm -fR $(BUILD_DIR)
+	@tput sgr0; tput setaf 2; echo "Done."; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
 	st-flash write $< 0x08000000
+
+# check toolchain
+toolchain:
+	@cd Scripts; ./toolchain.sh check \
+	|| (echo; ./toolchain.sh install)
   
 
 #######################################
