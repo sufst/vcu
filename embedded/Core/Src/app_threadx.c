@@ -24,14 +24,14 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "../../SUFST/Inc/can_thread.h"
-#include "../../SUFST/Inc/control_thread.h"
-#include "../../SUFST/Inc/fault_state_thread.h"
 #include "../../SUFST/Inc/messaging_system.h"
 #include "../../SUFST/Inc/pm100.h"
 #include "../../SUFST/Inc/ready_to_drive.h"
 #include "../../SUFST/Inc/rtc_time.h"
-#include "../../SUFST/Inc/sensor_thread.h"
+#include "../../SUFST/Inc/Threads/can_thread.h"
+#include "../../SUFST/Inc/Threads/control_thread.h"
+#include "../../SUFST/Inc/Threads/fault_state_thread.h"
+#include "../../SUFST/Inc/Threads/sensor_thread.h"
 
 /* USER CODE END Includes */
 

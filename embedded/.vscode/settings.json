@@ -14,4 +14,10 @@
         "null.d": true,
         "compile_commands.json": true,
     },
+    "files.associations": {
+        "sensor_thread.h": "c",
+        "rtc_time.h": "c",
+        "can_thread.h": "c",
+        "fault_state_thread.h": "c"
+    },
 }

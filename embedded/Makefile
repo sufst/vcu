@@ -84,20 +84,20 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 ######################################
 
 C_SOURCES =  \
-SUFST/Src/can_thread.c \
-SUFST/Src/driver_profiles.c \
-SUFST/Src/can_types.c \
-SUFST/Src/config_rules.c \
-SUFST/Src/driver_profile_data.c \
-SUFST/Src/fault_state_thread.c \
-SUFST/Src/pm100.c \
-SUFST/Src/rtc_time.c \
-SUFST/Src/control_thread.c \
-SUFST/Src/sensor_thread.c \
-SUFST/Src/messaging_system.c \
-SUFST/Src/Test/testbench.c \
-SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/ready_to_drive.c \
+SUFST/Src/Test/throttle_testbench_data.c \
+SUFST/Src/Test/testbench.c \
+SUFST/Src/messaging_system.c \
+SUFST/Src/rtc_time.c \
+SUFST/Src/Threads/sensor_thread.c \
+SUFST/Src/Threads/control_thread.c \
+SUFST/Src/Threads/fault_state_thread.c \
+SUFST/Src/Threads/can_thread.c \
+SUFST/Src/pm100.c \
+SUFST/Src/driver_profile_data.c \
+SUFST/Src/config_rules.c \
+SUFST/Src/can_types.c \
+SUFST/Src/driver_profiles.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/app_threadx.c \
@@ -308,8 +308,9 @@ Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 ASM_INCLUDES = 
 
 C_INCLUDES =  \
--ISUFST/Inc/Test \
 -ISUFST/Inc \
+-ISUFST/Inc/Test \
+-ISUFST/Inc/Threads \
 -ICore/Inc \
 -IAZURE_RTOS/App \
 -IDrivers/STM32H7xx_HAL_Driver/Inc \
