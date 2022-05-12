@@ -15,9 +15,9 @@
 /* 
  * definitions
  */
-#define STD							FDCAN_STANDARD_ID
-#define EXT							FDCAN_EXTENDED_ID
-#define CAN_ID_OFFSET 0xA0
+#define STD				FDCAN_STANDARD_ID
+#define EXT				FDCAN_EXTENDED_ID
+#define CAN_ID_OFFSET 	0xA0
 
 /* Type Definitions ------------------------------------------------------------------------*/
 
