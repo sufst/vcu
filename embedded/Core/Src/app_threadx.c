@@ -24,14 +24,16 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "../../SUFST/Inc/can_thread.h"
-#include "../../SUFST/Inc/control_thread.h"
-#include "../../SUFST/Inc/fault_state_thread.h"
-#include "../../SUFST/Inc/messaging_system.h"
-#include "../../SUFST/Inc/pm100.h"
-#include "../../SUFST/Inc/ready_to_drive.h"
-#include "../../SUFST/Inc/rtc_time.h"
-#include "../../SUFST/Inc/sensor_thread.h"
+#include "ready_to_drive.h"
+
+#include "can_thread.h"
+#include "control_thread.h"
+#include "fault_state_thread.h"
+#include "sensor_thread.h"
+#include "messaging_system.h"
+
+#include "pm100.h"
+#include "rtc_time.h"
 
 /* USER CODE END Includes */
 
@@ -67,122 +69,121 @@
   */
 UINT App_ThreadX_Init(VOID *memory_ptr)
 {
-  UINT ret = TX_SUCCESS;
-  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
+    UINT ret = TX_SUCCESS;
+    TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
 
-  /* USER CODE BEGIN App_ThreadX_MEM_POOL */
-  (void)byte_pool;
-  /* USER CODE END App_ThreadX_MEM_POOL */
+    /* USER CODE BEGIN App_ThreadX_MEM_POOL */
+    (void)byte_pool;
+    /* USER CODE END App_ThreadX_MEM_POOL */
 
-  /* USER CODE BEGIN App_ThreadX_Init */
+    /* USER CODE BEGIN App_ThreadX_Init */
 
-  VOID* stack_ptr;	// pointer to allocated memory for thread stack
+    VOID* stack_ptr;	// pointer to allocated memory for thread stack
 
-  /**************************
-   * Control thread creation
-   **************************/
+    /**************************
+     * Control thread creation
+     **************************/
 
-  // allocate memory for control thread from application memory pool
-  ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
+    // allocate memory for control thread from application memory pool
+    ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
 
-  // create control thread
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
-			  	  CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
-				  TX_NO_TIME_SLICE, TX_AUTO_START);
-  }
+    // create control thread
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
+                    CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
+                    TX_NO_TIME_SLICE, TX_AUTO_START);
+    }
 
-  /*************************
-   * CAN thread creation
-   **************************/
+    /*************************
+     * CAN thread creation
+     **************************/
 
-  // allocate memory for CAN thread from application memory pool
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
-  }
+    // allocate memory for CAN thread from application memory pool
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
+    }
 
-  // create CAN thread
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
-			  	  CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
-				  TX_NO_TIME_SLICE, TX_AUTO_START);
-  }
-  
-  /*************************
-   * Sensor thread creation
-   **************************/
-  
-  // allocate memory for sensor thread from application memory pool
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
+    // create CAN thread
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
+                    CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
+                    TX_NO_TIME_SLICE, TX_AUTO_START);
+    }
 
-  }
+    /*************************
+     * Sensor thread creation
+     **************************/
 
-  // create sensor thread
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
-			  	  SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
-				  TX_NO_TIME_SLICE, TX_AUTO_START);
-  }
+    // allocate memory for sensor thread from application memory pool
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
 
-  /*************************
-   * Fault thread creation
-   **************************/
+    }
 
-  // allocate memory for fault state thread from application memory pool
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_byte_allocate(memory_ptr, &stack_ptr, FAULT_STATE_THREAD_STACK_SIZE, TX_NO_WAIT);
-  }
+    // create sensor thread
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
+                    SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
+                    TX_NO_TIME_SLICE, TX_AUTO_START);
+    }
 
-  // create fault state thread
-  // -> don't auto start it
-  if (ret == TX_SUCCESS)
-  {
-	  ret = tx_thread_create(&fault_state_thread, FAULT_STATE_THREAD_NAME, fault_state_thread_entry, 0, stack_ptr,
-			  	  FAULT_STATE_THREAD_STACK_SIZE, FAULT_STATE_THREAD_PRIORITY, FAULT_STATE_THREAD_PREEMPTION_THRESHOLD,
-				  TX_NO_TIME_SLICE, TX_DONT_START);
-  }
+    /*************************
+     * Fault thread creation
+     **************************/
 
-  /*************************
-   * Other initialisation
-   **************************/
+    // allocate memory for fault state thread from application memory pool
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, FAULT_STATE_THREAD_STACK_SIZE, TX_NO_WAIT);
+    }
 
-  // RTC timestamps
-  if (ret == TX_SUCCESS)
-  {
-	  rtc_time_init();
-  }
+    // create fault state thread
+    // -> don't auto start it
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&fault_state_thread, FAULT_STATE_THREAD_NAME, fault_state_thread_entry, 0, stack_ptr,
+                    FAULT_STATE_THREAD_STACK_SIZE, FAULT_STATE_THREAD_PRIORITY, FAULT_STATE_THREAD_PREEMPTION_THRESHOLD,
+                    TX_NO_TIME_SLICE, TX_DONT_START);
+    }
 
-  // message system
-  if (ret == TX_SUCCESS)
-  {
-	  ret = message_system_init();
-  }
+    /*************************
+     * Other initialisation
+     **************************/
 
-  // CAN
-  if (ret == TX_SUCCESS)
-  {
-	  //pm100_init();
-  }
+    // RTC timestamps
+    if (ret == TX_SUCCESS)
+    {
+        rtc_time_init();
+    }
 
-  /*************************
-   * Ready-to-drive wait
-   **************************/
+    // message system
+    if (ret == TX_SUCCESS)
+    {
+        ret = message_system_init();
+    }
 
-  if (ret == TX_SUCCESS)
-  {
-	  wait_for_ready_to_drive();
-  }
+    // CAN
+    if (ret == TX_SUCCESS)
+    {
+        //pm100_init();
+    }
 
-  /* USER CODE END App_ThreadX_Init */
+    /*************************
+     * Ready-to-drive wait
+     **************************/
 
-  return ret;
+    if (ret == TX_SUCCESS)
+    {
+        wait_for_ready_to_drive();
+    }
+
+    /* USER CODE END App_ThreadX_Init */
+    return ret;
 }
 
 /**

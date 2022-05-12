@@ -1,35 +1,38 @@
 /***************************************************************************
- * @file   can_types.h
- * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @file   can_driver.h
+ * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  CAN prototypes and CAN broadcast signals database
+ * @brief  CAN driver prototypes and CAN broadcast signals database
  ***************************************************************************/
 
-#ifndef CAN_TYPES_H_
-#define CAN_TYPES_H_
+#ifndef CAN_TYPES_H
+#define CAN_TYPES_H
 
 #include <stdint.h>
 #include "fdcan.h"
 
-/* Defines ------------------------------------------------------------------------*/
-/* Definitions for CAN identifiers */
-#define STD							FDCAN_STANDARD_ID
-#define EXT							FDCAN_EXTENDED_ID
-
-/* Inverter Can ID offset ---------------------------------------------------------------*/
-#define CAN_ID_OFFSET 0xA0
+/* 
+ * definitions
+ */
+#define STD				FDCAN_STANDARD_ID
+#define EXT				FDCAN_EXTENDED_ID
+#define CAN_ID_OFFSET 	0xA0
 
 /* Type Definitions ------------------------------------------------------------------------*/
 
 /* enum for inputs vector index */
 /* each broadcast usually has two bytes */
 
+/** 
+ * @brief 	CAN input enums
+ * 
+ * @details	PM100DZ inverter input params
+ * 
+ * @note 	!!PRESERVE ORDER!! if changing any of this, remember to change parsers
+ */
 typedef enum CAN_input_e
 {
-
-	// Inverter, PM100DZ input params
-	// !!PRESERVE ORDER!! if changing any of this, remember to change parsers
-
 	// 0x0A0 – Temperatures #1
 	MODULE_A_TEMP,
 	MODULE_B_TEMP,
@@ -120,7 +123,7 @@ typedef enum CAN_input_e
 	ID_COMMAND,
 	IQ_COMMAND,
 	// 0x0AE – Firmware Information
-	EEPROM_VERSION, //EEPROM Version
+	EEPROM_VERSION,
 	SOFTWARE_VERSION,
 	DATE_CODE_MD,
 	DATE_CODE_YY,
@@ -133,26 +136,29 @@ typedef enum CAN_input_e
 	FAST_MOTOR_SPEED,
 	FAST_DC_BUS_VOLTAGE,
 	// 0x0C2 - Read / Write Parameter Response – response from motor controller
-	PARAMETER_RESPONSE_ADDRESS, //address stores the address of the parameter
-	PARAMETER_RESPONSE_WRITE_SUCCESS, //the success or not byte
-	PARAMETER_RESPONSE_DATA, //response data from motor controller
+	PARAMETER_RESPONSE_ADDRESS, 		// address stores the address of the parameter
+	PARAMETER_RESPONSE_WRITE_SUCCESS, 	// the success or not byte
+	PARAMETER_RESPONSE_DATA, 			// response data from motor controller
 
 	NUM_INPUTS,
 
 } CAN_input_t;
 
-//PM-100DZ
-
-// General CAN struct
-/* Struct to hold CAN segment map (follows big endian) */
+/**
+ * @brief 	CAN segment mapping
+ * 
+ * @details	Big endian format
+ */
 typedef struct segment_map_s
 {
-	CAN_input_t 	index;			/* index in inputs array */
-	uint8_t 		start_byte;		/* input start byte (MSB) in CAN data field */
-	uint8_t 		size;			/* input size in bytes */
+	CAN_input_t 	index;			// index in CAN inputs array
+	uint8_t 		start_byte;		// input start byte (MSB) in CAN data field
+	uint8_t 		size;			// input size in bytes
 } segment_map_t;
 
-/* Struct to hold messages used in CAN message queues */
+/**
+ * @brief 	CAN message queue item
+ */
 typedef struct queue_msg_s
 {
 	union
@@ -163,29 +169,39 @@ typedef struct queue_msg_s
 	uint8_t data[8];
 } queue_msg_t;
 
-/* Prototype that all CAN parser functions must use */
+/** 
+ * @brief CAN parser function prototype
+ * 
+ * @note  Must be followed by all CAN parsers 
+ */
 typedef void (*CAN_parser_t)(queue_msg_t q_msg, uint8_t CAN_idx);
 
-/* CAN message type  */
+
+/** 
+ * @brief CAN message type map entry
+ */
 typedef struct CAN_msg_s
 {
 	uint32_t		msg_ID;			// Message ID
 	uint32_t		msg_type;		// STD or EXT
 	char 			name[20];		// internal message name
-	segment_map_t*   segment_map;	// segment_map for data
+	segment_map_t*  segment_map;	// segment_map for data
 	uint8_t			num_inputs;		// number of segments
 	CAN_parser_t	parser;			// parser function
 
 } CAN_msg_t;
 
-/* Variables to Export ------------------------------------------------------------------------*/
 
+/**
+ * @brief CAN input state (export)
+ */
 extern volatile uint32_t CAN_inputs[NUM_INPUTS];
 
-/* Function Prototypes ------------------------------------------------------------------------*/
-//void Error_Handler(void);
+/*
+ * function prototypes
+ */
 void CAN_Rx();
 HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg);
-
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
-#endif /* CAN_TYPES_H_ */
+
+#endif

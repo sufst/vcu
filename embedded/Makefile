@@ -40,8 +40,8 @@ ALWAYS_FLAGS = \
 -fdata-sections \
 -ffunction-sections \
 
-DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -g -gdwarf-2
-RELEASE_C_FLAGS = $(ALWAYS_FLAGS)
+DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=c11 -g -gdwarf-2
+RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=c11
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
 RELEASE_ASM_FLAGS = $(ALWAYS_FLAGS)
 
@@ -84,20 +84,20 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 ######################################
 
 C_SOURCES =  \
-SUFST/Src/can_thread.c \
-SUFST/Src/driver_profiles.c \
-SUFST/Src/can_types.c \
 SUFST/Src/config_rules.c \
-SUFST/Src/driver_profile_data.c \
-SUFST/Src/fault_state_thread.c \
-SUFST/Src/pm100.c \
-SUFST/Src/rtc_time.c \
-SUFST/Src/control_thread.c \
-SUFST/Src/sensor_thread.c \
-SUFST/Src/messaging_system.c \
-SUFST/Src/Test/testbench.c \
-SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/ready_to_drive.c \
+SUFST/Src/CAN/can_driver.c \
+SUFST/Src/CAN/pm100.c \
+SUFST/Src/Profiles/driver_profiles.c \
+SUFST/Src/Profiles/driver_profile_data.c \
+SUFST/Src/Test/throttle_testbench_data.c \
+SUFST/Src/Test/testbench.c \
+SUFST/Src/Threads/messaging_system.c \
+SUFST/Src/Threads/sensor_thread.c \
+SUFST/Src/Threads/control_thread.c \
+SUFST/Src/Threads/fault_state_thread.c \
+SUFST/Src/Threads/can_thread.c \
+SUFST/Src/Utility/rtc_time.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/app_threadx.c \
@@ -308,8 +308,12 @@ Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 ASM_INCLUDES = 
 
 C_INCLUDES =  \
--ISUFST/Inc/Test \
 -ISUFST/Inc \
+-ISUFST/Inc/CAN \
+-ISUFST/Inc/Profiles \
+-ISUFST/Inc/Test \
+-ISUFST/Inc/Threads \
+-ISUFST/Inc/Utility \
 -ICore/Inc \
 -IAZURE_RTOS/App \
 -IDrivers/STM32H7xx_HAL_Driver/Inc \
@@ -373,54 +377,54 @@ all:
 # pre build
 .PHONY: prebuild
 prebuild:
-	@tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
+	tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
 
 # C
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
-	@echo "$<"
-	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	echo "$<"
+	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 # ASM
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
-	@echo "$<"
-	@$(AS) -c $(CFLAGS) $< -o $@
+	echo "$<"
+	$(AS) -c $(CFLAGS) $< -o $@
 
 # .elf 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	@tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
-	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	@$(SZ) $@
-	@tput setaf 2;  echo "$@"; echo; tput sgr0
+	tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(SZ) $@
+	tput setaf 2;  echo "$@"; echo; tput sgr0
 
 # .hex
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	@$(HEX) $< $@
+	$(HEX) $< $@
 
 # .bin
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	@tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
-	@$(BIN) $< $@	
-	@tput setaf 2;  echo "$@"; echo; tput sgr0
+	tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
+	$(BIN) $< $@	
+	tput setaf 2;  echo "$@"; echo; tput sgr0
 	
 # create build directory
 $(BUILD_DIR):
-	@mkdir $@	
+	mkdir $@	
 
 # clean
 clean:
-	@tput setaf 5; tput bold; echo "Cleaning build directory..."
-	@-rm -fR $(BUILD_DIR)
-	@tput sgr0; tput setaf 2; echo "Done"; tput sgr0
+	tput setaf 5; tput bold; echo "Cleaning build directory..."
+	-rm -fR $(BUILD_DIR)
+	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
-	@tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
-	@st-flash write $< 0x08000000
-	@echo
+	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
+	st-flash write $< 0x08000000
+	echo
 
 # check toolchain
 toolchain:
-	@cd Scripts; ./toolchain.sh check \
+	cd Scripts; ./toolchain.sh check \
 	|| (echo; ./toolchain.sh install)
   
 

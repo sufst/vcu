@@ -8,11 +8,10 @@
             "command": "make",
             "args": [
                 "-j$(nproc)",
+                "-s",
             ],
             "problemMatcher": "$gcc",
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
         },
         // make build task (RELEASE)
         {
@@ -21,30 +20,39 @@
             "command": "make",
             "args": [
                 "-j$(nproc)",
+                "-s",
                 "DEBUG=0",
             ],
             "problemMatcher": "$gcc",
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
         },
         // clean build directory
         {
             "label": "clean",
             "type": "shell",
-            "command": "make clean",
-            "group": {
-                "kind": "build",
-            },
+            "command": "make",
+            "args": [
+                "clean",
+                "-s",
+            ],
+            "group": "build",
         },
         // flash VCU.bin
         {
             "label": "flash",
             "type": "shell",
-            "command": "make flash",
-            "group": {
-                "kind": "build",
-            },
+            "command": "make",
+            "args": [
+                "flash",
+                "-s",
+            ],
+            "group": "build",
+        },
+        {
+            "label": "generate compile_commands.json",
+            "type": "shell",
+            "command": "./Scripts/compile-commands.sh",
+            "group": "build",
         },
         // open STM32CubeMX
         {
