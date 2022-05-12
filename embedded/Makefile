@@ -93,10 +93,10 @@ SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
 SUFST/Src/Threads/fault_state_thread.c \
 SUFST/Src/Threads/can_thread.c \
-SUFST/Src/pm100.c \
+SUFST/Src/CAN/pm100.c \
 SUFST/Src/driver_profile_data.c \
 SUFST/Src/config_rules.c \
-SUFST/Src/can_types.c \
+SUFST/Src/CAN/can_types.c \
 SUFST/Src/driver_profiles.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
@@ -309,6 +309,7 @@ ASM_INCLUDES =
 
 C_INCLUDES =  \
 -ISUFST/Inc \
+-ISUFST/Inc/CAN \
 -ISUFST/Inc/Test \
 -ISUFST/Inc/Threads \
 -ICore/Inc \

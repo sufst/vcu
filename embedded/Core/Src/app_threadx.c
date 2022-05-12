@@ -25,7 +25,7 @@
 /* USER CODE BEGIN Includes */
 
 #include "../../SUFST/Inc/messaging_system.h"
-#include "../../SUFST/Inc/pm100.h"
+#include "../../SUFST/Inc/CAN/pm100.h"
 #include "../../SUFST/Inc/ready_to_drive.h"
 #include "../../SUFST/Inc/rtc_time.h"
 #include "../../SUFST/Inc/Threads/can_thread.h"
