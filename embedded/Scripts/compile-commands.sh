@@ -57,9 +57,10 @@ for COMMAND in $(cat < "$TMP_FILE"); do
 
 done
 
+# remove trailling comma
+sed '$ s/.$//' "$JSON_FILE" > "$TMP_FILE"
+mv "$TMP_FILE" "$JSON_FILE"
+
 # end of JSON file
 echo -e "]" >> "$JSON_FILE"
-
-# clean up
-rm "$TMP_FILE"
 success "Done"
