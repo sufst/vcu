@@ -84,20 +84,20 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 ######################################
 
 C_SOURCES =  \
+SUFST/Src/config_rules.c \
 SUFST/Src/ready_to_drive.c \
+SUFST/Src/CAN/can_types.c \
+SUFST/Src/CAN/pm100.c \
+SUFST/Src/Profiles/driver_profiles.c \
+SUFST/Src/Profiles/driver_profile_data.c \
 SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/Test/testbench.c \
 SUFST/Src/Threads/messaging_system.c \
-SUFST/Src/Utility/rtc_time.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
 SUFST/Src/Threads/fault_state_thread.c \
 SUFST/Src/Threads/can_thread.c \
-SUFST/Src/CAN/pm100.c \
-SUFST/Src/driver_profile_data.c \
-SUFST/Src/config_rules.c \
-SUFST/Src/CAN/can_types.c \
-SUFST/Src/driver_profiles.c \
+SUFST/Src/Utility/rtc_time.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/app_threadx.c \
@@ -310,6 +310,7 @@ ASM_INCLUDES =
 C_INCLUDES =  \
 -ISUFST/Inc \
 -ISUFST/Inc/CAN \
+-ISUFST/Inc/Profiles \
 -ISUFST/Inc/Test \
 -ISUFST/Inc/Threads \
 -ISUFST/Inc/Utility \
