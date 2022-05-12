@@ -88,7 +88,7 @@ SUFST/Src/ready_to_drive.c \
 SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/Test/testbench.c \
 SUFST/Src/messaging_system.c \
-SUFST/Src/rtc_time.c \
+SUFST/Src/Utility/rtc_time.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
 SUFST/Src/Threads/fault_state_thread.c \
@@ -312,6 +312,7 @@ C_INCLUDES =  \
 -ISUFST/Inc/CAN \
 -ISUFST/Inc/Test \
 -ISUFST/Inc/Threads \
+-ISUFST/Inc/Utility \
 -ICore/Inc \
 -IAZURE_RTOS/App \
 -IDrivers/STM32H7xx_HAL_Driver/Inc \

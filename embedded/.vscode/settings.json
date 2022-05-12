@@ -18,6 +18,7 @@
         "sensor_thread.h": "c",
         "rtc_time.h": "c",
         "can_thread.h": "c",
-        "fault_state_thread.h": "c"
+        "fault_state_thread.h": "c",
+        "messaging_system.h": "c"
     },
 }
