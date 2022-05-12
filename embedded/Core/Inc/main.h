@@ -70,6 +70,8 @@ void Error_Handler(void);
 #define FAULT_GPIO_Port GPIOE
 #define RED_LED_Pin GPIO_PIN_14
 #define RED_LED_GPIO_Port GPIOB
+#define YELLOW_LED_Pin GPIO_PIN_1
+#define YELLOW_LED_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

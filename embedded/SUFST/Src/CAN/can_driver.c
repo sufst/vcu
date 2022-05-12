@@ -8,7 +8,12 @@
 
 #include "can_driver.h"
 
+#include "gpio.h"
+
 #include <stdbool.h>
+
+#define CAN_STATUS_LED_Pin      YELLOW_LED_Pin
+#define CAN_STATUS_LED_Port     YELLOW_LED_GPIO_Port
 
 /* 
  * function prototypes
@@ -183,6 +188,10 @@ volatile uint32_t CAN_inputs[NUM_INPUTS];
  */
 void CAN_Rx()
 {
+#if DEBUG
+    HAL_GPIO_TogglePin(CAN_STATUS_LED_Port, CAN_STATUS_LED_Pin);
+#endif
+
     // fetch received message
     FDCAN_RxHeaderTypeDef rx_header;
     uint8_t	rx_data[8];
