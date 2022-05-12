@@ -46,12 +46,13 @@
 #define CAN_THREAD_PRIORITY			2
 
 /***************************************************************************
- * CAN
+ * CAN / inverter
  ***************************************************************************/
 
-#define CAN_TORQUE_REQUEST_TIMEOUT	100		// in ms
-#define CAN_EEPROM_MAX_RETRY		10		// maximum number of retry attempts
-#define CAN_EEPROM_RETRY_DELAY		100		// in ms
+#define INVERTER_SPEED_MODE             0       // replace torque requests with speed requests
+#define INVERTER_TORQUE_REQUEST_TIMEOUT	100		// in ms
+#define INVERTER_EEPROM_MAX_RETRY		10		// maximum number of retry attempts
+#define INVERTER_EEPROM_RETRY_DELAY		100		// in ms
 
 /***************************************************************************
  * sensors
@@ -71,7 +72,6 @@
 // enable flags
 #define RUN_THROTTLE_TESTBENCH		1		// throttle input from lookup table
 #define RUN_FAULT_STATE_TESTBENCH	1		// 'USER' button (after ready to drive) causes fault state
-#define RUN_SPEED_MODE              0       // Run inverter in speed mode
 
 // testbench parameters
 #define THROTTLE_TESTBENCH_LAPS 	4		// 1 for standing start only, 2+ to add flying laps
