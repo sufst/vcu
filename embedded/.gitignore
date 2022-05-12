@@ -24,3 +24,4 @@ Drivers/CMSIS/DSP/DSP_Lib_TestSuite
 !.vscode/launch.json
 !.vscode/settings.json
 !.vscode/tasks.json
+compile_commands.json

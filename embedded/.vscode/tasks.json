@@ -8,6 +8,7 @@
             "command": "make",
             "args": [
                 "-j$(nproc)",
+                "-s",
             ],
             "problemMatcher": "$gcc",
             "group": {
@@ -21,6 +22,7 @@
             "command": "make",
             "args": [
                 "-j$(nproc)",
+                "-s",
                 "DEBUG=0",
             ],
             "problemMatcher": "$gcc",
@@ -32,7 +34,11 @@
         {
             "label": "clean",
             "type": "shell",
-            "command": "make clean",
+            "command": "make",
+            "args": [
+                "clean",
+                "-s",
+            ],
             "group": {
                 "kind": "build",
             },
@@ -41,7 +47,11 @@
         {
             "label": "flash",
             "type": "shell",
-            "command": "make flash",
+            "command": "make",
+            "args": [
+                "flash",
+                "-s",
+            ],
             "group": {
                 "kind": "build",
             },

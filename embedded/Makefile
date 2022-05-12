@@ -40,8 +40,8 @@ ALWAYS_FLAGS = \
 -fdata-sections \
 -ffunction-sections \
 
-DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -g -gdwarf-2
-RELEASE_C_FLAGS = $(ALWAYS_FLAGS)
+DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=c11 -g -gdwarf-2
+RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=c11
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
 RELEASE_ASM_FLAGS = $(ALWAYS_FLAGS)
 
@@ -373,54 +373,54 @@ all:
 # pre build
 .PHONY: prebuild
 prebuild:
-	@tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
+	tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
 
 # C
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
-	@echo "$<"
-	@$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
+	echo "$<"
+	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 # ASM
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
-	@echo "$<"
-	@$(AS) -c $(CFLAGS) $< -o $@
+	echo "$<"
+	$(AS) -c $(CFLAGS) $< -o $@
 
 # .elf 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	@tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
-	@$(CC) $(OBJECTS) $(LDFLAGS) -o $@
-	@$(SZ) $@
-	@tput setaf 2;  echo "$@"; echo; tput sgr0
+	tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
+	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
+	$(SZ) $@
+	tput setaf 2;  echo "$@"; echo; tput sgr0
 
 # .hex
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	@$(HEX) $< $@
+	$(HEX) $< $@
 
 # .bin
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	@tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
-	@$(BIN) $< $@	
-	@tput setaf 2;  echo "$@"; echo; tput sgr0
+	tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
+	$(BIN) $< $@	
+	tput setaf 2;  echo "$@"; echo; tput sgr0
 	
 # create build directory
 $(BUILD_DIR):
-	@mkdir $@	
+	mkdir $@	
 
 # clean
 clean:
-	@tput setaf 5; tput bold; echo "Cleaning build directory..."
-	@-rm -fR $(BUILD_DIR)
-	@tput sgr0; tput setaf 2; echo "Done"; tput sgr0
+	tput setaf 5; tput bold; echo "Cleaning build directory..."
+	-rm -fR $(BUILD_DIR)
+	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
-	@tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
-	@st-flash write $< 0x08000000
-	@echo
+	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
+	st-flash write $< 0x08000000
+	echo
 
 # check toolchain
 toolchain:
-	@cd Scripts; ./toolchain.sh check \
+	cd Scripts; ./toolchain.sh check \
 	|| (echo; ./toolchain.sh install)
   
 

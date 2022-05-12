@@ -12,5 +12,6 @@
         ".vscode/.cortex-debug.*": true,
         ".vscode/*.log": true,
         "null.d": true,
-    }
+        "compile_commands.json": true,
+    },
 }

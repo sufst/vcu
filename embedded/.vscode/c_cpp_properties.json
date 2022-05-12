@@ -1,0 +1,12 @@
+{
+    "configurations": [
+        {
+            "name": "arm-none-eabi-gcc",
+            "compileCommands": "${workspaceFolder}/compile_commands.json",
+            "cStandard": "gnu11",
+            "intelliSenseMode": "gcc-arm",
+            "configurationProvider": "ms-vscode.makefile-tools"
+        }
+    ],
+    "version": 4
+}
