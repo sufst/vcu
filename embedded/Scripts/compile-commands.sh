@@ -62,3 +62,4 @@ echo -e "]" >> "$JSON_FILE"
 
 # clean up
 rm "$TMP_FILE"
+success "Done"

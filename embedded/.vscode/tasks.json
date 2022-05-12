@@ -11,9 +11,7 @@
                 "-s",
             ],
             "problemMatcher": "$gcc",
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
         },
         // make build task (RELEASE)
         {
@@ -26,9 +24,7 @@
                 "DEBUG=0",
             ],
             "problemMatcher": "$gcc",
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
         },
         // clean build directory
         {
@@ -39,9 +35,7 @@
                 "clean",
                 "-s",
             ],
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
         },
         // flash VCU.bin
         {
@@ -52,9 +46,13 @@
                 "flash",
                 "-s",
             ],
-            "group": {
-                "kind": "build",
-            },
+            "group": "build",
+        },
+        {
+            "label": "generate compile_commands.json",
+            "type": "shell",
+            "command": "./Scripts/compile-commands.sh",
+            "group": "build",
         },
         // open STM32CubeMX
         {
