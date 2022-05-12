@@ -1,9 +1,8 @@
 
 ### specific files / folders ###
-/datasheets
 /scripts/*.h
 /scripts/*.c
-.vscode/**
+/.vscode/**
 
 ### C ###
 *.d
