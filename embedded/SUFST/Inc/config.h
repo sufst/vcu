@@ -13,10 +13,15 @@
 #include "tx_api.h"
 
 /***************************************************************************
- * competition mode -- set to 1 to apply strict checks on config
+ * competition mode 
+ * -> defaults to 0 for debug
+ * -> set to 1 automatically in release build
+ * -> this enables strict checks on configuration 
  ***************************************************************************/
 
-#define COMPETITION_MODE			0
+#ifndef COMPETITION_MODE
+    #define COMPETITION_MODE		0
+#endif
 
 /***************************************************************************
  * ready-to-drive
