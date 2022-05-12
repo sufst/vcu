@@ -87,7 +87,7 @@ C_SOURCES =  \
 SUFST/Src/ready_to_drive.c \
 SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/Test/testbench.c \
-SUFST/Src/messaging_system.c \
+SUFST/Src/Threads/messaging_system.c \
 SUFST/Src/Utility/rtc_time.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
