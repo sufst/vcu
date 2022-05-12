@@ -14,7 +14,7 @@
 #include "pm100.h"
 
 /**
- * @brief Thread for control task
+ * @brief Thread for CAN transmit
  */
 TX_THREAD can_thread;
 
@@ -36,13 +36,18 @@ void can_thread_entry(ULONG thread_input)
 		torque_request_message_t message;
 		UINT ret = message_receive((VOID*) &message, &torque_request_queue);
 
-		if (ret != TX_SUCCESS) continue; // should never happen but handle it for safety
+		if (ret != TX_SUCCESS) 
+		{
+			// should never happen but handle it for safety
+			continue;
+		}
+
 #if RUN_SPEED_MODE
-		// Map torque to speed request and send to inverter through CAN
+		// map torque to speed request and send to inverter through CAN
 		// UINT speed = foo(message.value);
 		pm100_speed_command_tx(message.value);
 #else
-		// Send the torque request to inverter through CAN
+		// send the torque request to inverter through CAN
 		pm100_torque_command_tx(message.value);
 #endif
 
