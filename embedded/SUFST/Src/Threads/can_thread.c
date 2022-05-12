@@ -8,7 +8,7 @@
 #include "can_thread.h"
 #include "tx_api.h"
 
-#include "can_types.h"
+#include "can_driver.h"
 #include "fdcan.h"
 #include "messaging_system.h"
 #include "pm100.h"

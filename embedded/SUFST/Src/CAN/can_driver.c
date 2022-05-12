@@ -1,11 +1,12 @@
 /***************************************************************************
- * @file   can_types.c
- * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @file   can_driver.c
+ * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  Implementation of CAN communication
+ * @brief  Implementation of CAN driver
  ***************************************************************************/
 
-#include "can_types.h"
+#include "can_driver.h"
 
 #include <stdbool.h>
 
@@ -183,7 +184,6 @@ volatile uint32_t CAN_inputs[NUM_INPUTS];
 void CAN_Rx()
 {
     // fetch received message
-    HAL_StatusTypeDef status;
     FDCAN_RxHeaderTypeDef rx_header;
     uint8_t	rx_data[8];
 

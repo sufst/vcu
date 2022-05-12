@@ -20,6 +20,7 @@
         "rtc_time.h": "c",
         "can_thread.h": "c",
         "fault_state_thread.h": "c",
-        "messaging_system.h": "c"
+        "messaging_system.h": "c",
+        "can_driver.h": "c"
     },
 }

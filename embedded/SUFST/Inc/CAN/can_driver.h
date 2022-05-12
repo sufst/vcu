@@ -1,12 +1,13 @@
 /***************************************************************************
- * @file   can_types.h
- * @author Chua Shen Yik (syc2e18@soton.ac.uk)
+ * @file   can_driver.h
+ * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  CAN prototypes and CAN broadcast signals database
+ * @brief  CAN driver prototypes and CAN broadcast signals database
  ***************************************************************************/
 
-#ifndef CAN_TYPES_H_
-#define CAN_TYPES_H_
+#ifndef CAN_TYPES_H
+#define CAN_TYPES_H
 
 #include <stdint.h>
 #include "fdcan.h"
