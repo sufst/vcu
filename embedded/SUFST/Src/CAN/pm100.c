@@ -11,40 +11,33 @@
 #include "rtc_time.h"
 
 /*
- * PM100 addresses
+ * addresses
  */
-#define PM100_TIMEOUT_ADDR		172
+#define TIMEOUT_ADDR		    172
+#define BROADCAST_LO_WORD_ADDR  148
 
 /*
- * other PM100 constants
+ * constants
  */
-#define PM100_TIMEOUT_VALUE			(INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
-#define PM100_DIRECTION_COMMAND		1										// 0: reverse, 1: forward
+#define DIRECTION_COMMAND		1										// 0: reverse, 1: forward
+#define TIMEOUT			        (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 
-/*
- * broadcast configuration bytes
- */
-#define BROADCAST_BYTE_4	(  (INVERTER_BROADCAST_TEMPERATURE_1     << 0) \
-                             | (INVERTER_BROADCAST_TEMPERATURE_2     << 1) \
-                             | (INVERTER_BROADCAST_TEMPERATURE_3     << 2) \
-                             | (INVERTER_BROADCAST_ANALOG_INPUTS     << 3) \
-                             | (INVERTER_BROADCAST_DIGITAL_INPUTS    << 4) \
-                             | (INVERTER_BROADCAST_MOTOR_POSITION    << 5) \
-                             | (INVERTER_BROADCAST_CURRENTS          << 6) \
-                             | (INVERTER_BROADCAST_VOLTAGES          << 8) )
-
-#define BROADCAST_BYTE_5	(  (INVERTER_BROADCAST_FLUX           	 << 0) \
-                             | (INVERTER_BROADCAST_INTERNAL_VOLTAGES << 1) \
-                             | (INVERTER_BROADCAST_INTERNAL_STATES   << 2) \
-                             | (INVERTER_BROADCAST_FAULT_CODES       << 3) \
-                             | (INVERTER_BROADCAST_TORQUE_TIMER	  	 << 4) \
-                             | (INVERTER_BROADCAST_MODULATION_FLUX   << 5) \
-                             | (INVERTER_BROADCAST_FIRMWARE_INFO     << 6) \
-                             | (INVERTER_BROADCAST_DIAGNOSTIC_DATA   << 7) )
-
-#define BROADCAST_BYTE_6	(0xFF)
-
-#define BROADCAST_BYTE_7	(0xFF)
+#define BROADCAST_LO_WORD       (  (INVERTER_BROADCAST_TEMPERATURE_1     << 0)  \
+                                 | (INVERTER_BROADCAST_TEMPERATURE_2     << 1)  \
+                                 | (INVERTER_BROADCAST_TEMPERATURE_3     << 2)  \
+                                 | (INVERTER_BROADCAST_ANALOG_INPUTS     << 3)  \
+                                 | (INVERTER_BROADCAST_DIGITAL_INPUTS    << 4)  \
+                                 | (INVERTER_BROADCAST_MOTOR_POSITION    << 5)  \
+                                 | (INVERTER_BROADCAST_CURRENTS          << 6)  \
+                                 | (INVERTER_BROADCAST_VOLTAGES          << 7)  \
+                                 | (INVERTER_BROADCAST_FLUX           	 << 8)  \
+                                 | (INVERTER_BROADCAST_INTERNAL_VOLTAGES << 9)  \
+                                 | (INVERTER_BROADCAST_INTERNAL_STATES   << 10) \
+                                 | (INVERTER_BROADCAST_FAULT_CODES       << 11) \
+                                 | (INVERTER_BROADCAST_TORQUE_TIMER	     << 12) \
+                                 | (INVERTER_BROADCAST_MODULATION_FLUX   << 13) \
+                                 | (INVERTER_BROADCAST_FIRMWARE_INFO     << 14) \
+                                 | (INVERTER_BROADCAST_DIAGNOSTIC_DATA   << 15) )
 
 /**
  * @brief PM100 command message
@@ -111,8 +104,16 @@ static queue_msg_t pm100_parameter_read_msg =
  */
 pm100_status_t pm100_init()
 {
-    // TODO(@hashyaha) initialisation values (e.g. activate/deactivate specific broadcast messages)
-    return pm100_eeprom_write_blocking(PM100_TIMEOUT_ADDR, PM100_TIMEOUT_VALUE);
+    // configure broadcast messages
+    pm100_status_t status = pm100_eeprom_write_blocking((uint16_t) BROADCAST_LO_WORD_ADDR, (uint16_t) BROADCAST_LO_WORD);
+
+    // configure timeout
+    if (status == PM100_OK)
+    {
+        status = pm100_eeprom_write_blocking(TIMEOUT_ADDR, TIMEOUT);
+    }
+
+    return status;
 }
 
 /**
@@ -129,8 +130,8 @@ pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t 
     // construct message
     pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
     pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-    pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8);
-    pm100_parameter_write_msg.data[4] = (data & 0x00FF);
+    pm100_parameter_write_msg.data[4] = (data & 0x00FF);        // low byte
+    pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8); // high byte
 
     // loop until parameter set successfully or max retry attempts reached
     uint32_t suc = 0;

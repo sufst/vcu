@@ -170,7 +170,12 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
     // CAN
     if (ret == TX_SUCCESS)
     {
-        //pm100_init();
+        pm100_status_t status = pm100_init();
+        
+        if (status != PM100_OK)
+        {
+            ret = TX_START_ERROR;
+        }
     }
 
     /*************************
@@ -180,6 +185,10 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
     if (ret == TX_SUCCESS)
     {
         wait_for_ready_to_drive();
+    }
+    else 
+    {
+        tx_thread_resume(&fault_state_thread);
     }
 
     /* USER CODE END App_ThreadX_Init */
