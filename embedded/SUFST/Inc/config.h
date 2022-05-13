@@ -69,7 +69,7 @@
 #define INVERTER_BROADCAST_FAULT_CODES          0
 #define INVERTER_BROADCAST_TORQUE_TIMER         0
 #define INVERTER_BROADCAST_MODULATION_FLUX      0
-#define INVERTER_BROADCAST_FIRMWARE_INFORMATION 0
+#define INVERTER_BROADCAST_FIRMWARE_INFO        0
 #define INVERTER_BROADCAST_DIAGNOSTIC_DATA      0
 
 /***************************************************************************

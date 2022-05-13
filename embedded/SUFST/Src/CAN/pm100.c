@@ -21,6 +21,30 @@
 #define PM100_TIMEOUT_VALUE			(INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 #define PM100_DIRECTION_COMMAND		1										// 0: reverse, 1: forward
 
+/*
+ * broadcast configuration bytes
+ */
+#define BROADCAST_BYTE_4	(0xFF ^ (INVERTER_BROADCAST_TEMPERATURE_1     << 0) \
+								  ^ (INVERTER_BROADCAST_TEMPERATURE_2     << 1) \
+								  ^ (INVERTER_BROADCAST_TEMPERATURE_3     << 2) \
+								  ^ (INVERTER_BROADCAST_ANALOG_INPUTS     << 3) \
+								  ^ (INVERTER_BROADCAST_DIGITAL_INPUTS    << 4) \
+								  ^ (INVERTER_BROADCAST_MOTOR_POSITION    << 5) \
+								  ^ (INVERTER_BROADCAST_CURRENTS          << 6) \
+								  ^ (INVERTER_BROADCAST_VOLTAGES          << 8) )
+
+#define BROADCAST_BYTE_5	(0xFF ^ (INVERTER_BROADCAST_FLUX           	  << 0) \
+								  ^	(INVERTER_BROADCAST_INTERNAL_VOLTAGES << 1) \
+								  ^ (INVERTER_BROADCAST_INTERNAL_STATES   << 2) \
+								  ^ (INVERTER_BROADCAST_FAULT_CODES       << 3) \
+								  ^ (INVERTER_BROADCAST_TORQUE_TIMER	  << 4) \
+								  ^ (INVERTER_BROADCAST_MODULATION_FLUX   << 5) \
+								  ^ (INVERTER_BROADCAST_FIRMWARE_INFO     << 6) \
+								  ^ (INVERTER_BROADCAST_DIAGNOSTIC_DATA   << 7) )
+
+#define BROADCAST_BYTE_6	(0xFF)
+
+#define BROADCAST_BYTE_7	(0xFF)
 
 /**
  * @brief PM100 command message
