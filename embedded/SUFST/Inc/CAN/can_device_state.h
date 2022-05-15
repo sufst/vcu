@@ -1,9 +1,9 @@
 /***************************************************************************
- * @file   can_driver.h
+ * @file   can_device_state.h
  * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  CAN driver prototypes and CAN broadcast signals database
+ * @brief  ?
  ***************************************************************************/
 
 #ifndef CAN_TYPES_H
@@ -137,16 +137,19 @@ typedef enum can_input_e
 
 } can_input_t;
 
-/**
- * @brief CAN input state (export)
+/** 
+ * @brief       CAN device state setter function type
+ * 
+ * @note        Must be followed by all CAN device state setters
+ * 
+ * @param[in]   index 	 	Index of value (enum)
+ * @param[in]   value		Value to set
  */
-extern volatile uint32_t CAN_inputs[NUM_INPUTS];
+typedef void (*can_device_state_setter_t)(uint32_t index, uint32_t value);
 
 /*
  * function prototypes
  */
-HAL_StatusTypeDef CAN_Send(can_msg_t Tx_msg);
-
-void can_parse(const can_msg_t* message_ptr);
+void can_update_device_state(const can_msg_t* message_ptr);
 
 #endif

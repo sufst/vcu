@@ -11,6 +11,7 @@
 #include "can_message.h"
 #include "can_device_state.h"
 #include "rtc_time.h"
+#include "tx_api.h"
 
 #define FDCAN_HANDLE            hfdcan1
 
@@ -36,6 +37,18 @@
                                  | (INVERTER_BROADCAST_MODULATION_FLUX   << 13) \
                                  | (INVERTER_BROADCAST_FIRMWARE_INFO     << 14) \
                                  | (INVERTER_BROADCAST_DIAGNOSTIC_DATA   << 15) )
+
+#define STATE_MUTEX_NAME        "PM100 State Mutex"
+
+/**
+ * @brief PM100 state
+ */
+static uint32_t pm100_state[PM100_NUM_STATES];
+
+/**
+ * @brief State mutex
+ */
+static TX_MUTEX pm100_state_mutex;
 
 /**
  * @brief PM100 command message
@@ -102,14 +115,24 @@ static can_msg_t pm100_parameter_read_msg =
  */
 pm100_status_t pm100_init()
 {
-    // configure broadcast messages
-    pm100_status_t status = pm100_eeprom_write_blocking((uint16_t) BROADCAST_LO_WORD_ADDR, (uint16_t) BROADCAST_LO_WORD);
+    pm100_status_t status = PM100_OK;
+    // // configure broadcast messages
+    // pm100_status_t status = pm100_eeprom_write_blocking((uint16_t) BROADCAST_LO_WORD_ADDR, (uint16_t) BROADCAST_LO_WORD);
 
-    // configure timeout
+    // // configure timeout
+    // if (status == PM100_OK)
+    // {
+    //     status = pm100_eeprom_write_blocking(TIMEOUT_ADDR, TIMEOUT);
+    // }
+
+    // create state mutex
     if (status == PM100_OK)
     {
-        status = pm100_eeprom_write_blocking(TIMEOUT_ADDR, TIMEOUT);
+        status = (tx_mutex_create(&pm100_state_mutex, STATE_MUTEX_NAME, TX_NO_INHERIT) == TX_SUCCESS) ? PM100_OK : PM100_ERROR; 
     }
+
+    // reset state
+    memset(pm100_state, 0x0000, sizeof(pm100_state));
 
     return status;
 }
@@ -150,8 +173,8 @@ pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t 
         rtc_delay(INVERTER_EEPROM_RETRY_DELAY);
 
         // check for success
-        suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
-        res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+        // suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
+        // res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
     }
 
     return PM100_OK;
@@ -189,8 +212,9 @@ pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
         rtc_delay(INVERTER_EEPROM_RETRY_DELAY);
 
         // check for success
-        res_data = CAN_inputs[PARAMETER_RESPONSE_DATA];
-        res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
+        // TODO(@hashyaha,@t-bre) this will no longer work due to CAN Rx thread dispatch
+        // res_data = CAN_inputs[PARAMETER_RESPONSE_DATA];
+        // res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
     }
 
     (void) res_data; // unused for now, keep for future use
@@ -204,7 +228,7 @@ pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
  */
 pm100_status_t pm100_command_tx(pm100_command_t* command_data)
 {
-  // construct message
+    // construct message
     pm100_command_msg.data[0] = (command_data->torque_command & 0x00FF);
     pm100_command_msg.data[1] = ((command_data->torque_command & 0xFF00) >> 8);
     pm100_command_msg.data[2] = (command_data->speed_command & 0x00FF);
@@ -216,7 +240,7 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
     pm100_command_msg.data[6] = (command_data->commanded_torque_limit & 0x00FF);
     pm100_command_msg.data[7] = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
 
-  // send message
+    // send message
     if (HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_command_msg.tx_header, pm100_command_msg.data) != HAL_OK)
     {
         return PM100_ERROR;
@@ -238,8 +262,11 @@ pm100_status_t pm100_torque_command_tx(uint32_t torque)
     pm100_command_t pm100_cmd = {0};
     pm100_status_t status;
 
-  // handle lockout
-    if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
+    // handle lockout
+    uint32_t lockout;
+    pm100_read_state(PM100_INVERTER_ENABLE_LOCKOUT, &lockout);
+
+    if (lockout == 1)
     {
         status = pm100_command_tx(&pm100_cmd);
     }
@@ -268,8 +295,11 @@ pm100_status_t pm100_speed_command_tx(UINT speed)
     pm100_command_t pm100_cmd = {0};
     pm100_status_t status;
 
-      // handle lockout
-    if(CAN_inputs[INVERTER_ENABLE_LOCKOUT] == 1)
+    // handle lockout
+    uint32_t lockout;
+    pm100_read_state(PM100_INVERTER_ENABLE_LOCKOUT, &lockout);
+
+    if (lockout == 1)
     {
         pm100_cmd.speed_mode_enable = 1;
         status = pm100_command_tx(&pm100_cmd);
@@ -286,3 +316,41 @@ pm100_status_t pm100_speed_command_tx(UINT speed)
     return status;
 }
 #endif
+
+/**
+ * @brief       Thread-safe PM100 state read
+ * 
+ * @param[in]   index       Index of state variable to read
+ * @param[out]  value_ptr   Pointer to location to store fetched data
+ */
+pm100_status_t pm100_read_state(uint32_t index, uint32_t* value_ptr)
+{
+    pm100_status_t status = (index < PM100_NUM_STATES) ? PM100_OK : PM100_ERROR;
+
+    if (status == PM100_OK && value_ptr != NULL)
+    {
+        tx_mutex_get(&pm100_state_mutex, TX_WAIT_FOREVER);
+        *value_ptr = pm100_state[index];
+        tx_mutex_put(&pm100_state_mutex);
+    }
+
+    return status;
+}
+
+/**
+ * @brief       Thread-safe PM100 state update
+ * 
+ * @param[in]   index   Index of state variable to write to
+ * @param[in]   value   Value to write to state
+ */
+void pm100_update_state(uint32_t index, uint32_t value)
+{
+    if (index < PM100_NUM_STATES)
+    {
+        if (tx_mutex_get(&pm100_state_mutex, TX_WAIT_FOREVER) == TX_SUCCESS)
+        {
+            pm100_state[index] = value;
+            tx_mutex_put(&pm100_state_mutex);
+        }
+    }
+}

@@ -24,7 +24,8 @@
         "can_driver.h": "c",
         "config.h": "c",
         "can_parser.h": "c",
-        "can_device_state.h": "c"
+        "can_device_state.h": "c",
+        "pm100.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
 }
