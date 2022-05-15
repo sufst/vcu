@@ -8,18 +8,15 @@
 #include "pm100.h"
 #include "config.h"
 
+#include "can_message.h"
+#include "can_parser.h"
 #include "rtc_time.h"
 
-/*
- * addresses
- */
+#define FDCAN_HANDLE            hfdcan1
+
 #define TIMEOUT_ADDR		    172
 #define BROADCAST_LO_WORD_ADDR  148
 
-/*
- * constants
- */
-#define FDCAN_HANDLE            hfdcan1
 #define DIRECTION_COMMAND		1										// 0: reverse, 1: forward
 #define TIMEOUT			        (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 
@@ -235,7 +232,7 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
  *
  * @param[in]	torque	The torque request to send [Nm * 10]
  */
-pm100_status_t pm100_torque_command_tx(UINT torque)
+pm100_status_t pm100_torque_command_tx(uint32_t torque)
 {
     // initialise command data to 0
     pm100_command_t pm100_cmd = {0};
