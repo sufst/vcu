@@ -21,6 +21,8 @@
         "can_thread.h": "c",
         "fault_state_thread.h": "c",
         "messaging_system.h": "c",
-        "can_driver.h": "c"
+        "can_driver.h": "c",
+        "config.h": "c"
     },
+    "cortex-debug.variableUseNaturalFormat": true,
 }

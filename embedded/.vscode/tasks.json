@@ -9,6 +9,7 @@
             "args": [
                 "-j$(nproc)",
                 "-s",
+                "DEBUG=1",
             ],
             "problemMatcher": "$gcc",
             "group": "build",
@@ -45,6 +46,7 @@
             "args": [
                 "flash",
                 "-s",
+                "-j$(nproc)"
             ],
             "group": "build",
         },
