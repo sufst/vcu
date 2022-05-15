@@ -301,7 +301,8 @@ Middlewares/ST/threadx/common/src/tx_trace_isr_enter_insert.c \
 Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
 Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
-Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c
+Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
+Middlewares/ST/threadx/ports/cortex_m7/iar/src/tx_iar.c
 
 ASM_SOURCES =  \
 startup_stm32h723xx.s \
@@ -334,8 +335,7 @@ C_INCLUDES =  \
 -IDrivers/STM32H7xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32H7xx/Include \
 -IDrivers/CMSIS/Include \
--IMiddlewares/ST/threadx/common/inc/ \
--IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
+-IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/
 
 #######################################
 # defines
@@ -343,11 +343,14 @@ C_INCLUDES =  \
 
 ifeq ($(DEBUG), 1)
 	C_DEFS = $(DEBUG_C_DEFS)
-	ASM_DEFS = $(DEBUG_ASM_DEFS)
-else
-	C_DEFS = $(RELEASE_C_DEFS)
-	ASM_DEFS = $(RELEASE_ASM_DEFS)
-endif
+-D	ASM_DEFS = $(DEBUG_ASM_DEFS) \
+-Delse \
+-D	C_DEFS = $(RELEASE_C_DEFS) \
+-D	ASM_DEFS = $(RELEASE_ASM_DEFS) \
+-Dendif \
+-DTX_INCLUDE_USER_DEFINE_FILE \
+-DUSE_HAL_DRIVER \
+-DSTM32H723xx
 
 #######################################
 # flags

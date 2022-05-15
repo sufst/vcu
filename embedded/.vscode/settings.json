@@ -25,7 +25,8 @@
         "config.h": "c",
         "can_parser.h": "c",
         "can_device_state.h": "c",
-        "pm100.h": "c"
+        "pm100.h": "c",
+        "adc.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
 }
