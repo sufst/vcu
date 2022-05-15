@@ -12,17 +12,9 @@
 #include <stdint.h>
 #include "fdcan.h"
 
-/* 
- * definitions
- */
 #define STD				FDCAN_STANDARD_ID
 #define EXT				FDCAN_EXTENDED_ID
 #define CAN_ID_OFFSET 	0xA0
-
-/* Type Definitions ------------------------------------------------------------------------*/
-
-/* enum for inputs vector index */
-/* each broadcast usually has two bytes */
 
 /** 
  * @brief 	CAN input enums
