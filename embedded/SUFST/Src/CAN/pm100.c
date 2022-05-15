@@ -19,6 +19,7 @@
 /*
  * constants
  */
+#define FDCAN_HANDLE            hfdcan1
 #define DIRECTION_COMMAND		1										// 0: reverse, 1: forward
 #define TIMEOUT			        (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 
@@ -142,7 +143,7 @@ pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t 
       && (attempts < INVERTER_EEPROM_MAX_RETRY))
     {
         // transmit message
-        CAN_Send(pm100_parameter_write_msg);
+        HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_parameter_write_msg.tx_header, pm100_parameter_write_msg.data);
         attempts++;
 
         // allow time for a response
@@ -181,7 +182,7 @@ pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
             && attempts < INVERTER_EEPROM_MAX_RETRY)
     {
         // transmit message
-        CAN_Send(pm100_parameter_read_msg);
+        HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_parameter_read_msg.tx_header, pm100_parameter_read_msg.data);
         attempts++;
 
         // allow time for a response
@@ -219,7 +220,7 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
     pm100_command_msg.data[7] = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
 
   // send message
-    if (CAN_Send(pm100_command_msg) != HAL_OK)
+    if (HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_command_msg.tx_header, pm100_command_msg.data) != HAL_OK)
     {
         return PM100_ERROR;
     }
