@@ -9,7 +9,7 @@
 #include "config.h"
 
 #include "can_message.h"
-#include "can_parser.h"
+#include "can_device_state.h"
 #include "rtc_time.h"
 
 #define FDCAN_HANDLE            hfdcan1

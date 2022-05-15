@@ -23,7 +23,8 @@
         "messaging_system.h": "c",
         "can_driver.h": "c",
         "config.h": "c",
-        "can_parser.h": "c"
+        "can_parser.h": "c",
+        "can_device_state.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
 }

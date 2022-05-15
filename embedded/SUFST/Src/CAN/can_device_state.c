@@ -6,7 +6,7 @@
  * @brief  Implementation of CAN driver
  ***************************************************************************/
 
-#include "can_parser.h"
+#include "can_device_state.h"
 
 #include "gpio.h"
 #include "can_rx_thread.h"

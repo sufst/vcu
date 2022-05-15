@@ -8,7 +8,7 @@
 #include "can_rx_thread.h"
 #include "tx_api.h"
 
-#include "can_parser.h"
+#include "can_device_state.h"
 
 #define DISPATCH_POOL_NUM_ITEMS  10
 #define DISPATCH_POOL_SIZE       (DISPATCH_POOL_NUM_ITEMS * sizeof(can_rx_dispatch_task_t) / sizeof(ULONG))

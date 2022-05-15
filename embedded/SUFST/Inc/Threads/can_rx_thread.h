@@ -11,7 +11,7 @@
 #include "tx_api.h"
 #include "config.h"
 
-#include "can_parser.h"
+#include "can_device_state.h"
 #include "fdcan.h"
 
 #define CAN_RX_THREAD_STACK_SIZE            1024
