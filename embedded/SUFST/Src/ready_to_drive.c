@@ -10,16 +10,15 @@
 #include "tx_api.h"
 
 #include "gpio.h"
-#include "stdbool.h"
-
 #include "rtc_time.h"
+
+#include <stdbool.h>
 
 /*
  * function prototypes
  */
 static bool ready_to_drive_state();
 static void sound_buzzer();
-
 
 /**
  * @brief Wait for ready-to-drive signal to become active

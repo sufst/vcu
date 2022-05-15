@@ -24,7 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "ready_to_drive.h"
+#include "config.h"
+#include "trace.h"
 
 #include "can_thread.h"
 #include "control_thread.h"
@@ -34,6 +35,7 @@
 
 #include "pm100.h"
 #include "rtc_time.h"
+#include "ready_to_drive.h"
 
 /* USER CODE END Includes */
 
@@ -69,14 +71,14 @@
   */
 UINT App_ThreadX_Init(VOID *memory_ptr)
 {
-    UINT ret = TX_SUCCESS;
-    TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
+  UINT ret = TX_SUCCESS;
+  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
 
-    /* USER CODE BEGIN App_ThreadX_MEM_POOL */
+  /* USER CODE BEGIN App_ThreadX_MEM_POOL */
     (void)byte_pool;
-    /* USER CODE END App_ThreadX_MEM_POOL */
+  /* USER CODE END App_ThreadX_MEM_POOL */
 
-    /* USER CODE BEGIN App_ThreadX_Init */
+  /* USER CODE BEGIN App_ThreadX_Init */
 
     VOID* stack_ptr;	// pointer to allocated memory for thread stack
 
@@ -191,8 +193,20 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
         tx_thread_resume(&fault_state_thread);
     }
 
-    /* USER CODE END App_ThreadX_Init */
-    return ret;
+    /*************************
+     * Start TraceX
+     **************************/
+    #if TRACEX_ENABLE
+    if (ret == TX_SUCCESS)
+    {
+        ret = trace_init();
+        trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
+    }
+    #endif
+
+  /* USER CODE END App_ThreadX_Init */
+
+  return ret;
 }
 
 /**

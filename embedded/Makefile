@@ -21,13 +21,13 @@ DEBUG_C_DEFS = \
 -DDEBUG \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DUSE_HAL_DRIVER \
--DSTM32H723xx \
+-DSTM32H723xx
 
 RELEASE_C_DEFS = \
 -DCOMPETITION_MODE=1 \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DUSE_HAL_DRIVER \
--DSTM32H723xx \
+-DSTM32H723xx
 
 DEBUG_ASM_DEFS = \
 
@@ -90,8 +90,9 @@ SUFST/Src/CAN/can_driver.c \
 SUFST/Src/CAN/pm100.c \
 SUFST/Src/Profiles/driver_profiles.c \
 SUFST/Src/Profiles/driver_profile_data.c \
-SUFST/Src/Test/throttle_testbench_data.c \
 SUFST/Src/Test/testbench.c \
+SUFST/Src/Test/throttle_testbench_data.c \
+SUFST/Src/Test/trace.c \
 SUFST/Src/Threads/messaging_system.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
@@ -287,7 +288,19 @@ Middlewares/ST/threadx/common/src/txe_timer_change.c \
 Middlewares/ST/threadx/common/src/txe_timer_create.c \
 Middlewares/ST/threadx/common/src/txe_timer_deactivate.c \
 Middlewares/ST/threadx/common/src/txe_timer_delete.c \
-Middlewares/ST/threadx/common/src/txe_timer_info_get.c  
+Middlewares/ST/threadx/common/src/txe_timer_info_get.c \
+Middlewares/ST/threadx/common/src/tx_trace_buffer_full_notify.c \
+Middlewares/ST/threadx/common/src/tx_trace_disable.c \
+Middlewares/ST/threadx/common/src/tx_trace_enable.c \
+Middlewares/ST/threadx/common/src/tx_trace_event_filter.c \
+Middlewares/ST/threadx/common/src/tx_trace_event_unfilter.c \
+Middlewares/ST/threadx/common/src/tx_trace_initialize.c \
+Middlewares/ST/threadx/common/src/tx_trace_interrupt_control.c \
+Middlewares/ST/threadx/common/src/tx_trace_isr_enter_insert.c \
+Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
+Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
+Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
+Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c
 
 ASM_SOURCES =  \
 startup_stm32h723xx.s \
@@ -322,7 +335,6 @@ C_INCLUDES =  \
 -IDrivers/CMSIS/Include \
 -IMiddlewares/ST/threadx/common/inc/ \
 -IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
- 
 
 #######################################
 # defines
@@ -331,7 +343,7 @@ C_INCLUDES =  \
 ifeq ($(DEBUG), 1)
 	C_DEFS = $(DEBUG_C_DEFS)
 	ASM_DEFS = $(DEBUG_ASM_DEFS)
-else 
+else
 	C_DEFS = $(RELEASE_C_DEFS)
 	ASM_DEFS = $(RELEASE_ASM_DEFS)
 endif
@@ -342,8 +354,10 @@ endif
 
 ifeq ($(DEBUG), 1)
 	OPT=$(DEBUG_OPT)
+	CFLAGS=$(DEBUG_C_FLAGS)
 else
 	OPT=$(RELEASE_OPT)
+	CFLAGS=$(RELEASE_C_FLAGS)
 endif
 
 ASFLAGS = $(MCU) $(ASM_DEFS) $(ASM_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections

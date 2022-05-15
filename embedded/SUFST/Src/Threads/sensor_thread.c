@@ -12,6 +12,7 @@
 #include "adc.h"
 #include "gpio.h"
 #include "messaging_system.h"
+#include "trace.h"
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -61,7 +62,6 @@ void sensor_thread_entry(ULONG thread_input)
 	// loop forever
 	while(1)
 	{
-
 		// check for fault state
 #if (RUN_FAULT_STATE_TESTBENCH)
 		testbench_fault_state();
@@ -75,13 +75,14 @@ void sensor_thread_entry(ULONG thread_input)
 #else
 		message.input = read_throttle();
 #endif
-    
+
     	message_set_timestamp(&message.timestamp);
+		trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) message.input, message.timestamp, 0, 0);\
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
 		// TODO: this is temporary, need to decide on wake up rate
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 100);
+		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
 	}
 }
 

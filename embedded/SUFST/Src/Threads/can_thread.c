@@ -12,6 +12,7 @@
 #include "fdcan.h"
 #include "messaging_system.h"
 #include "pm100.h"
+#include "trace.h"
 
 /**
  * @brief Thread for CAN transmit
@@ -48,7 +49,19 @@ void can_thread_entry(ULONG thread_input)
 		pm100_speed_command_tx(message.value);
 #else
 		// send the torque request to inverter through CAN
-		pm100_torque_command_tx(message.value);
+		UINT torque_request = message.value;
+		pm100_status_t status = pm100_torque_command_tx(torque_request);
+
+		// debug logging
+		if (status == PM100_OK)
+		{
+			trace_log_event(TRACE_TORQUE_REQUEST_EVENT, (ULONG) torque_request, message.timestamp, 0, 0);
+		}
+		else 
+		{
+			trace_log_event(TRACE_INVERTER_ERROR, (ULONG) status, message.timestamp, 0, 0);
+		}
+
 #endif
 
 	}
