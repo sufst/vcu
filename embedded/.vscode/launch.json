@@ -7,7 +7,6 @@
             "name": "debug (stutil)",
             "request": "launch",
             "type": "cortex-debug",
-            "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "stutil",
             "svdFile": "STM32H7x3.svd",
@@ -27,7 +26,6 @@
             "name": "debug (openocd)",
             "request": "launch",
             "type": "cortex-debug",
-            "runToEntryPoint": "main",
             "showDevDebugOutput": "none",
             "servertype": "openocd",
             "configFiles": [
