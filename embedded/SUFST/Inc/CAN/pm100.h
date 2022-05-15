@@ -8,7 +8,7 @@
 #ifndef PM100_H
 #define PM100_H
 
-#include "can_driver.h"
+#include "can_parser.h"
 #include "tx_api.h"
 
 /**

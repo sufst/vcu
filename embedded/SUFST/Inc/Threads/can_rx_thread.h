@@ -11,7 +11,8 @@
 #include "tx_api.h"
 #include "config.h"
 
-#include "can_driver.h"
+#include "can_parser.h"
+#include "fdcan.h"
 
 #define CAN_RX_THREAD_STACK_SIZE            1024
 #define CAN_RX_THREAD_PREEMPTION_THRESHOLD  CAN_RX_THREAD_PRIORITY
@@ -38,11 +39,6 @@
 typedef struct {
 
     /**
-     * @brief Parser for CAN message
-     */
-    can_parser_t parser;
-
-    /**
      * @brief CAN message
      */
     can_msg_t message;
@@ -54,11 +50,17 @@ typedef struct {
  */
 extern TX_THREAD can_rx_thread;
 
+/**
+ * @brief CAN receive data mutex
+ */
+extern TX_MUTEX can_rx_data_mutex;
+
 // function prototypes
 void can_rx_thread_entry(ULONG thread_input);
 UINT can_rx_dispatch_init();
 UINT can_rx_dispatch_task_create(can_rx_dispatch_task_t** dispatch_ptr);
 UINT can_rx_dispatch_task_release(can_rx_dispatch_task_t* dispatch_ptr);
 UINT can_rx_dispatch_task_async(can_rx_dispatch_task_t* dispatch_ptr);
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 
 #endif

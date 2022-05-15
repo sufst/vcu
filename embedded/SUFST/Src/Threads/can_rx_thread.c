@@ -8,7 +8,7 @@
 #include "can_rx_thread.h"
 #include "tx_api.h"
 
-#include "can_driver.h"
+#include "can_parser.h"
 
 #define DISPATCH_POOL_NUM_ITEMS  10
 #define DISPATCH_POOL_SIZE       (DISPATCH_POOL_NUM_ITEMS * sizeof(can_rx_dispatch_task_t) / sizeof(ULONG))
@@ -17,6 +17,8 @@
 #define DISPATCH_QUEUE_NUM_ITEMS DISPATCH_POOL_NUM_ITEMS
 #define DISPATCH_QUEUE_SIZE      (DISPATCH_QUEUE_NUM_ITEMS * sizeof(can_rx_dispatch_task_t*) / sizeof(ULONG))
 #define DISPATCH_QUEUE_NAME      "CAN Rx Dispatch Queue"
+
+#define RX_DATA_MUTEX_NAME       "CAN Rx Data Mutex"
 
 /**
  * @brief CAN receive thread instance
@@ -44,6 +46,11 @@ static TX_BYTE_POOL dispatch_pool;
 static ULONG dispatch_pool_mem[DISPATCH_POOL_SIZE];
 
 /**
+ * @brief CAN receive data mutex
+ */
+TX_MUTEX can_rx_data_mutex;
+
+/**
  * @brief       Thread entry function for CAN receive dispatch thread
  * 
  * @param[in]   thread_input    (Unused) thread input
@@ -63,10 +70,7 @@ void can_rx_thread_entry(ULONG thread_input)
         // parse message
         if (status == TX_SUCCESS)
         {
-            if (dispatch_ptr->parser != NULL)
-            {
-                dispatch_ptr->parser(dispatch_ptr->message, 0);
-            }
+            // TODO
         }
 
         // release task
@@ -89,6 +93,12 @@ UINT can_rx_dispatch_init()
     {   
         UINT message_size = TX_1_ULONG;
         status = tx_queue_create(&dispatch_queue, DISPATCH_QUEUE_NAME, message_size, dispatch_queue_mem, DISPATCH_QUEUE_SIZE);
+    }
+
+    // create receive mutex
+    if (status == TX_SUCCESS)
+    {
+        status = tx_mutex_create(&can_rx_data_mutex, RX_DATA_MUTEX_NAME, TX_INHERIT);
     }
 
     return status;
@@ -130,4 +140,43 @@ UINT can_rx_dispatch_task_release(can_rx_dispatch_task_t* dispatch_ptr)
 UINT can_rx_dispatch_task_async(can_rx_dispatch_task_t* task_ptr)
 {
     return tx_queue_send(&dispatch_queue, (VOID**) &task_ptr, TX_NO_WAIT);
+}
+
+/**
+  * @brief      CAN Rx Fifo 0 message callback
+  * 
+  * @param[in]  hfdcan  FDCAN handle
+  */
+void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs)
+{
+    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
+    {
+        // create a task for the CAN receive thread to process
+        can_rx_dispatch_task_t* task_ptr;
+        UINT task_status = can_rx_dispatch_task_create(&task_ptr);
+
+        // fetch received message
+        if (task_status == TX_SUCCESS)
+        {
+            HAL_StatusTypeDef hal_status = HAL_FDCAN_GetRxMessage(&hfdcan1, FDCAN_RX_FIFO0, &(task_ptr->message.rx_header), task_ptr->message.data);
+
+            // success, work out required parser and dispatch task
+            if (hal_status == HAL_OK)
+            {
+                can_rx_dispatch_task_async(task_ptr);
+            }
+            // error, release task (otherwise memory leak)
+            else 
+            {
+                can_rx_dispatch_task_release(task_ptr);
+            }
+
+            // reactivate notification
+            HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+        }
+    }
+    else 
+    {
+        Error_Handler();
+    }
 }

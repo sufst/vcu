@@ -44,7 +44,7 @@
  */
 static can_msg_t pm100_command_msg =
 {
-    .Tx_header =
+    .tx_header =
     {
             CAN_ID_OFFSET + 0x020,
             FDCAN_STANDARD_ID,
@@ -64,7 +64,7 @@ static can_msg_t pm100_command_msg =
  */
 static can_msg_t pm100_parameter_write_msg =
 {
-    .Tx_header =
+    .tx_header =
     {
             CAN_ID_OFFSET + 0x021,
             FDCAN_STANDARD_ID,
@@ -84,7 +84,7 @@ static can_msg_t pm100_parameter_write_msg =
  */
 static can_msg_t pm100_parameter_read_msg =
 {
-    .Tx_header =
+    .tx_header =
     {
             CAN_ID_OFFSET + 0x021,
             FDCAN_STANDARD_ID,
