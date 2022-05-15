@@ -98,6 +98,7 @@ SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
 SUFST/Src/Threads/fault_state_thread.c \
 SUFST/Src/Threads/can_thread.c \
+SUFST/Src/Threads/can_rx_thread.c \
 SUFST/Src/Utility/rtc_time.c \
 Core/Src/main.c \
 Core/Src/gpio.c \

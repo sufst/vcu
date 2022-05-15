@@ -42,7 +42,7 @@
 /**
  * @brief PM100 command message
  */
-static queue_msg_t pm100_command_msg =
+static can_msg_t pm100_command_msg =
 {
     .Tx_header =
     {
@@ -62,7 +62,7 @@ static queue_msg_t pm100_command_msg =
 /**
  * @brief PM100 parameter write message
  */
-static queue_msg_t pm100_parameter_write_msg =
+static can_msg_t pm100_parameter_write_msg =
 {
     .Tx_header =
     {
@@ -82,7 +82,7 @@ static queue_msg_t pm100_parameter_write_msg =
 /**
  * @brief PM100 parameter read message
  */
-static queue_msg_t pm100_parameter_read_msg =
+static can_msg_t pm100_parameter_read_msg =
 {
     .Tx_header =
     {

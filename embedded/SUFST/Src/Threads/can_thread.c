@@ -2,7 +2,7 @@
  * @file   can_thread.c
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2021-11-30
- * @brief  Control thread implementation
+ * @brief  CAN thread implementation
  ***************************************************************************/
 
 #include "can_thread.h"
@@ -14,12 +14,14 @@
 #include "pm100.h"
 #include "trace.h"
 
+#include "can_rx_thread.h"
+
 /**
  * @brief Thread for CAN transmit
  */
 TX_THREAD can_thread;
 
-/*
+/**
  * @brief Thread entry function for control_thread
  *
  * @param[in]	thread_input	(Unused) thread input

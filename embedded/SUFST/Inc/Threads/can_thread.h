@@ -9,8 +9,8 @@
 #define CAN_THREAD_H
 
 #include "tx_api.h"
+#include "config.h"
 
-// LED thread definitions
 #define CAN_THREAD_STACK_SIZE			1024
 #define CAN_THREAD_PREEMPTION_THRESHOLD	CAN_THREAD_PRIORITY
 #define CAN_THREAD_NAME					"CAN Thread"

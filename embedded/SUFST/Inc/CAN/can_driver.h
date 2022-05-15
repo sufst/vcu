@@ -23,7 +23,7 @@
  * 
  * @note 	!!PRESERVE ORDER!! if changing any of this, remember to change parsers
  */
-typedef enum CAN_input_e
+typedef enum can_input_e
 {
 	// 0x0A0 – Temperatures #1
 	MODULE_A_TEMP,
@@ -134,7 +134,7 @@ typedef enum CAN_input_e
 
 	NUM_INPUTS,
 
-} CAN_input_t;
+} can_input_t;
 
 /**
  * @brief 	CAN segment mapping
@@ -143,15 +143,15 @@ typedef enum CAN_input_e
  */
 typedef struct segment_map_s
 {
-	CAN_input_t 	index;			// index in CAN inputs array
+	can_input_t 	index;			// index in CAN inputs array
 	uint8_t 		start_byte;		// input start byte (MSB) in CAN data field
 	uint8_t 		size;			// input size in bytes
-} segment_map_t;
+} can_segment_map_t;
 
 /**
- * @brief 	CAN message queue item
+ * @brief 	CAN message data
  */
-typedef struct queue_msg_s
+typedef struct can_msg_s
 {
 	union
 	{
@@ -159,30 +159,14 @@ typedef struct queue_msg_s
 		FDCAN_RxHeaderTypeDef	Rx_header;
 	};
 	uint8_t data[8];
-} queue_msg_t;
+} can_msg_t;
 
 /** 
  * @brief CAN parser function prototype
  * 
  * @note  Must be followed by all CAN parsers 
  */
-typedef void (*CAN_parser_t)(queue_msg_t q_msg, uint8_t CAN_idx);
-
-
-/** 
- * @brief CAN message type map entry
- */
-typedef struct CAN_msg_s
-{
-	uint32_t		msg_ID;			// Message ID
-	uint32_t		msg_type;		// STD or EXT
-	char 			name[20];		// internal message name
-	segment_map_t*  segment_map;	// segment_map for data
-	uint8_t			num_inputs;		// number of segments
-	CAN_parser_t	parser;			// parser function
-
-} CAN_msg_t;
-
+typedef void (*can_parser_t)(can_msg_t q_msg, uint8_t CAN_idx);
 
 /**
  * @brief CAN input state (export)
@@ -193,7 +177,7 @@ extern volatile uint32_t CAN_inputs[NUM_INPUTS];
  * function prototypes
  */
 void CAN_Rx();
-HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg);
+HAL_StatusTypeDef CAN_Send(can_msg_t Tx_msg);
 void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef *hfdcan, uint32_t RxFifo0ITs);
 
 #endif

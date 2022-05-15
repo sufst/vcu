@@ -18,15 +18,15 @@
 /* 
  * function prototypes
  */
-static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx);
-static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx);
-static void CAN_parser_INTST(queue_msg_t q_msg, uint8_t CAN_idx);
-static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx);
+static void CAN_parser_std_little_endian(can_msg_t q_msg, uint8_t CAN_idx);
+static void CAN_parser_ANALOGVOLT(can_msg_t q_msg, uint8_t CAN_idx);
+static void CAN_parser_INTST(can_msg_t q_msg, uint8_t CAN_idx);
+static void CAN_parser_DIAGNOSTIC(can_msg_t q_msg, uint8_t CAN_idx);
 
 /*
  * segment maps for PM100DZ inverter
  */
-segment_map_t TEMP1_map[] =
+can_segment_map_t TEMP1_map[] =
 {
     {MODULE_A_TEMP, 0, 2},
     {MODULE_B_TEMP, 2, 2},
@@ -34,7 +34,7 @@ segment_map_t TEMP1_map[] =
     {GATE_DRIVER_BOARD_TEMP, 6, 2},
 };
 
-segment_map_t TEMP2_map[] =
+can_segment_map_t TEMP2_map[] =
 {
     {CONTROL_BOARD_TEMPERATURE, 0, 2},
     {RTD_1_TEMP, 2, 2},
@@ -42,7 +42,7 @@ segment_map_t TEMP2_map[] =
     {RTD_3_TEMP, 6, 2},
 };
 
-segment_map_t TEMP3_map[] =
+can_segment_map_t TEMP3_map[] =
 {
     {COOLANT_TEMP, 0, 2},
     {HOT_SPOT_TEMP, 2, 2},
@@ -50,7 +50,7 @@ segment_map_t TEMP3_map[] =
     {TORQUE_SHUDDER, 6, 2},
 };
 
-segment_map_t DIGI_map[] =
+can_segment_map_t DIGI_map[] =
 {
     {DIGITAL_INPUT_1, 0, 1},
     {DIGITAL_INPUT_2, 1, 1},
@@ -62,7 +62,7 @@ segment_map_t DIGI_map[] =
     {DIGITAL_INPUT_8, 7, 1},
 };
 
-segment_map_t MOTORPOS_map[] =
+can_segment_map_t MOTORPOS_map[] =
 {
     {MOTOR_ANGLE_ELECTRICAL, 0, 2},
     {MOTOR_SPEED, 2, 2},
@@ -70,7 +70,7 @@ segment_map_t MOTORPOS_map[] =
     {DELTA_RESOLVER_FILTERED, 6, 2},
 };
 
-segment_map_t CURRENTINF_map[] =
+can_segment_map_t CURRENTINF_map[] =
 {
     {PHASE_A_CURRENT, 0, 2},
     {PHASE_B_CURRENT, 2, 2},
@@ -78,7 +78,7 @@ segment_map_t CURRENTINF_map[] =
     {DC_BUS_CURRENT, 6, 2},
 };
 
-segment_map_t VOLTINF_map[] =
+can_segment_map_t VOLTINF_map[] =
 {
     {DC_BUS_VOLTAGE, 0, 2},
     {OUTPUT_VOLTAGE, 2, 2},
@@ -86,7 +86,7 @@ segment_map_t VOLTINF_map[] =
     {VBC_VQ_VOLTAGE, 6, 2},
 };
 
-segment_map_t FLUXINF_map[] =
+can_segment_map_t FLUXINF_map[] =
 {
     {FLUX_COMMAND, 0, 2},
     {FLUX_FEEDBACK, 2, 2},
@@ -94,7 +94,7 @@ segment_map_t FLUXINF_map[] =
     {IQ_FEEDBACK, 6, 2},
 };
 
-segment_map_t INTVOLT_map[] =
+can_segment_map_t INTVOLT_map[] =
 {
     {REFERENCE_VOLTAGE_1V5, 0, 2},
     {REFERENCE_VOLTAGE_2V5, 2, 2},
@@ -102,7 +102,7 @@ segment_map_t INTVOLT_map[] =
     {REFERENCE_VOLTAGE_12V, 6, 2},
 };
 
-segment_map_t FAULTCODES_map[] =
+can_segment_map_t FAULTCODES_map[] =
 {
     {POST_FAULT_LO, 0, 2},
     {POST_FAULT_HI, 2, 2},
@@ -110,14 +110,14 @@ segment_map_t FAULTCODES_map[] =
     {RUN_FAULT_HI, 6, 2},
 };
 
-segment_map_t TORQTIM_map[] =
+can_segment_map_t TORQTIM_map[] =
 {
     {COMMANDED_TORQUE, 0, 2},
     {TORQUE_FEEDBACK, 2, 2},
     {POWER_ON_TIMER, 4, 4},
 };
 
-segment_map_t MODFLUX_map[] =
+can_segment_map_t MODFLUX_map[] =
 {
     {MODULATION_INDEX, 0, 2},
     {FLUX_WEAKENING_OUTPUT, 2, 2},
@@ -125,7 +125,7 @@ segment_map_t MODFLUX_map[] =
     {IQ_COMMAND, 6, 2},
 };
 
-segment_map_t FIRMINF_map[] =
+can_segment_map_t FIRMINF_map[] =
 {
     {EEPROM_VERSION, 0, 2},
     {SOFTWARE_VERSION, 2, 2},
@@ -133,7 +133,7 @@ segment_map_t FIRMINF_map[] =
     {DATE_CODE_YY, 6, 2},
 };
 
-segment_map_t HIGHSPEED_map[] =
+can_segment_map_t HIGHSPEED_map[] =
 {
     {FAST_COMMANDED_TORQUE, 0, 2},
     {FAST_TORQUE_FEEDBACK, 2, 2},
@@ -141,17 +141,31 @@ segment_map_t HIGHSPEED_map[] =
     {FAST_DC_BUS_VOLTAGE, 6, 2},
 };
 
-segment_map_t PARAMETER_RESPONSE_map[] =
+can_segment_map_t PARAMETER_RESPONSE_map[] =
 {
     {PARAMETER_RESPONSE_ADDRESS, 0, 2},
     {PARAMETER_RESPONSE_WRITE_SUCCESS, 2, 1},
     {PARAMETER_RESPONSE_DATA, 4, 2},
 };
 
+/** 
+ * @brief CAN message type dictionary entry
+ */
+typedef struct can_dict_entry_s
+{
+	uint32_t		msg_ID;			// message ID
+	uint32_t		msg_type;		// STD or EXT
+	char 			name[20];		// internal message name
+	can_segment_map_t*  segment_map;	// segment_map for data
+	uint8_t			num_inputs;		// number of segments
+	can_parser_t	parser;			// parser function
+
+} can_dict_entry_t;
+
 /*
  * CAN message dictionary
  */
-static CAN_msg_t CAN_dict [] =
+static can_dict_entry_t CAN_dict [] =
 {
     // PM100 messages
     {CAN_ID_OFFSET+0x00, 	STD,	"Temp_1", 				TEMP1_map, 				4, 	    CAN_parser_std_little_endian},
@@ -205,7 +219,7 @@ void CAN_Rx()
     }
 
     // add message to receive queue
-    queue_msg_t rx_msg;
+    can_msg_t rx_msg;
     rx_msg.Rx_header = rx_header;
 
     for (int i = 0; i < sizeof(rx_data); i++)
@@ -217,7 +231,7 @@ void CAN_Rx()
     
     // search through CAN dictionary for matching message ID
     uint8_t i = 0;
-    uint8_t CAN_dict_length = sizeof(CAN_dict) / sizeof(CAN_msg_t);
+    uint8_t CAN_dict_length = sizeof(CAN_dict) / sizeof(can_dict_entry_t);
 
     while (i < CAN_dict_length)
     {
@@ -238,7 +252,7 @@ void CAN_Rx()
  * @brief 				Push CAN message to CAN bus
  * @param[in] Tx_msg: 	outgoing CAN message
  */
-HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg)
+HAL_StatusTypeDef CAN_Send(can_msg_t Tx_msg)
 {
     // TODO(?) check that CAN message is valid
     return HAL_FDCAN_AddMessageToTxFifoQ(&hfdcan1, &Tx_msg.Tx_header, Tx_msg.data);
@@ -253,13 +267,13 @@ HAL_StatusTypeDef CAN_Send(queue_msg_t Tx_msg)
  * @param[in]   q_msg       Incoming CAN message
  * @param[in]   CAN_idx     Index of message in CAN_dict with message metadata
  */
-static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
+static void CAN_parser_std_little_endian(can_msg_t q_msg, uint8_t CAN_idx)
 {
     // iterate over all inputs in data field
     for (int i = 0; i < CAN_dict[CAN_idx].num_inputs; i++)
     {
         uint32_t result = 0;
-        segment_map_t input = CAN_dict[CAN_idx].segment_map[i];
+        can_segment_map_t input = CAN_dict[CAN_idx].segment_map[i];
 
         // iterate over all bytes of input
         for (int j = input.size - 1; j >=0; j--)
@@ -279,7 +293,7 @@ static void CAN_parser_std_little_endian(queue_msg_t q_msg, uint8_t CAN_idx)
  * @param[in]   q_msg       Incoming CAN message
  * @param[in]   CAN_msg     Reference message from CAN_dict w/ message metadata
  */
-static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx){
+static void CAN_parser_ANALOGVOLT(can_msg_t q_msg, uint8_t CAN_idx){
 
     // store the inputs bytes in little endian in order (7 6 5 4 ...) instead of (0 1 2 ...)
     uint32_t first32bits =    (uint32_t) q_msg.data[3] << 24 
@@ -315,7 +329,7 @@ static void CAN_parser_ANALOGVOLT(queue_msg_t q_msg, uint8_t CAN_idx){
  * @param[in]   q_msg       Incoming CAN message
  * @param[in]   CAN_msg     Reference message from CAN_dict w/ message metadata
  */
-static void CAN_parser_INTST(queue_msg_t q_msg, uint8_t CAN_idx)
+static void CAN_parser_INTST(can_msg_t q_msg, uint8_t CAN_idx)
 {
     CAN_inputs[VSM_STATE]                       = (uint32_t) q_msg.data[1] << 8 | (uint32_t) q_msg.data[0];
     CAN_inputs[INVERTER_STATE]                  = (uint32_t) q_msg.data[2];
@@ -337,7 +351,7 @@ static void CAN_parser_INTST(queue_msg_t q_msg, uint8_t CAN_idx)
  * @param[in]   q_msg       Incoming CAN message
  * @param[in]   CAN_msg     Reference message from CAN_dict w/ message metadata
  */
-static void CAN_parser_DIAGNOSTIC(queue_msg_t q_msg, uint8_t CAN_idx){
+static void CAN_parser_DIAGNOSTIC(can_msg_t q_msg, uint8_t CAN_idx){
 
     CAN_inputs[DIAGNOSTIC_DATA_LO] = (uint32_t) q_msg.data[0] << 24 
                                      | (uint32_t) q_msg.data[1] << 16 
