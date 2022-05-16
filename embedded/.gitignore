@@ -26,3 +26,6 @@ Drivers/CMSIS/DSP/DSP_Lib_TestSuite
 !.vscode/tasks.json
 !.vscode/c_cpp_properties.json
 compile_commands.json
+
+# TraceX
+*.trx
