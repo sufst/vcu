@@ -334,7 +334,8 @@ C_INCLUDES =  \
 -IDrivers/STM32H7xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32H7xx/Include \
 -IDrivers/CMSIS/Include \
--IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/
+-IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
+-IMiddlewares/ST/threadx/common/inc/ \
 
 #######################################
 # defines

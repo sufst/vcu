@@ -40,7 +40,7 @@ static void parser_pm100_diagnostic(const can_msg_t* msg_ptr, uint32_t dict_inde
  */
 typedef struct segment_map_s
 {
-	can_input_t 	index;			// index in CAN inputs array
+	uint32_t 	    index;			// index in CAN inputs array
 	uint8_t 		start_byte;		// input start byte (MSB) in CAN data field
 	uint8_t 		size;			// input size in bytes
 } can_segment_map_t;
@@ -214,7 +214,7 @@ typedef struct can_dict_entry_s
 } can_dict_entry_t;
 
 /*
- * CAN message dictionary
+ * CAN message types dictionary
  */
 static can_dict_entry_t can_dict[] =
 {
@@ -237,7 +237,7 @@ static can_dict_entry_t can_dict[] =
     {CAN_ID_OFFSET+0x0F, 	STD,	"Diagnostic",			NULL, 					        0, 	    parser_pm100_diagnostic,        pm100_update_state},
     {CAN_ID_OFFSET+0x10, 	STD,	"High_Speed_Message", 	PM100_HIGHSPEED_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
     {CAN_ID_OFFSET+0x22, 	STD,	"Parameter_Response", 	PM100_PARAMETER_RESPONSE_map,   3,	    parser_std_little_endian,       pm100_update_state},
-    // ID					Type	Name                    Map                     Inputs  Parser function                 // State setter function
+    // ID					Type	Name                    Map                             Inputs  Parser function                 State setter function
 };
 
 /**
@@ -333,17 +333,17 @@ static void parser_pm100_internal_status(const can_msg_t* msg_ptr, uint32_t dict
 {
     can_dict_entry_t* dict_entry = &can_dict[dict_index];
 
-    dict_entry->state_setter(VSM_STATE,                         (uint32_t) msg_ptr->data[1] << 8 | (uint32_t) msg_ptr->data[0]);
-    dict_entry->state_setter(INVERTER_STATE,                    (uint32_t) msg_ptr->data[2]);
-    dict_entry->state_setter(RELAY_STATE,                       (uint32_t) msg_ptr->data[3]);
-    dict_entry->state_setter(INVERTER_RUN_MODE,                 (uint32_t) (1 & msg_ptr->data[4]));
-    dict_entry->state_setter(INVERTER_ACTIVE_DISCHARGE_STATE,   (uint32_t) (0xE0 & msg_ptr->data[4]) >> 5);
-    dict_entry->state_setter(INVERTER_COMMAND_MODE,             (uint32_t) msg_ptr->data[5]);
-    dict_entry->state_setter(INVERTER_ENABLE_STATE,             (uint32_t) (1 & msg_ptr->data[6]));
-    dict_entry->state_setter(INVERTER_ENABLE_LOCKOUT,           (uint32_t) (1 & (msg_ptr->data[6] >> 7)));
-    dict_entry->state_setter(DIRECTION_COMMAND,                 (uint32_t) (1 & (msg_ptr->data[7] >> 0)));
-    dict_entry->state_setter(BMS_ACTIVE,                        (uint32_t) (1 & (msg_ptr->data[7] >> 1)));
-    dict_entry->state_setter(BMS_LIMITING_TORQUE,               (uint32_t) (1 & (msg_ptr->data[7] >> 2)));
+    dict_entry->state_setter(PM100_VSM_STATE,                       (uint32_t) msg_ptr->data[1] << 8 | (uint32_t) msg_ptr->data[0]);
+    dict_entry->state_setter(PM100_INVERTER_STATE,                  (uint32_t) msg_ptr->data[2]);
+    dict_entry->state_setter(PM100_RELAY_STATE,                     (uint32_t) msg_ptr->data[3]);
+    dict_entry->state_setter(PM100_INVERTER_RUN_MODE,               (uint32_t) (1 & msg_ptr->data[4]));
+    dict_entry->state_setter(PM100_INVERTER_ACTIVE_DISCHARGE_STATE, (uint32_t) (0xE0 & msg_ptr->data[4]) >> 5);
+    dict_entry->state_setter(PM100_INVERTER_COMMAND_MODE,           (uint32_t) msg_ptr->data[5]);
+    dict_entry->state_setter(PM100_INVERTER_ENABLE_STATE,           (uint32_t) (1 & msg_ptr->data[6]));
+    dict_entry->state_setter(PM100_INVERTER_ENABLE_LOCKOUT,         (uint32_t) (1 & (msg_ptr->data[6] >> 7)));
+    dict_entry->state_setter(PM100_DIRECTION_COMMAND,               (uint32_t) (1 & (msg_ptr->data[7] >> 0)));
+    dict_entry->state_setter(PM100_BMS_ACTIVE,                      (uint32_t) (1 & (msg_ptr->data[7] >> 1)));
+    dict_entry->state_setter(PM100_BMS_LIMITING_TORQUE,             (uint32_t) (1 & (msg_ptr->data[7] >> 2)));
 }
 
 
