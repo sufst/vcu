@@ -7,7 +7,8 @@
 
 #include "fault_state_thread.h"
 
-#include "can_thread.h"
+#include "can_tx_thread.h"
+#include "can_rx_thread.h"
 #include "control_thread.h"
 #include "sensor_thread.h"
 #include "gpio.h"
@@ -43,7 +44,8 @@ void fault_state_thread_entry(ULONG thread_input)
 	// note: this thread has the highest priority and will not be pre-empted
 	tx_thread_terminate(&sensor_thread);
 	tx_thread_terminate(&control_thread);
-	tx_thread_terminate(&can_thread);
+	tx_thread_terminate(&can_tx_thread);
+	tx_thread_terminate(&can_rx_thread);
 
 	// loop forever, do not leave fault state
 	// flash the LED

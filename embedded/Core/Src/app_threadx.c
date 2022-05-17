@@ -27,7 +27,7 @@
 #include "config.h"
 #include "trace.h"
 
-#include "can_thread.h"
+#include "can_tx_thread.h"
 #include "can_rx_thread.h"
 #include "control_thread.h"
 #include "fault_state_thread.h"
@@ -102,13 +102,13 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
     if (ret == TX_SUCCESS)
     {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_TX_THREAD_STACK_SIZE, TX_NO_WAIT);
     }
 
     if (ret == TX_SUCCESS)
     {
-        ret = tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
-                    CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
+        ret = tx_thread_create(&can_tx_thread, CAN_TX_THREAD_NAME, can_tx_thread_entry, 0, stack_ptr,
+                    CAN_TX_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_TX_THREAD_PREEMPTION_THRESHOLD,
                     TX_NO_TIME_SLICE, TX_AUTO_START);
     }
 
