@@ -154,13 +154,11 @@ typedef enum pm100_state_index_e
  * function prototypes
  */
 pm100_status_t pm100_init();
-pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data);
-pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address);
 pm100_status_t pm100_command_tx(pm100_command_t* command_data);
-pm100_status_t pm100_torque_command_tx(uint32_t torque_command);
+pm100_status_t pm100_torque_request(uint32_t torque_command);
 
 #if INVERTER_SPEED_MODE
-pm100_status_t pm100_speed_command_tx(UINT speed);
+pm100_status_t pm100_speed_request(UINT speed);
 #endif
 
 pm100_status_t pm100_read_state(uint32_t index, uint32_t* value_ptr);

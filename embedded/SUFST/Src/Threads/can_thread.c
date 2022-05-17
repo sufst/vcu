@@ -46,11 +46,12 @@ void can_thread_entry(ULONG thread_input)
 #if RUN_SPEED_MODE
 		// map torque to speed request and send to inverter through CAN
 		// UINT speed = foo(message.value);
-		pm100_speed_command_tx(message.value);
+		pm100_speed_request(message.value);
 #else
+	#if !(INVERTER_DISABLE_TORQUE_REQUESTS)
 		// send the torque request to inverter through CAN
 		UINT torque_request = message.value;
-		pm100_status_t status = pm100_torque_command_tx(torque_request);
+		pm100_status_t status = pm100_torque_request(torque_request);
 
 		// debug logging
 		if (status == PM100_OK)
@@ -61,7 +62,7 @@ void can_thread_entry(ULONG thread_input)
 		{
 			trace_log_event(TRACE_INVERTER_ERROR, (ULONG) status, message.timestamp, 0, 0);
 		}
-
+	#endif
 #endif
 
 	}

@@ -21,24 +21,7 @@
 #define DIRECTION_COMMAND		1										// 0: reverse, 1: forward
 #define TIMEOUT			        (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 
-#define BROADCAST_LO_WORD       (  (INVERTER_BROADCAST_TEMPERATURE_1     << 0)  \
-                                 | (INVERTER_BROADCAST_TEMPERATURE_2     << 1)  \
-                                 | (INVERTER_BROADCAST_TEMPERATURE_3     << 2)  \
-                                 | (INVERTER_BROADCAST_ANALOG_INPUTS     << 3)  \
-                                 | (INVERTER_BROADCAST_DIGITAL_INPUTS    << 4)  \
-                                 | (INVERTER_BROADCAST_MOTOR_POSITION    << 5)  \
-                                 | (INVERTER_BROADCAST_CURRENTS          << 6)  \
-                                 | (INVERTER_BROADCAST_VOLTAGES          << 7)  \
-                                 | (INVERTER_BROADCAST_FLUX           	 << 8)  \
-                                 | (INVERTER_BROADCAST_INTERNAL_VOLTAGES << 9)  \
-                                 | (INVERTER_BROADCAST_INTERNAL_STATES   << 10) \
-                                 | (INVERTER_BROADCAST_FAULT_CODES       << 11) \
-                                 | (INVERTER_BROADCAST_TORQUE_TIMER	     << 12) \
-                                 | (INVERTER_BROADCAST_MODULATION_FLUX   << 13) \
-                                 | (INVERTER_BROADCAST_FIRMWARE_INFO     << 14) \
-                                 | (INVERTER_BROADCAST_DIAGNOSTIC_DATA   << 15) )
-
-#define STATE_MUTEX_NAME        "PM100 State Mutex"
+#define PM100_STATE_MUTEX_NAME  "PM100 State Mutex"
 
 /**
  * @brief PM100 state
@@ -57,15 +40,15 @@ static can_msg_t pm100_command_msg =
 {
     .tx_header =
     {
-            CAN_ID_OFFSET + 0x020,
-            FDCAN_STANDARD_ID,
-            FDCAN_DATA_FRAME,
-            FDCAN_DLC_BYTES_8,
-            FDCAN_ESI_ACTIVE,
-            FDCAN_BRS_OFF,
-            FDCAN_CLASSIC_CAN,
-            FDCAN_NO_TX_EVENTS,
-            0
+        CAN_ID_OFFSET + 0x020,
+        FDCAN_STANDARD_ID,
+        FDCAN_DATA_FRAME,
+        FDCAN_DLC_BYTES_8,
+        FDCAN_ESI_ACTIVE,
+        FDCAN_BRS_OFF,
+        FDCAN_CLASSIC_CAN,
+        FDCAN_NO_TX_EVENTS,
+        0
     },
     .data = {0, 0, 0, 0, 0, 0, 0, 0}
 };
@@ -77,15 +60,15 @@ static can_msg_t pm100_parameter_write_msg =
 {
     .tx_header =
     {
-            CAN_ID_OFFSET + 0x021,
-            FDCAN_STANDARD_ID,
-            FDCAN_DATA_FRAME,
-            FDCAN_DLC_BYTES_8,
-            FDCAN_ESI_ACTIVE,
-            FDCAN_BRS_OFF,
-            FDCAN_CLASSIC_CAN,
-            FDCAN_NO_TX_EVENTS,
-            0
+        CAN_ID_OFFSET + 0x021,
+        FDCAN_STANDARD_ID,
+        FDCAN_DATA_FRAME,
+        FDCAN_DLC_BYTES_8,
+        FDCAN_ESI_ACTIVE,
+        FDCAN_BRS_OFF,
+        FDCAN_CLASSIC_CAN,
+        FDCAN_NO_TX_EVENTS,
+        0
     },
     .data = {0, 0, 1, 0, 0, 0, 0, 0} // byte 3 set to 1 for write
 };
@@ -97,15 +80,15 @@ static can_msg_t pm100_parameter_read_msg =
 {
     .tx_header =
     {
-            CAN_ID_OFFSET + 0x021,
-            FDCAN_STANDARD_ID,
-            FDCAN_DATA_FRAME,
-            FDCAN_DLC_BYTES_8,
-            FDCAN_ESI_ACTIVE,
-            FDCAN_BRS_OFF,
-            FDCAN_CLASSIC_CAN,
-            FDCAN_NO_TX_EVENTS,
-            0
+        CAN_ID_OFFSET + 0x021,
+        FDCAN_STANDARD_ID,
+        FDCAN_DATA_FRAME,
+        FDCAN_DLC_BYTES_8,
+        FDCAN_ESI_ACTIVE,
+        FDCAN_BRS_OFF,
+        FDCAN_CLASSIC_CAN,
+        FDCAN_NO_TX_EVENTS,
+        0
     },
     .data = {0, 0, 0, 0, 0, 0, 0, 0}
 };
@@ -115,110 +98,16 @@ static can_msg_t pm100_parameter_read_msg =
  */
 pm100_status_t pm100_init()
 {
-    pm100_status_t status = PM100_OK;
-    // // configure broadcast messages
-    // pm100_status_t status = pm100_eeprom_write_blocking((uint16_t) BROADCAST_LO_WORD_ADDR, (uint16_t) BROADCAST_LO_WORD);
-
-    // // configure timeout
-    // if (status == PM100_OK)
-    // {
-    //     status = pm100_eeprom_write_blocking(TIMEOUT_ADDR, TIMEOUT);
-    // }
+    UNUSED(pm100_parameter_read_msg);
+    UNUSED(pm100_parameter_write_msg);
 
     // create state mutex
-    if (status == PM100_OK)
-    {
-        status = (tx_mutex_create(&pm100_state_mutex, STATE_MUTEX_NAME, TX_NO_INHERIT) == TX_SUCCESS) ? PM100_OK : PM100_ERROR; 
-    }
+    pm100_status_t status = (tx_mutex_create(&pm100_state_mutex, PM100_STATE_MUTEX_NAME, TX_NO_INHERIT) == TX_SUCCESS) ? PM100_OK : PM100_ERROR; 
 
     // reset state
     memset(pm100_state, 0x0000, sizeof(pm100_state));
 
     return status;
-}
-
-/**
- * @brief 		Blocking write to the PM100 EEPROM
- *
- * @param[in] 	parameter_address 	Parameter address for message
- * @param[in] 	data 				Data to send in bytes 4 and 5
- * 
- * @note 		Data should already be formatted in order [byte 4][byte 5] 
- * 				(formatting is described in inverter documentation)
- */
-pm100_status_t pm100_eeprom_write_blocking(uint16_t parameter_address, uint16_t data)
-{
-    // construct message
-    pm100_parameter_write_msg.data[0] = (parameter_address & 0x00FF);
-    pm100_parameter_write_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-    pm100_parameter_write_msg.data[4] = (data & 0x00FF);        // low byte
-    pm100_parameter_write_msg.data[5] = ((data & 0xFF00) >> 8); // high byte
-
-    // loop until parameter set successfully or max retry attempts reached
-    uint32_t suc = 0;
-    uint16_t res_ad = 0;
-    UINT attempts = 0;
-
-    while ((res_ad != parameter_address || !suc)
-      && (attempts < INVERTER_EEPROM_MAX_RETRY))
-    {
-        // transmit message
-        HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_parameter_write_msg.tx_header, pm100_parameter_write_msg.data);
-        attempts++;
-
-        // allow time for a response
-        // -> have to use RTC for delay because EEPROM write happens on system initialisation
-        //    before the scheduler starts
-        // -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
-        rtc_delay(INVERTER_EEPROM_RETRY_DELAY);
-
-        // check for success
-        // suc = CAN_inputs[PARAMETER_RESPONSE_WRITE_SUCCESS];
-        // res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-    }
-
-    return PM100_OK;
-}
-
-/**
- * @brief 		Blocking read from the PM100 EEPROM
- *
- * @details		This updates the global CAN_inputs state
- *
- * @param[in]	parameter_address	Parameter address to read
- */
-pm100_status_t pm100_eeprom_read_blocking(uint16_t parameter_address)
-{
-    // construct message
-    pm100_parameter_read_msg.data[0] = (parameter_address & 0x00FF);
-    pm100_parameter_read_msg.data[1] = ((parameter_address & 0xFF00) >> 8);
-
-    // loop until parameter read successfully or max retry attempts reached
-    uint32_t res_data = 0;
-    uint16_t res_ad = 0;
-    UINT attempts = 0;
-
-    while (res_ad != parameter_address
-            && attempts < INVERTER_EEPROM_MAX_RETRY)
-    {
-        // transmit message
-        HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_parameter_read_msg.tx_header, pm100_parameter_read_msg.data);
-        attempts++;
-
-        // allow time for a response
-        // -> have to use RTC for delay because EEPROM write happens on system initialisation
-        //    before the scheduler starts
-        // -> can't use HAL_Delay() because SysTick doesn't tick with RTOS
-        rtc_delay(INVERTER_EEPROM_RETRY_DELAY);
-
-        // check for success
-        // TODO(@hashyaha,@t-bre) this will no longer work due to CAN Rx thread dispatch
-        // res_data = CAN_inputs[PARAMETER_RESPONSE_DATA];
-        // res_ad = CAN_inputs[PARAMETER_RESPONSE_ADDRESS];
-    }
-
-    (void) res_data; // unused for now, keep for future use
-    return PM100_OK;
 }
 
 /**
@@ -256,7 +145,7 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
  *
  * @param[in]	torque	The torque request to send [Nm * 10]
  */
-pm100_status_t pm100_torque_command_tx(uint32_t torque)
+pm100_status_t pm100_torque_request(uint32_t torque)
 {
     // initialise command data to 0
     pm100_command_t pm100_cmd = {0};
@@ -289,7 +178,7 @@ pm100_status_t pm100_torque_command_tx(uint32_t torque)
  *
  * @param[in]	speed	The signed speed request to send [RPM]
  */
-pm100_status_t pm100_speed_command_tx(UINT speed)
+pm100_status_t pm100_speed_request(UINT speed)
 {
     // initialise command data to 0
     pm100_command_t pm100_cmd = {0};

@@ -176,13 +176,6 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
         ret = message_system_init();
     }
 
-    // CAN
-    if (ret == TX_SUCCESS)
-    {
-        ret = can_rx_dispatch_init();
-    }
-
-    // inverter
     if (ret == TX_SUCCESS)
     {
         pm100_status_t status = pm100_init();
@@ -193,10 +186,10 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
         }
     }
 
+
     /*************************
      * Ready-to-drive wait
      **************************/
-
     if (ret == TX_SUCCESS)
     {
         wait_for_ready_to_drive();
@@ -204,6 +197,14 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
     else 
     {
         tx_thread_resume(&fault_state_thread);
+    }
+
+    /*************************
+     * Post ready-to-drive
+     **************************/
+    if (ret == TX_SUCCESS)
+    {
+        ret = can_rx_init();
     }
 
     /*************************

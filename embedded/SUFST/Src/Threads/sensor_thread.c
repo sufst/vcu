@@ -91,7 +91,6 @@ void sensor_thread_entry(ULONG thread_input)
 #if (RUN_FAULT_STATE_TESTBENCH)
 		testbench_fault_state();
 #endif
-		HAL_GPIO_TogglePin(YELLOW_LED_GPIO_Port, YELLOW_LED_Pin);
 
 		// read throttle and send it to control thread
 		control_input_message_t message;
@@ -107,7 +106,6 @@ void sensor_thread_entry(ULONG thread_input)
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
-		// TODO: this is temporary, need to decide on wake up rate
 		// tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
 		tx_timer_activate(&sensor_thread_tick_timer);
 		tx_thread_suspend(&sensor_thread);
