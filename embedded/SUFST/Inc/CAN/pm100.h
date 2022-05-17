@@ -11,6 +11,8 @@
 
 #include <stdint.h>
 
+#define PM100_CAN_ID_OFFSET 	0xA0
+
 /**
  * @brief Return codes
  */

@@ -13,15 +13,14 @@
 #include "rtc_time.h"
 #include "tx_api.h"
 
-#define FDCAN_HANDLE            hfdcan1
+#define PM100_FDCAN_HANDLE          hfdcan1
 
-#define TIMEOUT_ADDR		    172
-#define BROADCAST_LO_WORD_ADDR  148
+#define PM100_TIMEOUT_ADDR		    172
 
-#define DIRECTION_COMMAND		1										// 0: reverse, 1: forward
-#define TIMEOUT			        (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
+#define PM100_DIRECTION_COMMAND		1										// 0: reverse, 1: forward
+#define PM100_TIMEOUT               (INVERTER_TORQUE_REQUEST_TIMEOUT / 3)	// divide ms timeout in config by three
 
-#define PM100_STATE_MUTEX_NAME  "PM100 State Mutex"
+#define PM100_STATE_MUTEX_NAME      "PM100 State Mutex"
 
 /**
  * @brief PM100 state
@@ -40,7 +39,7 @@ static can_msg_t pm100_command_msg =
 {
     .tx_header =
     {
-        CAN_ID_OFFSET + 0x020,
+        PM100_CAN_ID_OFFSET + 0x020,
         FDCAN_STANDARD_ID,
         FDCAN_DATA_FRAME,
         FDCAN_DLC_BYTES_8,
@@ -60,7 +59,7 @@ static can_msg_t pm100_parameter_write_msg =
 {
     .tx_header =
     {
-        CAN_ID_OFFSET + 0x021,
+        PM100_CAN_ID_OFFSET + 0x021,
         FDCAN_STANDARD_ID,
         FDCAN_DATA_FRAME,
         FDCAN_DLC_BYTES_8,
@@ -80,7 +79,7 @@ static can_msg_t pm100_parameter_read_msg =
 {
     .tx_header =
     {
-        CAN_ID_OFFSET + 0x021,
+        PM100_CAN_ID_OFFSET + 0x021,
         FDCAN_STANDARD_ID,
         FDCAN_DATA_FRAME,
         FDCAN_DLC_BYTES_8,
@@ -130,7 +129,7 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
     pm100_command_msg.data[7] = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
 
     // send message
-    if (HAL_FDCAN_AddMessageToTxFifoQ(&FDCAN_HANDLE, &pm100_command_msg.tx_header, pm100_command_msg.data) != HAL_OK)
+    if (HAL_FDCAN_AddMessageToTxFifoQ(&PM100_FDCAN_HANDLE, &pm100_command_msg.tx_header, pm100_command_msg.data) != HAL_OK)
     {
         return PM100_ERROR;
     }
@@ -162,7 +161,7 @@ pm100_status_t pm100_torque_request(uint32_t torque)
     // transmit torque request
     else
     {
-        pm100_cmd.direction = DIRECTION_COMMAND;
+        pm100_cmd.direction = PM100_DIRECTION_COMMAND;
         pm100_cmd.torque_command = (uint16_t) torque;
         pm100_cmd.inverter_enable = 1;
         status = pm100_command_tx(&pm100_cmd);
@@ -195,7 +194,7 @@ pm100_status_t pm100_speed_request(uint16_t speed)
     // transmit speed request
     else
     {
-        pm100_cmd.direction = DIRECTION_COMMAND;
+        pm100_cmd.direction = PM100_DIRECTION_COMMAND;
         pm100_cmd.speed_command = speed;
         pm100_cmd.inverter_enable = 1;
         pm100_cmd.speed_mode_enable = 1;

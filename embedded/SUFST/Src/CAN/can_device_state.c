@@ -3,7 +3,7 @@
  * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  ?
+ * @brief  CAN message parser and device state updater implementation
  ***************************************************************************/
 
 #include "can_device_state.h"
@@ -219,25 +219,25 @@ typedef struct can_dict_entry_s
 static can_dict_entry_t can_dict[] =
 {
     // PM100 messages
-    {CAN_ID_OFFSET+0x00, 	STD,	"Temp_1", 				PM100_TEMP1_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x01, 	STD,	"Temp_2", 				PM100_TEMP2_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x02, 	STD,	"Temp_3_Torq_Shud", 	PM100_TEMP3_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x03, 	STD,	"Analog_Input_Volt", 	NULL, 					        0, 	    parser_pm100_analog_voltage,    pm100_update_state},
-    {CAN_ID_OFFSET+0x04, 	STD,	"Digital_Input_Status", PM100_DIGI_map, 				8, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x05, 	STD,	"Motor_Position_Info",	PM100_MOTORPOS_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x06, 	STD,	"Current_Info", 		PM100_CURRENTINF_map, 		    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x07, 	STD,	"Volt_Info", 			PM100_VOLTINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x08, 	STD,	"Flux_Info", 			PM100_FLUXINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x09, 	STD,	"Internal_Volt", 		PM100_INTVOLT_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x0A, 	STD,	"Internal_States", 		NULL, 					        0, 	    parser_pm100_internal_status,   pm100_update_state},
-    {CAN_ID_OFFSET+0x0B, 	STD,	"Fault_Codes", 			PM100_FAULTCODES_map, 		    4,	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x0C, 	STD,	"Torque_Timer_Info", 	PM100_TORQTIM_map, 			    3, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x0D, 	STD,	"Mod_Idx_FluxWeak",		PM100_MODFLUX_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x0E, 	STD,	"Firm_Info", 			PM100_FIRMINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x0F, 	STD,	"Diagnostic",			NULL, 					        0, 	    parser_pm100_diagnostic,        pm100_update_state},
-    {CAN_ID_OFFSET+0x10, 	STD,	"High_Speed_Message", 	PM100_HIGHSPEED_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
-    {CAN_ID_OFFSET+0x22, 	STD,	"Parameter_Response", 	PM100_PARAMETER_RESPONSE_map,   3,	    parser_std_little_endian,       pm100_update_state},
-    // ID					Type	Name                    Map                             Inputs  Parser function                 State setter function
+    {PM100_CAN_ID_OFFSET+0x00, 	FDCAN_STANDARD_ID,	"Temp_1", 				PM100_TEMP1_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x01, 	FDCAN_STANDARD_ID,	"Temp_2", 				PM100_TEMP2_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x02, 	FDCAN_STANDARD_ID,	"Temp_3_Torq_Shud", 	PM100_TEMP3_map, 				4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x03, 	FDCAN_STANDARD_ID,	"Analog_Input_Volt", 	NULL, 					        0, 	    parser_pm100_analog_voltage,    pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x04, 	FDCAN_STANDARD_ID,	"Digital_Input_Status", PM100_DIGI_map, 				8, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x05, 	FDCAN_STANDARD_ID,	"Motor_Position_Info",	PM100_MOTORPOS_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x06, 	FDCAN_STANDARD_ID,	"Current_Info", 		PM100_CURRENTINF_map, 		    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x07, 	FDCAN_STANDARD_ID,	"Volt_Info", 			PM100_VOLTINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x08, 	FDCAN_STANDARD_ID,	"Flux_Info", 			PM100_FLUXINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x09, 	FDCAN_STANDARD_ID,	"Internal_Volt", 		PM100_INTVOLT_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0A, 	FDCAN_STANDARD_ID,	"Internal_States", 		NULL, 					        0, 	    parser_pm100_internal_status,   pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0B, 	FDCAN_STANDARD_ID,	"Fault_Codes", 			PM100_FAULTCODES_map, 		    4,	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0C, 	FDCAN_STANDARD_ID,	"Torque_Timer_Info", 	PM100_TORQTIM_map, 			    3, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0D, 	FDCAN_STANDARD_ID,	"Mod_Idx_FluxWeak",		PM100_MODFLUX_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0E, 	FDCAN_STANDARD_ID,	"Firm_Info", 			PM100_FIRMINF_map, 			    4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x0F, 	FDCAN_STANDARD_ID,	"Diagnostic",			NULL, 					        0, 	    parser_pm100_diagnostic,        pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x10, 	FDCAN_STANDARD_ID,	"High_Speed_Message", 	PM100_HIGHSPEED_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
+    {PM100_CAN_ID_OFFSET+0x22, 	FDCAN_STANDARD_ID,	"Parameter_Response", 	PM100_PARAMETER_RESPONSE_map,   3,	    parser_std_little_endian,       pm100_update_state},
+    // ID					    Type	            Name                    Map                             Inputs  Parser                          State setter
 };
 
 /**

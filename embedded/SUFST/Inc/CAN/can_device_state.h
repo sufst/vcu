@@ -3,19 +3,15 @@
  * @author Chua Shen Yik (@hashyaha, syc2e18@soton.ac.uk)
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-01-09
- * @brief  ?
+ * @brief  CAN message parser and device state updater prototypes and types
  ***************************************************************************/
 
-#ifndef CAN_TYPES_H
-#define CAN_TYPES_H
+#ifndef CAN_DEVICE_STATE_H
+#define CAN_DEVICE_STATE_H
 
-#include <stdint.h>
-#include "fdcan.h"
 #include "can_message.h"
 
-#define STD				FDCAN_STANDARD_ID
-#define EXT				FDCAN_EXTENDED_ID
-#define CAN_ID_OFFSET 	0xA0
+#include <stdint.h>
 
 /** 
  * @brief       CAN device state setter function type
