@@ -22,10 +22,10 @@ ALWAYS_C_DEFS = \
 -DUSE_HAL_DRIVER \
 -DSTM32H723xx
 
-DEBUG_C_DEFS = $(ALWAYS_C_DEFS) \
+DEBUG_C_DEFS = \
 -DDEBUG \
 
-RELEASE_C_DEFS = $(ALWAYS_C_DEFS) \
+RELEASE_C_DEFS = \
 -DCOMPETITION_MODE=1 \
 
 DEBUG_ASM_DEFS = \
@@ -54,7 +54,6 @@ FPU = -mfpu=fpv5-d16
 FLOAT_ABI = -mfloat-abi=hard
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
-
 #######################################
 # toolchain
 #######################################
@@ -67,7 +66,6 @@ SZ = $(PREFIX)size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
-
 #######################################
 # linker
 #######################################
@@ -76,7 +74,6 @@ LDSCRIPT = STM32H723ZGTx_FLASH.ld
 LIBS = -lc -lm -lnosys 
 LIBDIR = 
 LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
-
 
 ######################################
 # sources
@@ -313,7 +310,6 @@ Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.s \
 Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.s \
 Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 
-
 #######################################
 # includes
 #######################################
@@ -341,10 +337,10 @@ C_INCLUDES =  \
 #######################################
 
 ifeq ($(DEBUG), 1)
-	C_DEFS = $(DEBUG_C_DEFS)
+	C_DEFS = $(ALWAYS_C_DEFS) $(DEBUG_C_DEFS)
 	ASM_DEFS = $(DEBUG_ASM_DEFS)
 else
-	C_DEFS = $(RELEASE_C_DEFS)
+	C_DEFS = $(ALWAYS_C_DEFS) $(RELEASE_C_DEFS)
 	ASM_DEFS = $(RELEASE_ASM_DEFS)
 endif
 
@@ -363,7 +359,6 @@ endif
 ASFLAGS = $(MCU) $(ASM_DEFS) $(ASM_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-
 #######################################
 # objects
 #######################################
@@ -378,7 +373,6 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 # list of ASM objects
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
-
 
 #######################################
 # targets
@@ -441,7 +435,6 @@ toolchain:
 	cd Scripts; ./toolchain.sh check \
 	|| (echo; ./toolchain.sh install)
   
-
 #######################################
 # dependencies
 #######################################
