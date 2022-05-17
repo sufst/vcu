@@ -13,8 +13,6 @@
 #include "pm100.h"
 #include "trace.h"
 
-#include "can_rx_thread.h"
-
 /**
  * @brief Thread for CAN transmit
  */
@@ -27,7 +25,7 @@ TX_THREAD can_tx_thread;
  */
 void can_tx_thread_entry(ULONG thread_input)
 {
-	UNUSED(thread_input);
+	(void) thread_input;
 
 	// loop forever
 	while (1)
