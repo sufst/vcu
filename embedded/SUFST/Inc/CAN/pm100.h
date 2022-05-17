@@ -37,7 +37,11 @@ typedef struct
 } pm100_command_t;
 
 /**
- * @brief PM100 device state array indexing enum
+ * @brief 	PM100 device state array indexing enum
+ * 
+ * @details	Defines the index in the PM100 state array which
+ * 			pm100_write_state() and pm100_read_state() write/read 
+ * 			data
  */
 typedef enum pm100_state_index_e
 {
@@ -155,11 +159,8 @@ typedef enum pm100_state_index_e
  */
 pm100_status_t pm100_init();
 pm100_status_t pm100_command_tx(pm100_command_t* command_data);
-pm100_status_t pm100_torque_request(uint32_t torque_command);
-
-#if INVERTER_SPEED_MODE
-pm100_status_t pm100_speed_request(UINT speed);
-#endif
+pm100_status_t pm100_torque_request(uint32_t torque);
+pm100_status_t pm100_speed_request(uint16_t speed);
 
 pm100_status_t pm100_read_state(uint32_t index, uint32_t* value_ptr);
 void pm100_update_state(uint32_t index, uint32_t value);
