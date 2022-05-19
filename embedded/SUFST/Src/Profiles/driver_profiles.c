@@ -10,15 +10,18 @@
 /*
  * raw data for driver profiles defined in driver_profile_data.c
  */
-extern uint16_t default_throttle_map [THROTTLE_MAP_SIZE];
+extern uint16_t default_linear_throttle_map [THROTTLE_MAP_SIZE];
+extern uint16_t linear_five_percent_limited_throttle_map [THROTTLE_MAP_SIZE];
 
 /*
  * lookup table for all profiles
  */
-static const driver_profile_t default_profile = {DRIVER_PROFILE_DEFAULT, "Default", default_throttle_map};
+static const driver_profile_t default_profile 		= {DRIVER_PROFILE_DEFAULT, "Default", default_linear_throttle_map};
+static const driver_profile_t motor_testing_profile = {DRIVER_PROFILE_MOTOR_TESTING, "Motor Testing", linear_five_percent_limited_throttle_map};
 
 const driver_profile_t* driver_profiles [NUM_DRIVER_PROFILES] = {
 	&default_profile,
+	&motor_testing_profile,
 };
 
 

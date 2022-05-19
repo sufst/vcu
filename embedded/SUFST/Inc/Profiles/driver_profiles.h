@@ -16,8 +16,9 @@
 /*
  * driver profile IDs
  */
-#define DRIVER_PROFILE_DEFAULT	0	// a default linear profile with a small deadzone
-#define NUM_DRIVER_PROFILES		1	// 1 profile exists, any IDs less than this number are valid
+#define DRIVER_PROFILE_DEFAULT			0	// a default linear profile with a small deadzone
+#define DRIVER_PROFILE_MOTOR_TESTING	1	// torque limited version of default profile for motor testing
+#define NUM_DRIVER_PROFILES				2	// 1 profile exists, any IDs less than this number are valid
 
 /*
  * return codes
@@ -29,9 +30,22 @@
  * @brief Structure to store a driver profile
  */
 typedef struct {
+	
+	/**
+	 * @brief Unique identifier
+	 */
 	UINT id;
+
+	/**
+	 * @brief Internal string name
+	 */
 	const CHAR* name;
+
+	/**
+	 * @brief Pointer to throttle curve lookup table
+	 */
 	uint16_t* throttle_curve;
+
 } driver_profile_t;
 
 /*

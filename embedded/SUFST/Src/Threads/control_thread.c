@@ -34,7 +34,7 @@ void control_thread_entry(ULONG thread_input)
 
 	// look-up the driver profile
 	const driver_profile_t* driver_profile_ptr;
-	UINT ret = driver_profile_lookup(&driver_profile_ptr, DRIVER_PROFILE_DEFAULT);
+	UINT ret = driver_profile_lookup(&driver_profile_ptr, SELECTED_DRIVER_PROFILE);
 
 	if (ret != DRIVER_PROFILE_FOUND)
 	{
