@@ -20,7 +20,6 @@ TX_THREAD control_thread;
  * function prototypes
  */
 UINT map_input(UINT input);
-UINT pid_control(UINT input);
 
 /*
  * @brief Thread entry function for control_thread
@@ -74,13 +73,5 @@ UINT map_input(UINT input)
 	}
 
 	// if driver profile wasn't found, don't do any mapping
-	return input;
-}
-
-/**
- * @brief Placeholder for PID algorithm
- */
-UINT pid_control(UINT input)
-{
 	return input;
 }
