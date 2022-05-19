@@ -5,8 +5,7 @@
  * @brief  TraceX profiling interface
  * 
  * @note   Dump the trace buffer (see: trace.c) to a .trx file using the 
- *         debugged and open it in the TraceX app. Ticks per microsecond 
- *         should be set to 4 (400MHz clock).
+ *         debugger and open it in the TraceX app.
 ***************************************************************************/
 
 #include "config.h"

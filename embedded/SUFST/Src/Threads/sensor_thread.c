@@ -17,9 +17,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-/*
- * macros
- */
 #define THROTTLE_ADC_HANDLE_1		&hadc1	// PA3 (A0 on CN9)
 #define THROTTLE_ADC_HANDLE_2		&hadc2	// PB1 (A3 on CN9)
 
@@ -30,10 +27,17 @@
 #define THROTTLE_DEADZONE			((UINT) (THROTTLE_DEADZONE_FRACTION * (float) THROTTLE_SCALED_MAX))
 #define THROTTLE_MAX_DIFF			((UINT) (THROTTLE_MAX_DIFF_FRACTION * (float) THROTTLE_SCALED_MAX))
 
+#define SENSOR_THREAD_TICK_RATE		100
+
 /**
  * @brief Thread managing sensor measurements and inputs
  */
 TX_THREAD sensor_thread;
+
+/**
+ * @brief Timer handling thread wakeup tick
+ */
+TX_TIMER sensor_thread_tick_timer;
 
 /*
  * return codes
@@ -50,6 +54,14 @@ UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr);
 #endif
 
 /**
+ * @brief Sensor thread tick function
+ */
+static void sensor_thread_tick(ULONG input)
+{
+	tx_thread_resume(&sensor_thread);
+}
+
+/**
  * @brief Sensor thread entry function
  *
  * @param[in]	thread_input	Unused input
@@ -58,6 +70,19 @@ void sensor_thread_entry(ULONG thread_input)
 {
 	// prevent compiler warnings as input is not used for the moment
 	(VOID) thread_input;
+
+	// create timer
+	UINT ret = tx_timer_create(&sensor_thread_tick_timer, 
+								"Sensor Thread Tick Timer", 
+								sensor_thread_tick, 0, 
+								TX_TIMER_TICKS_PER_SECOND / SENSOR_THREAD_TICK_RATE, 
+								TX_TIMER_TICKS_PER_SECOND / SENSOR_THREAD_TICK_RATE, 
+								TX_NO_ACTIVATE);
+
+	if (ret != TX_SUCCESS)
+	{
+		return;
+	}
 
 	// loop forever
 	while(1)
@@ -81,8 +106,9 @@ void sensor_thread_entry(ULONG thread_input)
 		message_post((VOID*) &message, &control_input_queue);
 
 		// sleep thread to allow other threads to run
-		// TODO: this is temporary, need to decide on wake up rate
-		tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
+		// tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
+		tx_timer_activate(&sensor_thread_tick_timer);
+		tx_thread_suspend(&sensor_thread);
 	}
 }
 

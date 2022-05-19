@@ -17,17 +17,16 @@ BUILD_DIR = build
 DEBUG = 1
 
 # defines
-DEBUG_C_DEFS = \
--DDEBUG \
+ALWAYS_C_DEFS = \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DUSE_HAL_DRIVER \
 -DSTM32H723xx
 
+DEBUG_C_DEFS = \
+-DDEBUG \
+
 RELEASE_C_DEFS = \
 -DCOMPETITION_MODE=1 \
--DTX_INCLUDE_USER_DEFINE_FILE \
--DUSE_HAL_DRIVER \
--DSTM32H723xx
 
 DEBUG_ASM_DEFS = \
 
@@ -55,7 +54,6 @@ FPU = -mfpu=fpv5-d16
 FLOAT_ABI = -mfloat-abi=hard
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
-
 #######################################
 # toolchain
 #######################################
@@ -68,7 +66,6 @@ SZ = $(PREFIX)size
 HEX = $(CP) -O ihex
 BIN = $(CP) -O binary -S
 
-
 #######################################
 # linker
 #######################################
@@ -78,7 +75,6 @@ LIBS = -lc -lm -lnosys
 LIBDIR = 
 LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BUILD_DIR)/$(TARGET).map,--cref -Wl,--gc-sections
 
-
 ######################################
 # sources
 ######################################
@@ -86,7 +82,7 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 C_SOURCES =  \
 SUFST/Src/config_rules.c \
 SUFST/Src/ready_to_drive.c \
-SUFST/Src/CAN/can_driver.c \
+SUFST/Src/CAN/can_device_state.c \
 SUFST/Src/CAN/pm100.c \
 SUFST/Src/Profiles/driver_profiles.c \
 SUFST/Src/Profiles/driver_profile_data.c \
@@ -97,7 +93,8 @@ SUFST/Src/Threads/messaging_system.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
 SUFST/Src/Threads/fault_state_thread.c \
-SUFST/Src/Threads/can_thread.c \
+SUFST/Src/Threads/can_tx_thread.c \
+SUFST/Src/Threads/can_rx_thread.c \
 SUFST/Src/Utility/rtc_time.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
@@ -313,7 +310,6 @@ Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.s \
 Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.s \
 Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 
-
 #######################################
 # includes
 #######################################
@@ -333,18 +329,18 @@ C_INCLUDES =  \
 -IDrivers/STM32H7xx_HAL_Driver/Inc/Legacy \
 -IDrivers/CMSIS/Device/ST/STM32H7xx/Include \
 -IDrivers/CMSIS/Include \
--IMiddlewares/ST/threadx/common/inc/ \
 -IMiddlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
+-IMiddlewares/ST/threadx/common/inc/ \
 
 #######################################
 # defines
 #######################################
 
 ifeq ($(DEBUG), 1)
-	C_DEFS = $(DEBUG_C_DEFS)
+	C_DEFS = $(ALWAYS_C_DEFS) $(DEBUG_C_DEFS)
 	ASM_DEFS = $(DEBUG_ASM_DEFS)
 else
-	C_DEFS = $(RELEASE_C_DEFS)
+	C_DEFS = $(ALWAYS_C_DEFS) $(RELEASE_C_DEFS)
 	ASM_DEFS = $(RELEASE_ASM_DEFS)
 endif
 
@@ -363,7 +359,6 @@ endif
 ASFLAGS = $(MCU) $(ASM_DEFS) $(ASM_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 CFLAGS += $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
-
 #######################################
 # objects
 #######################################
@@ -379,14 +374,13 @@ vpath %.c $(sort $(dir $(C_SOURCES)))
 OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
-
 #######################################
 # targets
 #######################################
 
 # default build all
 all: 
-	@make $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin \
+	make $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin \
 
 # pre build
 .PHONY: prebuild
@@ -441,7 +435,6 @@ toolchain:
 	cd Scripts; ./toolchain.sh check \
 	|| (echo; ./toolchain.sh install)
   
-
 #######################################
 # dependencies
 #######################################

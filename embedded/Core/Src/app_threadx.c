@@ -27,7 +27,8 @@
 #include "config.h"
 #include "trace.h"
 
-#include "can_thread.h"
+#include "can_tx_thread.h"
+#include "can_rx_thread.h"
 #include "control_thread.h"
 #include "fault_state_thread.h"
 #include "sensor_thread.h"
@@ -86,10 +87,8 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
      * Control thread creation
      **************************/
 
-    // allocate memory for control thread from application memory pool
     ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
 
-    // create control thread
     if (ret == TX_SUCCESS)
     {
         ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
@@ -101,17 +100,27 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
      * CAN thread creation
      **************************/
 
-    // allocate memory for CAN thread from application memory pool
     if (ret == TX_SUCCESS)
     {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_THREAD_STACK_SIZE, TX_NO_WAIT);
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_TX_THREAD_STACK_SIZE, TX_NO_WAIT);
     }
 
-    // create CAN thread
     if (ret == TX_SUCCESS)
     {
-        ret = tx_thread_create(&can_thread, CAN_THREAD_NAME, can_thread_entry, 0, stack_ptr,
-                    CAN_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_THREAD_PREEMPTION_THRESHOLD,
+        ret = tx_thread_create(&can_tx_thread, CAN_TX_THREAD_NAME, can_tx_thread_entry, 0, stack_ptr,
+                    CAN_TX_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_TX_THREAD_PREEMPTION_THRESHOLD,
+                    TX_NO_TIME_SLICE, TX_AUTO_START);
+    }
+
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_RX_THREAD_STACK_SIZE, TX_NO_WAIT);
+    }
+
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&can_rx_thread, CAN_RX_THREAD_NAME, can_rx_thread_entry, 0, stack_ptr,
+                    CAN_RX_THREAD_STACK_SIZE, CAN_RX_THREAD_PRIORITY, CAN_RX_THREAD_PREEMPTION_THRESHOLD,
                     TX_NO_TIME_SLICE, TX_AUTO_START);
     }
 
@@ -119,14 +128,12 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
      * Sensor thread creation
      **************************/
 
-    // allocate memory for sensor thread from application memory pool
     if (ret == TX_SUCCESS)
     {
         ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
 
     }
 
-    // create sensor thread
     if (ret == TX_SUCCESS)
     {
         ret = tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
@@ -169,7 +176,6 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
         ret = message_system_init();
     }
 
-    // CAN
     if (ret == TX_SUCCESS)
     {
         pm100_status_t status = pm100_init();
@@ -180,10 +186,10 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
         }
     }
 
+
     /*************************
      * Ready-to-drive wait
      **************************/
-
     if (ret == TX_SUCCESS)
     {
         wait_for_ready_to_drive();
@@ -191,6 +197,14 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
     else 
     {
         tx_thread_resume(&fault_state_thread);
+    }
+
+    /*************************
+     * Post ready-to-drive
+     **************************/
+    if (ret == TX_SUCCESS)
+    {
+        ret = can_rx_init();
     }
 
     /*************************

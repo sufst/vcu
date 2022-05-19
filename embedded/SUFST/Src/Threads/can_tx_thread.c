@@ -1,15 +1,14 @@
 /***************************************************************************
- * @file   can_thread.c
+ * @file   can_tx_thread.c
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2021-11-30
- * @brief  Control thread implementation
+ * @brief  CAN transmit thread implementation
  ***************************************************************************/
 
-#include "can_thread.h"
+#include "can_tx_thread.h"
+#include "config.h"
 #include "tx_api.h"
 
-#include "can_driver.h"
-#include "fdcan.h"
 #include "messaging_system.h"
 #include "pm100.h"
 #include "trace.h"
@@ -17,17 +16,16 @@
 /**
  * @brief Thread for CAN transmit
  */
-TX_THREAD can_thread;
+TX_THREAD can_tx_thread;
 
-/*
- * @brief Thread entry function for control_thread
+/**
+ * @brief Thread entry function for CAN transmit thread
  *
  * @param[in]	thread_input	(Unused) thread input
  */
-void can_thread_entry(ULONG thread_input)
+void can_tx_thread_entry(ULONG thread_input)
 {
-	// not using input, prevent compiler warning
-	(VOID) thread_input;
+	(void) thread_input;
 
 	// loop forever
 	while (1)
@@ -46,11 +44,12 @@ void can_thread_entry(ULONG thread_input)
 #if RUN_SPEED_MODE
 		// map torque to speed request and send to inverter through CAN
 		// UINT speed = foo(message.value);
-		pm100_speed_command_tx(message.value);
+		pm100_speed_request(message.value);
 #else
+	#if !(INVERTER_DISABLE_TORQUE_REQUESTS)
 		// send the torque request to inverter through CAN
 		UINT torque_request = message.value;
-		pm100_status_t status = pm100_torque_command_tx(torque_request);
+		pm100_status_t status = pm100_torque_request(torque_request);
 
 		// debug logging
 		if (status == PM100_OK)
@@ -61,7 +60,7 @@ void can_thread_entry(ULONG thread_input)
 		{
 			trace_log_event(TRACE_INVERTER_ERROR, (ULONG) status, message.timestamp, 0, 0);
 		}
-
+	#endif
 #endif
 
 	}

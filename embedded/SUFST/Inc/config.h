@@ -44,18 +44,19 @@
 #define SENSOR_THREAD_PRIORITY		        3
 #define CONTROL_THREAD_PRIORITY		        3
 #define CAN_THREAD_PRIORITY			        2
+#define CAN_RX_THREAD_PRIORITY              4
 
-#define TRACEX_ENABLE                       1       // enable TraceX
+#define TRACEX_ENABLE                       0      // enable TraceX
 
 /***************************************************************************
  * CAN / inverter
-
  ***************************************************************************/
 
-#define INVERTER_SPEED_MODE                 0       // replace torque requests with speed requests
-#define INVERTER_TORQUE_REQUEST_TIMEOUT	    100		// in ms
-#define INVERTER_EEPROM_MAX_RETRY		    10		// maximum number of retry attempts
-#define INVERTER_EEPROM_RETRY_DELAY		    100		// in ms
+#define INVERTER_DISABLE_TORQUE_REQUESTS        1
+#define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
+#define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
+#define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
+#define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
 
 #define INVERTER_BROADCAST_TEMPERATURE_1        0
 #define INVERTER_BROADCAST_TEMPERATURE_2        0

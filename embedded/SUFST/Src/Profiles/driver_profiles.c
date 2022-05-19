@@ -2,7 +2,7 @@
  * @file   driver_profiles.h
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2022-02-13
- * @brief  Function implementation and lookup tables for driver profiles
+ * @brief  Implementation and lookup tables for driver profiles
  ***************************************************************************/
 
 #include "driver_profiles.h"
@@ -31,7 +31,7 @@ const driver_profile_t* driver_profiles [NUM_DRIVER_PROFILES] = {
  * @param[out]	profile_ptr		Pointer to change to point to the driver profile
  *
  * @return		DRIVER_PROFILE_FOUND if the profile exists
- * 				DRIVER_PROFILE_INVALID if the profile does not exist
+ * @return		DRIVER_PROFILE_INVALID if the profile does not exist
  */
 UINT driver_profile_lookup(const driver_profile_t** profile_ptr, UINT profile_id)
 {
@@ -45,4 +45,17 @@ UINT driver_profile_lookup(const driver_profile_t** profile_ptr, UINT profile_id
 	// the profile exists, get it from the look-up table
 	*profile_ptr = driver_profiles[profile_id];
 	return DRIVER_PROFILE_FOUND;
+}
+
+/**
+ * @brief 		Apply the torque map of the specified driver profile to the input
+ * 		
+ * @param[in] 	profile_ptr 	Pointer to driver profile
+ * @param[out]	input			Input torque request
+ * 
+ * @return		Input mapped to driver profile torque curve
+ */
+UINT apply_torque_map(const driver_profile_t* profile_ptr, UINT input)
+{
+	return profile_ptr->throttle_curve[input];
 }

@@ -38,5 +38,6 @@ typedef struct {
  * function prototypes
  */
 UINT driver_profile_lookup(const driver_profile_t** profile_ptr, UINT profile_id);
+UINT apply_torque_map(const driver_profile_t* profile_ptr, UINT input);
 
 #endif
