@@ -65,13 +65,12 @@ UINT can_rx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
     }
 
     // create semaphore
-    UINT status = tx_semaphore_create(&can_rx_semaphore, CAN_RX_SEMAPHORE_NAME, 0);
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_semaphore_create(&can_rx_semaphore, CAN_RX_SEMAPHORE_NAME, 0);
+    }   
 
-    // start CAN receive
-    HAL_FDCAN_Start(&hfdcan1); 
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
-
-    return status;
+    return ret;
 }
 
 /**
@@ -94,10 +93,14 @@ void can_rx_thread_entry(ULONG thread_input)
     // not using input, prevent compiler warning
     (void) thread_input;
 
+    // start CAN receive
+    HAL_FDCAN_Start(&hfdcan1); 
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
     // loop forever
     while (1)
     {
-        // wait for CAN receive eevent
+        // wait for CAN receive event
         if (tx_semaphore_get(&can_rx_semaphore, TX_WAIT_FOREVER) == TX_SUCCESS)
         {
             // read data
