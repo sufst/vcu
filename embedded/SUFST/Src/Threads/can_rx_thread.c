@@ -6,11 +6,15 @@
  ***************************************************************************/
 
 #include "can_rx_thread.h"
+#include "config.h"
 #include "tx_api.h"
 
 #include "can_device_state.h"
 
-#define CAN_RX_SEMAPHORE_NAME   "CAN Rx Semaphore"
+#define CAN_RX_THREAD_STACK_SIZE            1024
+#define CAN_RX_THREAD_PREEMPTION_THRESHOLD  CAN_RX_THREAD_PRIORITY
+#define CAN_RX_THREAD_NAME                  "CAN Rx Thread"
+#define CAN_RX_SEMAPHORE_NAME               "CAN Rx Semaphore"
 
 /**
  * @brief CAN receive thread
@@ -24,6 +28,61 @@ TX_THREAD can_rx_thread;
  */
 TX_SEMAPHORE can_rx_semaphore;
 
+/*
+ * function prototypes
+ */
+void can_rx_thread_entry(ULONG thread_input);
+
+/**
+ * @brief 		Initialise CAN receive thread
+ * 
+ * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
+ * 
+ * @return 		See ThreadX return codes
+ */
+UINT can_rx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+{
+    // create thread
+    VOID* thread_stack_ptr;
+
+    UINT ret = tx_byte_allocate(stack_pool_ptr, 
+                                &thread_stack_ptr, 
+                                CAN_RX_THREAD_STACK_SIZE, 
+                                TX_NO_WAIT);
+
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_thread_create(&can_rx_thread, 
+                                CAN_RX_THREAD_NAME, 
+                                can_rx_thread_entry, 
+                                0,
+                                thread_stack_ptr,
+                                CAN_RX_THREAD_STACK_SIZE,
+                                CAN_RX_THREAD_PRIORITY,
+                                CAN_RX_THREAD_PREEMPTION_THRESHOLD,
+                                TX_NO_TIME_SLICE,
+                                TX_AUTO_START);
+    }
+
+    // create semaphore
+    if (ret == TX_SUCCESS)
+    {
+        ret = tx_semaphore_create(&can_rx_semaphore, CAN_RX_SEMAPHORE_NAME, 0);
+    }   
+
+    return ret;
+}
+
+/**
+ * @brief 	Terminate CAN receive thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT can_rx_thread_terminate()
+{
+	return tx_thread_terminate(&can_rx_thread);
+}
+
 /**
  * @brief       Thread entry function for CAN receive dispatch thread
  * 
@@ -34,10 +93,14 @@ void can_rx_thread_entry(ULONG thread_input)
     // not using input, prevent compiler warning
     (void) thread_input;
 
+    // start CAN receive
+    HAL_FDCAN_Start(&hfdcan1); 
+    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+
     // loop forever
     while (1)
     {
-        // wait for CAN receive eevent
+        // wait for CAN receive event
         if (tx_semaphore_get(&can_rx_semaphore, TX_WAIT_FOREVER) == TX_SUCCESS)
         {
             // read data
@@ -55,23 +118,6 @@ void can_rx_thread_entry(ULONG thread_input)
             
         }
     }
-}
-
-/**
- * @brief  Initialise CAN receive service
- * 
- * @return TX_SUCCESS if successful, ThreadX error code otherwise 
- */
-UINT can_rx_init()
-{
-    // initialise CAN
-    // TODO: status codes
-    HAL_FDCAN_Start(&hfdcan1); 
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
-
-    // create semaphore
-    UINT status = tx_semaphore_create(&can_rx_semaphore, CAN_RX_SEMAPHORE_NAME, 0);
-    return status;
 }
 
 /**

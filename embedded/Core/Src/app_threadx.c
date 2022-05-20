@@ -25,18 +25,9 @@
 /* USER CODE BEGIN Includes */
 
 #include "config.h"
-#include "trace.h"
-
-#include "can_tx_thread.h"
-#include "can_rx_thread.h"
-#include "control_thread.h"
-#include "fault_state_thread.h"
-#include "sensor_thread.h"
-#include "messaging_system.h"
-
-#include "pm100.h"
-#include "rtc_time.h"
+#include "init.h"
 #include "ready_to_drive.h"
+#include "trace.h"
 
 /* USER CODE END Includes */
 
@@ -76,147 +67,13 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
 
   /* USER CODE BEGIN App_ThreadX_MEM_POOL */
-    (void)byte_pool;
   /* USER CODE END App_ThreadX_MEM_POOL */
 
   /* USER CODE BEGIN App_ThreadX_Init */
 
-    VOID* stack_ptr;	// pointer to allocated memory for thread stack
-
-    /**************************
-     * Control thread creation
-     **************************/
-
-    ret = tx_byte_allocate(memory_ptr, &stack_ptr, CONTROL_THREAD_STACK_SIZE, TX_NO_WAIT);
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_thread_create(&control_thread, CONTROL_THREAD_NAME, control_thread_entry, 0, stack_ptr,
-                    CONTROL_THREAD_STACK_SIZE, CONTROL_THREAD_PRIORITY, CONTROL_THREAD_PREEMPTION_THRESHOLD,
-                    TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    /*************************
-     * CAN thread creation
-     **************************/
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_TX_THREAD_STACK_SIZE, TX_NO_WAIT);
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_thread_create(&can_tx_thread, CAN_TX_THREAD_NAME, can_tx_thread_entry, 0, stack_ptr,
-                    CAN_TX_THREAD_STACK_SIZE, CAN_THREAD_PRIORITY, CAN_TX_THREAD_PREEMPTION_THRESHOLD,
-                    TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, CAN_RX_THREAD_STACK_SIZE, TX_NO_WAIT);
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_thread_create(&can_rx_thread, CAN_RX_THREAD_NAME, can_rx_thread_entry, 0, stack_ptr,
-                    CAN_RX_THREAD_STACK_SIZE, CAN_RX_THREAD_PRIORITY, CAN_RX_THREAD_PREEMPTION_THRESHOLD,
-                    TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    /*************************
-     * Sensor thread creation
-     **************************/
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, SENSOR_THREAD_STACK_SIZE, TX_NO_WAIT);
-
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_thread_create(&sensor_thread, SENSOR_THREAD_NAME, sensor_thread_entry, 0, stack_ptr,
-                    SENSOR_THREAD_STACK_SIZE, SENSOR_THREAD_PRIORITY, SENSOR_THREAD_PREEMPTION_THRESHOLD,
-                    TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    /*************************
-     * Fault thread creation
-     **************************/
-
-    // allocate memory for fault state thread from application memory pool
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_byte_allocate(memory_ptr, &stack_ptr, FAULT_STATE_THREAD_STACK_SIZE, TX_NO_WAIT);
-    }
-
-    // create fault state thread
-    // -> don't auto start it
-    if (ret == TX_SUCCESS)
-    {
-        ret = tx_thread_create(&fault_state_thread, FAULT_STATE_THREAD_NAME, fault_state_thread_entry, 0, stack_ptr,
-                    FAULT_STATE_THREAD_STACK_SIZE, FAULT_STATE_THREAD_PRIORITY, FAULT_STATE_THREAD_PREEMPTION_THRESHOLD,
-                    TX_NO_TIME_SLICE, TX_DONT_START);
-    }
-
-    /*************************
-     * Other initialisation
-     **************************/
-
-    // RTC timestamps
-    if (ret == TX_SUCCESS)
-    {
-        rtc_time_init();
-    }
-
-    // message system
-    if (ret == TX_SUCCESS)
-    {
-        ret = message_system_init();
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        pm100_status_t status = pm100_init();
-        
-        if (status != PM100_OK)
-        {
-            ret = TX_START_ERROR;
-        }
-    }
-
-
-    /*************************
-     * Ready-to-drive wait
-     **************************/
-    if (ret == TX_SUCCESS)
-    {
-        wait_for_ready_to_drive();
-    }
-    else 
-    {
-        tx_thread_resume(&fault_state_thread);
-    }
-
-    /*************************
-     * Post ready-to-drive
-     **************************/
-    if (ret == TX_SUCCESS)
-    {
-        ret = can_rx_init();
-    }
-
-    /*************************
-     * Start TraceX
-     **************************/
-    #if TRACEX_ENABLE
-    if (ret == TX_SUCCESS)
-    {
-        ret = trace_init();
-        trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
-    }
-    #endif
+    init_pre_rtd(byte_pool);
+    rtd_wait();
+    init_post_rtd();
 
   /* USER CODE END App_ThreadX_Init */
 

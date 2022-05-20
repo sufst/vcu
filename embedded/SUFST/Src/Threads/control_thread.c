@@ -6,11 +6,16 @@
  ***************************************************************************/
 
 #include "control_thread.h"
+#include "config.h"
 #include "tx_api.h"
 
 #include "driver_profiles.h"
 #include "messaging_system.h"
 #include "fault_state_thread.h"
+
+#define CONTROL_THREAD_STACK_SIZE			1024
+#define CONTROL_THREAD_PREEMPTION_THRESHOLD CONTROL_THREAD_PRIORITY
+#define CONTROL_THREAD_NAME					"Control Thread"
 
 /**
  * @brief Thread for control task
@@ -20,9 +25,52 @@ TX_THREAD control_thread;
 /*
  * function prototypes
  */
-UINT map_input(UINT input);
+void control_thread_entry(ULONG thread_input);
 
-/*
+/**
+ * @brief 		Initialise control thread
+ * 
+ * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
+ * 
+ * @return 		See ThreadX return codes
+ */
+UINT control_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+{
+	VOID* thread_stack_ptr;
+
+	UINT ret = tx_byte_allocate(stack_pool_ptr, 
+								&thread_stack_ptr,
+								CONTROL_THREAD_STACK_SIZE,
+								TX_NO_WAIT);
+
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_thread_create(&control_thread,
+								CONTROL_THREAD_NAME,
+								control_thread_entry,
+								0,
+								thread_stack_ptr,
+								CONTROL_THREAD_STACK_SIZE,
+								CONTROL_THREAD_PRIORITY,
+								CONTROL_THREAD_PREEMPTION_THRESHOLD,
+								TX_NO_TIME_SLICE,
+								TX_AUTO_START);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief 	Terminate control thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT control_thread_terminate()
+{
+	return tx_thread_terminate(&control_thread);
+}
+
+/**
  * @brief Thread entry function for control_thread
  *
  * @param[in]	thread_input	(Unused) thread input

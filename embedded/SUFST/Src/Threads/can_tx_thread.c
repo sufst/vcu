@@ -13,10 +13,63 @@
 #include "pm100.h"
 #include "trace.h"
 
+#define CAN_TX_THREAD_STACK_SIZE			1024
+#define CAN_TX_THREAD_PREEMPTION_THRESHOLD	CAN_TX_THREAD_PRIORITY
+#define CAN_TX_THREAD_NAME					"CAN Tx Thread"
+
 /**
  * @brief Thread for CAN transmit
  */
 TX_THREAD can_tx_thread;
+
+/*
+ * function prototypes
+ */ 
+void can_tx_thread_entry(ULONG thread_input);
+
+/**
+ * @brief 		Initialise CAN transmit thread
+ * 
+ * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
+ * 
+ * @return 		See ThreadX return codes
+ */
+UINT can_tx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+{
+	VOID* thread_stack_ptr;
+
+	UINT ret = tx_byte_allocate(stack_pool_ptr, 
+								&thread_stack_ptr,
+								CAN_TX_THREAD_STACK_SIZE,
+								TX_NO_WAIT);
+
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_thread_create(&can_tx_thread,
+								CAN_TX_THREAD_NAME,
+								can_tx_thread_entry,
+								0,
+								thread_stack_ptr,
+								CAN_TX_THREAD_STACK_SIZE,
+								CAN_TX_THREAD_PRIORITY,
+								CAN_TX_THREAD_PREEMPTION_THRESHOLD,
+								TX_NO_TIME_SLICE,
+								TX_AUTO_START);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief 	Terminate CAN transmit thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT can_tx_thread_terminate()
+{
+	return tx_thread_terminate(&can_tx_thread);
+}
+
 
 /**
  * @brief Thread entry function for CAN transmit thread

@@ -43,7 +43,7 @@
 #define FAULT_STATE_THREAD_PRIORITY	        0		// maximum priority
 #define SENSOR_THREAD_PRIORITY		        3
 #define CONTROL_THREAD_PRIORITY		        3
-#define CAN_THREAD_PRIORITY			        2
+#define CAN_TX_THREAD_PRIORITY			    2
 #define CAN_RX_THREAD_PRIORITY              4
 
 #define TRACEX_ENABLE                       0      // enable TraceX logging
