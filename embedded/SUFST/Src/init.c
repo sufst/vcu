@@ -17,6 +17,9 @@
 #include "pm100.h"
 #include "rtc_time.h"
 
+/*
+ * function prototypes
+ */
 UINT init_threads(TX_BYTE_POOL* stack_pool_ptr);
 
 /**

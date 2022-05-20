@@ -1,6 +1,6 @@
 /***************************************************************************
  * @file   ready_to_drive.c
- * @author Tim Brewis (tab1g19@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-03-10
  * @brief  Ready to drive logic implementation
  ***************************************************************************/
@@ -18,24 +18,24 @@
 /*
  * function prototypes
  */
-static bool ready_to_drive_state();
+static bool rtd_pin_state();
 static void sound_buzzer();
 
 /**
  * @brief Wait for ready-to-drive signal to become active
  */
-void wait_for_ready_to_drive()
+void rtd_wait()
 {
 	// red LED on
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
 	// wait for active high
-	while (!ready_to_drive_state());
+	while (!rtd_pin_state());
 
 	// if ready to drive overridden ('USER' button input)
 	// wait for button to be released
 #if (READY_TO_DRIVE_OVERRIDE)
-	while (ready_to_drive_state());
+	while (rtd_pin_state());
 #endif
 
 	// disable inverter (lockout)
@@ -56,7 +56,7 @@ void wait_for_ready_to_drive()
  *
  * @return 	True if ready-to-drive signal active, false otherwise
  */
-bool ready_to_drive_state()
+bool rtd_pin_state()
 {
 #if (READY_TO_DRIVE_OVERRIDE)
 	return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin) == GPIO_PIN_SET;
