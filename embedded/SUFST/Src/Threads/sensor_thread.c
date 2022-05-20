@@ -1,7 +1,6 @@
 /***************************************************************************
  * @file   sensor_thread.c
- * @author Tim Brewis (tab1g19@soton.ac.uk)
- * @author Cosmin-Andrei Tamas (cat1g19@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2021-11-30
  * @brief  Sensor thread
  ***************************************************************************/
@@ -16,6 +15,10 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
+#define SENSOR_THREAD_STACK_SIZE				1024
+#define SENSOR_THREAD_PREEMPTION_THRESHOLD		SENSOR_THREAD_PRIORITY
+#define SENSOR_THREAD_NAME						"Sensor Thread"
 
 #define THROTTLE_ADC_HANDLE_1		&hadc1	// PA3 (A0 on CN9)
 #define THROTTLE_ADC_HANDLE_2		&hadc2	// PB1 (A3 on CN9)
@@ -48,10 +51,55 @@ TX_TIMER sensor_thread_tick_timer;
 /*
  * function prototypes
  */
-#if (!RUN_THROTTLE_TESTBENCH && !RUN_ENDURANCE_TESTBENCH)
+void sensor_thread_entry(ULONG thread_input);
+
+#if (!RUN_THROTTLE_TESTBENCH)
 UINT read_throttle();
 UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr);
 #endif
+
+/**
+ * @brief 		Initialise sensor thread
+ * 
+ * @param[in]	stack_pool_ptr	Pointer to start of application stack area
+ * 
+ * @return		See ThreadX return codes
+ */
+UINT sensor_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+{
+	VOID* thread_stack_ptr;
+
+	UINT ret = tx_byte_allocate(stack_pool_ptr,
+								&thread_stack_ptr,
+								SENSOR_THREAD_STACK_SIZE,
+								TX_NO_WAIT);
+
+	if (ret == TX_SUCCESS)
+	{
+		ret  = tx_thread_create(&sensor_thread,
+								SENSOR_THREAD_NAME,
+								sensor_thread_entry, 
+								0,
+								thread_stack_ptr,
+								SENSOR_THREAD_STACK_SIZE,
+								SENSOR_THREAD_PRIORITY,
+								SENSOR_THREAD_PREEMPTION_THRESHOLD,
+								TX_NO_TIME_SLICE,
+								TX_AUTO_START);
+	}
+
+	return ret;
+}
+
+/**
+ * @brief 	Terminate sensor thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT sensor_thread_terminate()
+{
+	return tx_thread_terminate(&sensor_thread);
+}
 
 /**
  * @brief Sensor thread tick function
@@ -175,8 +223,8 @@ UINT read_throttle()
  * @param[in]	adc_handle		ADC handle
  * @param[in]	data_ptr		Pointer to UINT to store 16 bit reading
  *
- * @return		ADC_OK if ADC read successfully
- * 				ADC_ERR otherwise
+ * @retval		ADC_OK	 		ADC read successfully
+ * @retval		ADC_ERR 		Error reading ADC
  */
 UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr)
 {

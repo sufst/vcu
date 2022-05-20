@@ -26,7 +26,9 @@
         "can_parser.h": "c",
         "can_device_state.h": "c",
         "pm100.h": "c",
-        "adc.h": "c"
+        "adc.h": "c",
+        "can_tx_thread.h": "c",
+        "init.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true,
 }

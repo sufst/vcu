@@ -1,16 +1,16 @@
 /***************************************************************************
- * @file   sensor_thread.h
+ * @file   init.h
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2021-11-30
- * @brief  Sensor thread
+ * @date   2022-05-20
+ * @brief  Initialisation function prototypes
  ***************************************************************************/
 
-#ifndef SENSOR_THREAD_H
-#define SENSOR_THREAD_H
+#ifndef INIT_H
+#define INIT_H
 
 #include "tx_api.h"
 
-UINT sensor_thread_init(TX_BYTE_POOL* stack_pool_ptr);
-UINT sensor_thread_terminate();
+void init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr);
+void init_post_rtd();
 
 #endif
