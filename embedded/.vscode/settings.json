@@ -28,7 +28,8 @@
         "pm100.h": "c",
         "adc.h": "c",
         "can_tx_thread.h": "c",
-        "init.h": "c"
+        "init.h": "c",
+        "can_rx_thread.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true,
 }

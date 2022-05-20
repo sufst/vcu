@@ -10,7 +10,7 @@
 
 #include "tx_api.h"
 
-void init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr);
-void init_post_rtd();
+UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr);
+UINT init_post_rtd();
 
 #endif

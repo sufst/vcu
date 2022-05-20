@@ -12,25 +12,57 @@
 #include "control_thread.h"
 #include "fault_state_thread.h"
 #include "sensor_thread.h"
+#include "messaging_system.h"
+
+#include "pm100.h"
+#include "rtc_time.h"
 
 UINT init_threads(TX_BYTE_POOL* stack_pool_ptr);
 
 /**
  * @brief       Initialisation pre ready-to-drive
  * 
+ * @note        Runs both before ready-to-drive and before ThreadX kernel entry
+ * 
  * @param[in]   stack_pool_ptr  Pointer to start of application stack area
  */
-void init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
+UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
 {
-    init_threads(stack_pool_ptr);
+    UINT ret = init_threads(stack_pool_ptr);
+
+    if (ret == TX_SUCCESS)
+    {
+        ret = message_system_init();
+    }
+
+    if (ret == TX_SUCCESS)
+    {
+        ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
+    }
+
+    if (ret == TX_SUCCESS)
+    {
+        rtc_time_init();
+    }
+
+    return ret;
 }
 
 /**
  * @brief Initialisation post ready-to-drive
  */
-void init_post_rtd()
+UINT init_post_rtd()
 {
+    UINT ret;
 
+    #if TRACEX_ENABLE
+    ret = trace_init();
+    trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
+    #else 
+    ret = TX_SUCCESS;
+    #endif
+
+    return ret;
 }
 
 /**

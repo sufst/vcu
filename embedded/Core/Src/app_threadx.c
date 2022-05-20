@@ -28,11 +28,6 @@
 #include "init.h"
 #include "trace.h"
 
-#include "can_tx_thread.h"
-#include "can_rx_thread.h"
-#include "control_thread.h"
-#include "fault_state_thread.h"
-#include "sensor_thread.h"
 #include "messaging_system.h"
 
 #include "pm100.h"
@@ -82,56 +77,8 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE BEGIN App_ThreadX_Init */
 
     init_pre_rtd(byte_pool);
-
-    /*************************
-     * Other initialisation
-     **************************/
-
-    // RTC timestamps
-    if (ret == TX_SUCCESS)
-    {
-        rtc_time_init();
-    }
-
-    // message system
-    if (ret == TX_SUCCESS)
-    {
-        ret = message_system_init();
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        pm100_status_t status = pm100_init();
-        
-        if (status != PM100_OK)
-        {
-            ret = TX_START_ERROR;
-        }
-    }
-
-
-    /*************************
-     * Ready-to-drive wait
-     **************************/
-    if (ret == TX_SUCCESS)
-    {
-        wait_for_ready_to_drive();
-    }
-    else 
-    {
-        enter_fault_state();
-    }
-
-    /*************************
-     * Start TraceX
-     **************************/
-    #if TRACEX_ENABLE
-    if (ret == TX_SUCCESS)
-    {
-        ret = trace_init();
-        trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
-    }
-    #endif
+    wait_for_ready_to_drive();
+    init_post_rtd();
 
   /* USER CODE END App_ThreadX_Init */
 

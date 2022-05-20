@@ -1,6 +1,6 @@
 /***************************************************************************
  * @file   messaging.c
- * @author Tim Brewis (tab1g19@soton.ac.uk)
+ * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2021-11-30
  * @brief  Inter-thread messaging system implementation
  ***************************************************************************/
@@ -77,7 +77,7 @@ UINT message_receive(VOID* dest_ptr, TX_QUEUE* queue_ptr)
  *
  * @note		The timestamp will overflow after around 49.7 days.
  *
- * @param[in]	timestamp_ptr	UINT pointer to message struct field to store timestamp in
+ * @param[in]	timestamp_ptr	Pointer to message struct field to store timestamp in
  */
 void message_set_timestamp(UINT* timestamp_ptr)
 {
