@@ -54,7 +54,7 @@
 
 #define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
 
-#define INVERTER_DISABLE_TORQUE_REQUESTS        1
+#define INVERTER_DISABLE_TORQUE_REQUESTS        0
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
@@ -85,7 +85,7 @@
 #define THROTTLE_SCALED_RESOLUTION	        10		// scaled resolution sent to control thread
 #define THROTTLE_DEADZONE_FRACTION	        0.01	// fractional dead-zone below which throttle always zero
 #define THROTTLE_MAX_DIFF_FRACTION	        0.05	// fractional maximum allowed difference between ADC readings
-#define THROTTLE_ENABLE_DIFF_CHECK	        1		// set to 1 to enable check for discrepancy between ADC readings
+#define THROTTLE_ENABLE_DIFF_CHECK	        0		// set to 1 to enable check for discrepancy between ADC readings
 #define THROTTLE_ENABLE_DEADZONE	        0		// set to 1 to enable dead-zone
 
 /***************************************************************************
@@ -93,7 +93,7 @@
  ***************************************************************************/
 
 // enable flags
-#define RUN_THROTTLE_TESTBENCH		        1		// throttle input from lookup table
+#define RUN_THROTTLE_TESTBENCH		        0		// throttle input from lookup table
 #define RUN_FAULT_STATE_TESTBENCH	        1		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters

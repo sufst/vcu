@@ -147,7 +147,6 @@ pm100_status_t pm100_command_tx(pm100_command_t* command_data)
 pm100_status_t pm100_torque_request(uint32_t torque)
 {
     // initialise command data to 0
-    pm100_command_t pm100_cmd = {0};
     pm100_status_t status;
 
     // handle lockout
@@ -156,11 +155,12 @@ pm100_status_t pm100_torque_request(uint32_t torque)
 
     if (lockout == 1)
     {
-        status = pm100_command_tx(&pm100_cmd);
+        status = pm100_disable();
     }
     // transmit torque request
     else
     {
+        pm100_command_t pm100_cmd = {0};
         pm100_cmd.direction = PM100_DIRECTION_COMMAND;
         pm100_cmd.torque_command = (uint16_t) torque;
         pm100_cmd.inverter_enable = 1;
@@ -201,6 +201,19 @@ pm100_status_t pm100_speed_request(uint16_t speed)
         status = pm100_command_tx(&pm100_cmd);
     }
     return status;
+}
+
+
+/**
+ * @brief Send
+ * 
+ * @return PM100_OK     Success
+ * @return PM100_ERROR  Failure
+ */
+pm100_status_t pm100_disable()
+{
+    pm100_command_t pm100_cmd = {0};
+    return pm100_command_tx(&pm100_cmd);
 }
 
 /**

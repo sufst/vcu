@@ -112,7 +112,7 @@ void sensor_thread_entry(ULONG thread_input)
 	}
 }
 
-#if (!RUN_THROTTLE_TESTBENCH && !RUN_ENDURANCE_TESTBENCH)
+#if (!RUN_THROTTLE_TESTBENCH)
 /**
  * @brief 	Read throttle
  *
