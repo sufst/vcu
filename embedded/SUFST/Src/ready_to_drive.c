@@ -11,6 +11,7 @@
 
 #include "gpio.h"
 #include "rtc_time.h"
+#include "pm100.h"
 
 #include <stdbool.h>
 
@@ -36,6 +37,9 @@ void wait_for_ready_to_drive()
 #if (READY_TO_DRIVE_OVERRIDE)
 	while (ready_to_drive_state());
 #endif
+
+	// disable inverter (lockout)
+	pm100_disable();
 
 	// produce sound
 	sound_buzzer();

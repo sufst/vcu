@@ -163,6 +163,7 @@ pm100_status_t pm100_init();
 pm100_status_t pm100_command_tx(pm100_command_t* command_data);
 pm100_status_t pm100_torque_request(uint32_t torque);
 pm100_status_t pm100_speed_request(uint16_t speed);
+pm100_status_t pm100_disable();
 
 pm100_status_t pm100_read_state(uint32_t index, uint32_t* value_ptr);
 void pm100_update_state(uint32_t index, uint32_t value);
