@@ -26,13 +26,8 @@
 
 #include "config.h"
 #include "init.h"
-#include "trace.h"
-
-#include "messaging_system.h"
-
-#include "pm100.h"
-#include "rtc_time.h"
 #include "ready_to_drive.h"
+#include "trace.h"
 
 /* USER CODE END Includes */
 
