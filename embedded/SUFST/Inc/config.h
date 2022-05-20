@@ -46,11 +46,13 @@
 #define CAN_THREAD_PRIORITY			        2
 #define CAN_RX_THREAD_PRIORITY              4
 
-#define TRACEX_ENABLE                       0      // enable TraceX
+#define TRACEX_ENABLE                       0      // enable TraceX logging
 
 /***************************************************************************
  * CAN / inverter
  ***************************************************************************/
+
+#define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
 
 #define INVERTER_DISABLE_TORQUE_REQUESTS        1
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
