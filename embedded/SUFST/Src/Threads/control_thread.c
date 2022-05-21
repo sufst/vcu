@@ -77,10 +77,10 @@ UINT control_thread_terminate()
  */
 void control_thread_entry(ULONG thread_input)
 {
-	// not using input, prevent compiler warning
-	(VOID) thread_input;
+	(void) thread_input;
 
 	// look-up the driver profile
+	// (note this is fixed at compile time at the moment)
 	const driver_profile_t* driver_profile_ptr;
 
 	if (driver_profile_lookup(&driver_profile_ptr, SELECTED_DRIVER_PROFILE) != DRIVER_PROFILE_FOUND)
@@ -94,22 +94,20 @@ void control_thread_entry(ULONG thread_input)
 		// wait for a message to enter the control input queue
 		// -> thread suspended until message received
 		control_input_message_t input_message;
-		UINT ret = message_receive(&input_message, &control_input_queue);
 
-		if (ret != TX_SUCCESS) 
+		if (message_receive(&input_message, &control_input_queue) == TX_SUCCESS) 
 		{
-			// should never happen, drop message if it does
-			continue;
+			// apply the thottle curve
+			UINT torque_request = apply_torque_map(driver_profile_ptr, input_message.input);
+
+			// create and send the torque request to the CAN thread
+			torque_request_message_t torque_message;
+			torque_message.value = torque_request;
+			torque_message.timestamp = input_message.timestamp;
+
+			message_post((VOID*) &torque_message, &torque_request_queue);
 		}
 
-		// apply the thottle curve
-		UINT torque_request = apply_torque_map(driver_profile_ptr, input_message.input);
 
-		// create and send the torque request to the CAN thread
-		torque_request_message_t torque_message;
-		torque_message.value = torque_request;
-		torque_message.timestamp = input_message.timestamp;
-
-		message_post((VOID*) &torque_message, &torque_request_queue);
 	}
 }

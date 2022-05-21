@@ -16,8 +16,8 @@
 TX_QUEUE torque_request_queue;
 TX_QUEUE control_input_queue;
 
-static uint8_t torque_request_queue_memory [TORQUE_REQUEST_QUEUE_SIZE];
-static uint8_t control_input_queue_memory [CONTROL_INPUT_QUEUE_SIZE];
+static uint8_t torque_request_queue_mem[TORQUE_REQUEST_QUEUE_SIZE];
+static uint8_t control_input_queue_mem[CONTROL_INPUT_QUEUE_SIZE];
 
 /**
  * @brief Initialise message passing system
@@ -27,14 +27,20 @@ UINT message_system_init()
 	UINT ret;
 
 	// control -> CAN torque request queue
-	ret = tx_queue_create(&torque_request_queue, TORQUE_REQUEST_QUEUE_NAME, TORQUE_REQUEST_QUEUE_MESSAGE_SIZE,
-			(VOID*) torque_request_queue_memory, TORQUE_REQUEST_QUEUE_SIZE);
+	ret = tx_queue_create(&torque_request_queue, 
+						  TORQUE_REQUEST_QUEUE_NAME, 
+						  TORQUE_REQUEST_QUEUE_MESSAGE_SIZE,
+						  (VOID*) torque_request_queue_mem, 
+						  TORQUE_REQUEST_QUEUE_SIZE);
 
 	// sensor -> control input queue
 	if (ret == TX_SUCCESS)
 	{
-		ret = tx_queue_create(&control_input_queue, CONTROL_INPUT_QUEUE_NAME, CONTROL_INPUT_QUEUE_MESSAGE_SIZE,
-				(VOID*) control_input_queue_memory, CONTROL_INPUT_QUEUE_SIZE);
+		ret = tx_queue_create(&control_input_queue, 
+							  CONTROL_INPUT_QUEUE_NAME, 
+							  CONTROL_INPUT_QUEUE_MESSAGE_SIZE,
+							  (VOID*) control_input_queue_mem, 
+							  CONTROL_INPUT_QUEUE_SIZE);
 	}
 
 	return ret;
