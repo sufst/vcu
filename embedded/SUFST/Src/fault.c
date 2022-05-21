@@ -27,6 +27,11 @@ extern TX_QUEUE critical_fault_queue;
 extern TX_THREAD watchdog_thread;
 
 /**
+ * @brief Fault semaphore
+ */
+extern TX_SEMAPHORE fault_semaphore;
+
+/**
  * @brief       Register minor fault
  * 
  * @param[in]   fault   Type of fault
@@ -39,6 +44,7 @@ void minor_fault(minor_fault_t fault)
     // send message to watchdog thread
     ULONG queue_message = (ULONG) fault;
     tx_queue_send(&minor_fault_queue, (VOID*) &queue_message, TX_WAIT_FOREVER);
+    tx_semaphore_put(&fault_semaphore);
 }
 
 /**
@@ -54,6 +60,7 @@ void critical_fault(critical_fault_t fault)
     // send message to watchdog thread
     ULONG queue_message = (ULONG) fault;
     tx_queue_send(&critical_fault_queue, (VOID*) &queue_message, TX_WAIT_FOREVER);
+    tx_semaphore_put(&fault_semaphore);
 
     // ensure watchdog thread runs immediately
     tx_thread_priority_change(&watchdog_thread, WATCHDOG_THREAD_PRIORITY_ELEVATED, NULL);
