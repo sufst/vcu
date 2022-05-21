@@ -26,12 +26,12 @@
 #define WATCHDOG_THREAD_NAME						"Watchdog Thread"
 #define WATCHDOG_THREAD_WAKE_TIMEOUT				TX_TIMER_TICKS_PER_SECOND / 2
 
-#define CRITICAL_FAULT_QUEUE_ITEM_SIZE				(sizeof(critical_fault_t) / sizeof(ULONG))
-#define CRITICAL_FAULT_QUEUE_SIZE					5 * CRITICAL_FAULT_QUEUE_ITEM_SIZE
+#define CRITICAL_FAULT_QUEUE_ITEM_SIZE				TX_1_ULONG
+#define CRITICAL_FAULT_QUEUE_SIZE					5
 #define CRITICAL_FAULT_QUEUE_NAME					"Critical Fault Queue"
 
-#define MINOR_FAULT_QUEUE_ITEM_SIZE					(sizeof(minor_fault_t) / sizeof(ULONG))
-#define MINOR_FAULT_QUEUE_SIZE						10 * MINOR_FAULT_QUEUE_ITEM_SIZE
+#define MINOR_FAULT_QUEUE_ITEM_SIZE					TX_1_ULONG
+#define MINOR_FAULT_QUEUE_SIZE						10
 #define MINOR_FAULT_QUEUE_NAME						"Minor Fault Queue"
 
 #define FAULT_SEMAPHORE_NAME						"Fault Semaphore"
@@ -49,7 +49,7 @@ TX_QUEUE minor_fault_queue;
 /**
  * @brief Minor fault queue memory area
  */
-ULONG minor_fault_queue_mem[MINOR_FAULT_QUEUE_SIZE];
+static ULONG minor_fault_queue_mem[MINOR_FAULT_QUEUE_SIZE];
 
 /**
  * @brief Critical fault queue
@@ -59,7 +59,7 @@ TX_QUEUE critical_fault_queue;
 /**
  * @brief Critical fault queue memory area
  */
-ULONG critical_fault_queue_mem[CRITICAL_FAULT_QUEUE_SIZE];
+static ULONG critical_fault_queue_mem[CRITICAL_FAULT_QUEUE_SIZE];
 
 /**
  * @brief Fault semaphore
@@ -101,7 +101,7 @@ UINT watchdog_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 								WATCHDOG_THREAD_PRIORITY, 
 								WATCHDOG_THREAD_PREEMPTION_THRESHOLD,
                     			TX_NO_TIME_SLICE, 
-								TX_DONT_START);
+								TX_AUTO_START);
     }
 
 	// create queues
