@@ -81,6 +81,7 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 
 C_SOURCES =  \
 SUFST/Src/init.c \
+SUFST/Src/fault.c \
 SUFST/Src/config_rules.c \
 SUFST/Src/ready_to_drive.c \
 SUFST/Src/CAN/can_device_state.c \
