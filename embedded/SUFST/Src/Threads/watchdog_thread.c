@@ -1,8 +1,13 @@
 /***************************************************************************
- * @file   watchdog_thread.c
- * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-05-21
- * @brief  Watchdog thread implementation
+ * @file   	watchdog_thread.c
+ * @author 	Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
+ * @date   	2022-05-21
+ * @brief  	Watchdog thread implementation
+ * 
+ * @details	This thread will wake up:
+ * 			- Immediately when an item enters the critical fault queue
+ *          - When next scheduled when an item enters the minor fault queue
+ *          - Every WATCHDOG_THREAD_WAKE_TIMEOUT seconds regardless of fault
  ***************************************************************************/
 
 #include "watchdog_thread.h"
@@ -19,6 +24,7 @@
 #define WATCHDOG_THREAD_STACK_SIZE					512
 #define WATCHDOG_THREAD_PREEMPTION_THRESHOLD		WATCHDOG_THREAD_PRIORITY
 #define WATCHDOG_THREAD_NAME						"Watchdog Thread"
+#define WATCHDOG_THREAD_WAKE_TIMEOUT				TX_TIMER_TICKS_PER_SECOND / 2
 
 #define CRITICAL_FAULT_QUEUE_ITEM_SIZE				(sizeof(critical_fault_t) / sizeof(ULONG))
 #define CRITICAL_FAULT_QUEUE_SIZE					5 * CRITICAL_FAULT_QUEUE_ITEM_SIZE
@@ -137,7 +143,7 @@ void watchdog_thread_entry(ULONG thread_input)
 
 	while (1)
 	{
-		UINT status = tx_semaphore_get(&fault_semaphore, TX_WAIT_FOREVER);
+		const UINT status = tx_semaphore_get(&fault_semaphore, WATCHDOG_THREAD_WAKE_TIMEOUT);
 
 		switch (status)
 		{
@@ -167,7 +173,10 @@ void watchdog_thread_entry(ULONG thread_input)
 
 			// timed out waiting for fault
 			case TX_NO_INSTANCE:
+			{
+				// TODO: some other system checks?
 				break;
+			}
 
 			default:
 				break;
