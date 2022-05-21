@@ -78,5 +78,13 @@
                 "${workspaceRoot}/VCU.ioc",
             ]
         },
+        // open ThreadX docs
+        {
+            "label": "ThreadX Docs",
+            "type": "shell",
+            "osx": {
+                "command": "osascript -e \"open location \\\"https://docs.microsoft.com/en-us/azure/rtos/threadx/chapter4\\\"\""
+            }
+        }
     ]
 }

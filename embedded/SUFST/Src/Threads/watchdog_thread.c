@@ -1,32 +1,71 @@
 /***************************************************************************
- * @file   fault_state_thread.c
+ * @file   watchdog_thread.c
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-03-15
- * @brief  Fault state thread implementation
+ * @date   2022-05-21
+ * @brief  Watchdog thread implementation
  ***************************************************************************/
 
-#include "fault_state_thread.h"
+#include "watchdog_thread.h"
 #include "config.h"
 
 #include "can_tx_thread.h"
 #include "can_rx_thread.h"
 #include "control_thread.h"
 #include "sensor_thread.h"
+
+#include "fault.h"
 #include "gpio.h"
 
-#define FAULT_STATE_THREAD_STACK_SIZE				512
-#define FAULT_STATE_THREAD_PREEMPTION_THRESHOLD		FAULT_STATE_THREAD_PRIORITY
-#define FAULT_STATE_THREAD_NAME						"Fault State Thread"
+#define WATCHDOG_THREAD_STACK_SIZE					512
+#define WATCHDOG_THREAD_PREEMPTION_THRESHOLD		WATCHDOG_THREAD_PRIORITY
+#define WATCHDOG_THREAD_NAME						"Watchdog Thread"
+
+#define CRITICAL_FAULT_QUEUE_ITEM_SIZE				(sizeof(critical_fault_t) / sizeof(ULONG))
+#define CRITICAL_FAULT_QUEUE_SIZE					5 * CRITICAL_FAULT_QUEUE_ITEM_SIZE
+#define CRITICAL_FAULT_QUEUE_NAME					"Critical Fault Queue"
+
+#define MINOR_FAULT_QUEUE_ITEM_SIZE					(sizeof(minor_fault_t) / sizeof(ULONG))
+#define MINOR_FAULT_QUEUE_SIZE						10 * MINOR_FAULT_QUEUE_ITEM_SIZE
+#define MINOR_FAULT_QUEUE_NAME						"Minor Fault Queue"
+
+#define FAULT_SEMAPHORE_NAME						"Fault Semaphore"
 
 /**
- * @brief Thread for fault state
+ * @brief Watchdog thread
  */
-TX_THREAD fault_state_thread;
+TX_THREAD watchdog_thread;
+
+/**
+ * @brief Minor fault queue
+ */
+TX_QUEUE minor_fault_queue;
+
+/**
+ * @brief Minor fault queue memory area
+ */
+ULONG minor_fault_queue_mem[MINOR_FAULT_QUEUE_SIZE];
+
+/**
+ * @brief Critical fault queue
+ */
+TX_QUEUE critical_fault_queue;
+
+/**
+ * @brief Critical fault queue memory area
+ */
+ULONG critical_fault_queue_mem[CRITICAL_FAULT_QUEUE_SIZE];
+
+/**
+ * @brief Fault semaphore
+ */
+TX_SEMAPHORE fault_semaphore;
 
 /*
  * function prototypes
  */
-void fault_state_thread_entry(ULONG thread_input);
+void watchdog_thread_entry(ULONG thread_input);
+void critical_fault_handler(critical_fault_t fault);
+void minor_fault_handler(minor_fault_t fault);
 
 /**
  * @brief 		Initialise fault state thread
@@ -35,54 +74,124 @@ void fault_state_thread_entry(ULONG thread_input);
  * 
  * @return 		See ThreadX return codes
  */
-UINT fault_state_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT watchdog_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 {
+	// create the thread
 	VOID* thread_stack_ptr;
 
 	UINT ret = tx_byte_allocate(stack_pool_ptr, 
 								&thread_stack_ptr, 
-								FAULT_STATE_THREAD_STACK_SIZE, 
+								WATCHDOG_THREAD_STACK_SIZE, 
 								TX_NO_WAIT);
 
     if (ret == TX_SUCCESS)
     {
-        ret = tx_thread_create(&fault_state_thread, 
-								FAULT_STATE_THREAD_NAME, 
-								fault_state_thread_entry, 
+        ret = tx_thread_create(&watchdog_thread, 
+								WATCHDOG_THREAD_NAME, 
+								watchdog_thread_entry, 
 								0, 
 								thread_stack_ptr,
-                    			FAULT_STATE_THREAD_STACK_SIZE, 
-								FAULT_STATE_THREAD_PRIORITY, 
-								FAULT_STATE_THREAD_PREEMPTION_THRESHOLD,
+                    			WATCHDOG_THREAD_STACK_SIZE, 
+								WATCHDOG_THREAD_PRIORITY, 
+								WATCHDOG_THREAD_PREEMPTION_THRESHOLD,
                     			TX_NO_TIME_SLICE, 
 								TX_DONT_START);
     }
+
+	// create queues
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_queue_create(&minor_fault_queue,
+							  MINOR_FAULT_QUEUE_NAME,
+							  MINOR_FAULT_QUEUE_ITEM_SIZE,
+							  minor_fault_queue_mem,
+							  sizeof(minor_fault_queue_mem) / sizeof(minor_fault_queue_mem[0]));
+	}
+
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_queue_create(&critical_fault_queue,
+							  CRITICAL_FAULT_QUEUE_NAME,
+							  CRITICAL_FAULT_QUEUE_ITEM_SIZE,
+							  critical_fault_queue_mem,
+							  sizeof(critical_fault_queue_mem) / sizeof(critical_fault_queue_mem[0]));
+	}
+
+	// create semaphore
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_semaphore_create(&fault_semaphore, FAULT_SEMAPHORE_NAME, 0);
+	}
 
 	return ret;
 }
 
 /**
- * @brief 		Fault state thread entry function
+ * @brief 		Watchdog thread entry function
  *
  * @param[in]	thread_input	Unused input
  */
-void fault_state_thread_entry(ULONG thread_input)
+void watchdog_thread_entry(ULONG thread_input)
 {
-	// drive fault output pin low
+	(void) thread_input;
+
+	while (1)
+	{
+		UINT status = tx_semaphore_get(&fault_semaphore, TX_WAIT_FOREVER);
+
+		switch (status)
+		{
+			// fault has occurred
+			case TX_SUCCESS:
+			{
+				// check for critical faults first
+				critical_fault_t critical_fault;
+
+				if (tx_queue_receive(&critical_fault_queue, (VOID*) &critical_fault, TX_NO_WAIT) == TX_SUCCESS)
+				{
+					critical_fault_handler(critical_fault);
+					break;
+				}
+
+				// then check for minor faults
+				minor_fault_t minor_fault;
+
+				if (tx_queue_receive(&minor_fault_queue, (VOID*) &minor_fault, TX_NO_WAIT) == TX_SUCCESS)
+				{
+					minor_fault_handler(minor_fault);
+					break;
+				}
+
+				break;
+			}
+
+			// timed out waiting for fault
+			case TX_NO_INSTANCE:
+				break;
+
+			default:
+				break;
+		}
+
+	}
+
+}
+
+/**
+ * @brief 		Critical fault handler
+ * 
+ * @param[in]	fault	Fault type
+ */
+void critical_fault_handler(critical_fault_t fault)
+{
+	// immediately drive fault pin low
 	HAL_GPIO_WritePin(FAULT_GPIO_Port, FAULT_Pin, GPIO_PIN_RESET);
 
-	// TODO: zero torque request to inverter
-
-
-	// shut down other threads
-	// note: this thread has the highest priority and will not be pre-empted
+	// shut down driver input and control
 	sensor_thread_terminate();
 	control_thread_terminate();
-	can_tx_thread_terminate();
-	can_rx_thread_terminate();
 
-	// loop forever, do not leave fault state
-	// flash the LED
+	// the end
 	while (1)
 	{
 		HAL_GPIO_TogglePin(RED_LED_GPIO_Port, RED_LED_Pin);
@@ -92,10 +201,11 @@ void fault_state_thread_entry(ULONG thread_input)
 }
 
 /**
- * @brief	Enter the fault state
+ * @brief 		Minor fault handler
+ * 
+ * @param[in]	fault	Fault type
  */
-void enter_fault_state()
+void minor_fault_handler(minor_fault_t fault)
 {
-	tx_thread_resume(&fault_state_thread);
-	tx_thread_relinquish();
+
 }

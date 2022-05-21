@@ -10,8 +10,8 @@
 #include "tx_api.h"
 
 #include "driver_profiles.h"
+#include "fault.h"
 #include "messaging_system.h"
-#include "fault_state_thread.h"
 
 #define CONTROL_THREAD_STACK_SIZE			1024
 #define CONTROL_THREAD_PREEMPTION_THRESHOLD CONTROL_THREAD_PRIORITY
@@ -82,11 +82,10 @@ void control_thread_entry(ULONG thread_input)
 
 	// look-up the driver profile
 	const driver_profile_t* driver_profile_ptr;
-	UINT ret = driver_profile_lookup(&driver_profile_ptr, SELECTED_DRIVER_PROFILE);
 
-	if (ret != DRIVER_PROFILE_FOUND)
+	if (driver_profile_lookup(&driver_profile_ptr, SELECTED_DRIVER_PROFILE) != DRIVER_PROFILE_FOUND)
 	{
-		enter_fault_state();
+		critical_fault(CRITICAL_FAULT_DRIVER_PROFILE_NOT_FOUND);
 	}
 
 	// loop forever

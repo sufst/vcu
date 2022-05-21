@@ -6,19 +6,20 @@
  ***************************************************************************/
 
 #include "fault.h"
+#include "config.h"
 #include "tx_api.h"
 
 #include "trace.h"
 
 /**
- * @brief Minor fault signal
+ * @brief Minor fault queue
  */
-extern TX_SEMAPHORE minor_fault_queue;
+extern TX_QUEUE minor_fault_queue;
 
 /**
- * @brief Critical fault signal
+ * @brief Critical fault queue
  */
-extern TX_SEMAPHORE critical_fault_queue;
+extern TX_QUEUE critical_fault_queue;
 
 /**
  * @brief Fault watchdog thread
@@ -55,6 +56,6 @@ void critical_fault(critical_fault_t fault)
     tx_queue_send(&critical_fault_queue, (VOID*) &queue_message, TX_WAIT_FOREVER);
 
     // ensure watchdog thread runs immediately
-    tx_thread_priority_change(&watchdog_thread, 0, NULL);
+    tx_thread_priority_change(&watchdog_thread, WATCHDOG_THREAD_PRIORITY_ELEVATED, NULL);
     tx_thread_relinquish();
 }

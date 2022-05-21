@@ -9,6 +9,15 @@
 
 #include <stdbool.h>
 
+#if RUN_FAULT_STATE_TESTBENCH
+#include "gpio.h"
+#include "fault.h"
+#endif
+
+#if RUN_THROTTLE_TESTBENCH
+#include "throttle_testbench_data.h"
+#endif
+
 /***************************************************************************
  * throttle input testbench
  ***************************************************************************/
@@ -118,7 +127,7 @@ VOID testbench_fault_state()
 
 	if (user_button_state == GPIO_PIN_SET)
 	{
-		enter_fault_state();
+		critical_fault(CRITICAL_FAULT_USER_BTN);
 	}
 }
 

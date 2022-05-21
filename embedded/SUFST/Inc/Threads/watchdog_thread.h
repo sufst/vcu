@@ -1,16 +1,15 @@
 /***************************************************************************
- * @file   fault_state_thread.h
+ * @file   watchdog_thread.h
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-03-15
- * @brief  Fault state thread definitions and prototypes
+ * @date   2022-05-21
+ * @brief  Watchdog thread definitions and prototypes
  ***************************************************************************/
 
-#ifndef FAULT_STATE_THREAD_H
-#define FAULT_STATE_THREAD_H
+#ifndef WATCHDOG_THREAD_H
+#define WATCHDOG_THREAD_H
 
 #include "tx_api.h"
 
-UINT fault_state_thread_init();
-void enter_fault_state();
+UINT watchdog_thread_init();
 
 #endif
