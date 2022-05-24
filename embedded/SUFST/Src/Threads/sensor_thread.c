@@ -148,8 +148,6 @@ void sensor_thread_entry(ULONG thread_input)
 		ULONG throttle = (ULONG) read_throttle();
 #endif
 
-		trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) throttle, 0, 0, 0);
-
 		// transmit throttle to control thread
 		ret = tx_queue_send(&throttle_input_queue, (ULONG*) &throttle, TX_NO_WAIT);
 
@@ -205,21 +203,10 @@ UINT read_throttle()
 #endif
 
 	// calculate average of both readings
-	// note: right shift 1 is a faster equivalent of divide by 2
-	UINT average = (reading_1 + reading_2) >> 1;
+	UINT throttle = (reading_1 + reading_2) / 2;
 
-	// apply dead-zone
-#if THROTTLE_ENABLE_DEADZONE
-
-	if (average < THROTTLE_DEADZONE)
-	{
-		return 0;
-	}
-
-#endif
-
-	// input legal and throttle outside dead-zone
-	return average;
+	trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) throttle, 0, 0, 0);
+	return throttle;
 }
 
 /**
