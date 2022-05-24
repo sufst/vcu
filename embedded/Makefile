@@ -15,6 +15,7 @@
 TARGET = VCU
 BUILD_DIR = build
 DEBUG = 1
+C_STANDARD = c11
 
 # defines
 ALWAYS_C_DEFS = \
@@ -35,12 +36,15 @@ RELEASE_ASM_DEFS = \
 # flags
 ALWAYS_FLAGS = \
 -Wall \
+-Wextra \
+-pedantic \
+-Wno-unused-parameter \
 -Werror=implicit-function-declaration \
 -fdata-sections \
 -ffunction-sections \
 
-DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=c11 -g -gdwarf-2
-RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=c11
+DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=$(C_STANDARD) -g -gdwarf-2
+RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=$(C_STANDARD) -s
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
 RELEASE_ASM_FLAGS = $(ALWAYS_FLAGS)
 
@@ -81,6 +85,7 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) -Wl,-Map=$(BU
 
 C_SOURCES =  \
 SUFST/Src/init.c \
+SUFST/Src/fault.c \
 SUFST/Src/config_rules.c \
 SUFST/Src/ready_to_drive.c \
 SUFST/Src/CAN/can_device_state.c \
@@ -93,7 +98,7 @@ SUFST/Src/Test/trace.c \
 SUFST/Src/Threads/messaging_system.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \
-SUFST/Src/Threads/fault_state_thread.c \
+SUFST/Src/Threads/watchdog_thread.c \
 SUFST/Src/Threads/can_tx_thread.c \
 SUFST/Src/Threads/can_rx_thread.c \
 SUFST/Src/Utility/rtc_time.c \

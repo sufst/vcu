@@ -10,8 +10,8 @@
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
 #include "control_thread.h"
-#include "fault_state_thread.h"
 #include "sensor_thread.h"
+#include "watchdog_thread.h"
 #include "messaging_system.h"
 
 #include "pm100.h"
@@ -81,7 +81,7 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
         can_rx_thread_init,
         can_tx_thread_init,
         control_thread_init,
-        fault_state_thread_init,
+        watchdog_thread_init,
         sensor_thread_init,
     };
 

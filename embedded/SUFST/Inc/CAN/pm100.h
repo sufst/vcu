@@ -16,7 +16,7 @@
 /**
  * @brief Return codes
  */
-typedef enum
+typedef enum pm100_status_e
 {
 	PM100_OK       = 0x00,
 	PM100_ERROR    = 0x01,
@@ -27,7 +27,7 @@ typedef enum
 /**
  * @brief PM100 inverter command message
  */
-typedef struct
+typedef struct pm100_command_s
 {
 	uint16_t	torque_command;
 	uint16_t	speed_command;

@@ -33,11 +33,8 @@
 #define TRACE_THROTTLE_INPUT_EVENT      0x2002
 #define TRACE_TORQUE_REQUEST_EVENT      0x2003
 
-#define TRACE_INVERTER_ERROR            0xE001
-
-// #define TRACE_GENERIC_FAULT_EVENT       0xF001
-// #define TRACE_SIGNAL_FAULT_EVENT        0xF002
-// #define TRACE_CAN_FAULT_EVENT           0xF003
+#define TRACE_MINOR_FAULT               0xE001
+#define TRACE_CRITICAL_FAULT            0xE002
 
 // function prototypes
 UINT trace_init();

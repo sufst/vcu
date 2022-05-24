@@ -40,13 +40,14 @@
  * RTOS
  ***************************************************************************/
 
-#define FAULT_STATE_THREAD_PRIORITY	        0		// maximum priority
 #define SENSOR_THREAD_PRIORITY		        3
 #define CONTROL_THREAD_PRIORITY		        3
 #define CAN_TX_THREAD_PRIORITY			    2
 #define CAN_RX_THREAD_PRIORITY              4
+#define WATCHDOG_THREAD_PRIORITY	        4
+#define WATCHDOG_THREAD_PRIORITY_ELEVATED   0       // elevated for critical fault handling
 
-#define TRACEX_ENABLE                       0      // enable TraceX logging
+#define TRACEX_ENABLE                       0       // enable TraceX logging
 
 /***************************************************************************
  * CAN / inverter
@@ -54,28 +55,11 @@
 
 #define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
 
-#define INVERTER_DISABLE_TORQUE_REQUESTS        0
+#define INVERTER_DISABLE_TORQUE_REQUESTS        0       // prevent torque requests from actually being sent
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
 #define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
-
-#define INVERTER_BROADCAST_TEMPERATURE_1        0
-#define INVERTER_BROADCAST_TEMPERATURE_2        0
-#define INVERTER_BROADCAST_TEMPERATURE_3        0
-#define INVERTER_BROADCAST_ANALOG_INPUTS        0
-#define INVERTER_BROADCAST_DIGITAL_INPUTS       0
-#define INVERTER_BROADCAST_MOTOR_POSITION       0
-#define INVERTER_BROADCAST_CURRENTS             0
-#define INVERTER_BROADCAST_VOLTAGES             0
-#define INVERTER_BROADCAST_FLUX                 0
-#define INVERTER_BROADCAST_INTERNAL_VOLTAGES    0
-#define INVERTER_BROADCAST_INTERNAL_STATES      0
-#define INVERTER_BROADCAST_FAULT_CODES          0
-#define INVERTER_BROADCAST_TORQUE_TIMER         0
-#define INVERTER_BROADCAST_MODULATION_FLUX      0
-#define INVERTER_BROADCAST_FIRMWARE_INFO        0
-#define INVERTER_BROADCAST_DIAGNOSTIC_DATA      0
 
 /***************************************************************************
  * sensors
