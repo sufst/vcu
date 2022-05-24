@@ -15,6 +15,7 @@
 TARGET = VCU
 BUILD_DIR = build
 DEBUG = 1
+C_STANDARD = c11
 
 # defines
 ALWAYS_C_DEFS = \
@@ -35,12 +36,14 @@ RELEASE_ASM_DEFS = \
 # flags
 ALWAYS_FLAGS = \
 -Wall \
+-Wextra \
+-Wno-unused-parameter \
 -Werror=implicit-function-declaration \
 -fdata-sections \
 -ffunction-sections \
 
-DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=c11 -g -gdwarf-2
-RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=c11
+DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=$(C_STANDARD) -g -gdwarf-2
+RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=$(C_STANDARD)
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
 RELEASE_ASM_FLAGS = $(ALWAYS_FLAGS)
 
