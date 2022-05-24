@@ -20,18 +20,7 @@
 #define SENSOR_THREAD_STACK_SIZE				1024
 #define SENSOR_THREAD_PREEMPTION_THRESHOLD		SENSOR_THREAD_PRIORITY
 #define SENSOR_THREAD_NAME						"Sensor Thread"
-
-#define THROTTLE_ADC_HANDLE_1		&hadc1	// PA3 (A0 on CN9)
-#define THROTTLE_ADC_HANDLE_2		&hadc2	// PB1 (A3 on CN9)
-
-#define THROTTLE_INPUT_MAX			((1 << THROTTLE_INPUT_RESOLUTION) - 1)
-#define THROTTLE_SCALED_MAX			((1 << THROTTLE_SCALED_RESOLUTION) - 1)
-
-#define SCALE_THROTTLE(T)			(T >> (THROTTLE_INPUT_RESOLUTION - THROTTLE_SCALED_RESOLUTION))
-#define THROTTLE_DEADZONE			((UINT) (THROTTLE_DEADZONE_FRACTION * (float) THROTTLE_SCALED_MAX))
-#define THROTTLE_MAX_DIFF			((UINT) (THROTTLE_MAX_DIFF_FRACTION * (float) THROTTLE_SCALED_MAX))
-
-#define SENSOR_THREAD_TICK_RATE		100
+#define SENSOR_THREAD_TICK_RATE					100 // times per second
 
 /**
  * @brief Thread managing sensor measurements and inputs
@@ -55,8 +44,8 @@ TX_TIMER sensor_thread_tick_timer;
 void sensor_thread_entry(ULONG thread_input);
 
 #if (!RUN_THROTTLE_TESTBENCH)
-UINT read_throttle();
-UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr);
+uint32_t read_throttle();
+void scale_throttle_adc_reading(uint32_t* adc_reading_ptr);
 #endif
 
 /**
@@ -163,86 +152,91 @@ void sensor_thread_entry(ULONG thread_input)
 	}
 }
 
-#if (!RUN_THROTTLE_TESTBENCH)
 /**
  * @brief 	Read throttle
  *
  * @details	The ADC readings from the throttle pedal are scaled to the resolution specified by
  * 			THROTTLE_SCALED_RESOLUTION. If the maximum allowed discrepancy between the two ADC
- * 			readings is exceeded, the throttle is cut off. Below the set dead-zone, the throttle
- * 			is also cut off (this prevents an input very close to zero from producing a slight
- *			output).
+ * 			readings is exceeded, the throttle is cut off and a critical error is raised.
+ * 
+ * @note 	Throttle discrepancy checking currently does not scale to more than 2 ADCs
  *
  * @return	Scaled throttle reading
  */
-UINT read_throttle()
+uint32_t read_throttle()
 {
-	// read from each input
-	UINT reading_1 = 0;
-	UINT reading_2 = 0;
+	// start ADC readings in parallel
+	ADC_HandleTypeDef* adc_handles[] = {
+		&hadc1,	// PA3 (A0 on CN9)
+		&hadc2,	// PB1 (A3 on CN9)
+	};
 
-	read_adc_blocking(THROTTLE_ADC_HANDLE_1, &reading_1);
-	read_adc_blocking(THROTTLE_ADC_HANDLE_2, &reading_2);
+	const uint32_t num_adcs = sizeof(adc_handles) / sizeof(adc_handles[0]);
 
-	// scale readings
-	reading_1 = SCALE_THROTTLE(reading_1);
-	reading_2 = SCALE_THROTTLE(reading_2);
+	for (uint32_t i = 0; i < num_adcs; i++)
+	{
+		if (HAL_ADC_Start(adc_handles[i]) != HAL_OK)
+		{
+			critical_fault(CRITICAL_FAULT_HAL);
+		}
+	}
+
+	// fetch ADC results (blocking)
+	uint32_t adc_readings[num_adcs];
+	uint32_t accumulator = 0;
+
+	for (uint32_t i = 0; i < num_adcs; i++)
+	{
+		if (HAL_ADC_PollForConversion(adc_handles[i], HAL_MAX_DELAY) == HAL_OK)
+		{
+			adc_readings[i] = HAL_ADC_GetValue(adc_handles[i]);
+			scale_throttle_adc_reading(&adc_readings[i]);
+			accumulator += adc_readings[i];
+		}
+		else  
+		{
+			critical_fault(CRITICAL_FAULT_HAL);
+		}
+	}
 
 	// check for discrepancy between readings
 #if THROTTLE_ENABLE_DIFF_CHECK
 
-	UINT diff = (reading_2 > reading_1) ? (reading_2 - reading_1) : (reading_1 - reading_2);
+	uint32_t diff;
+	
+	if (adc_readings[1] > adc_readings[0])
+	{
+		diff = adc_readings[1] - adc_readings[0];
+	}
+	else
+	{
+		diff = adc_readings[0] - adc_readings[1];
+	}
 
 	if (diff > THROTTLE_MAX_DIFF)
 	{
-		// maximum allowable discrepancy exceeded
-		// TODO: error indication?
+		critical_fault(CRITICAL_FAULT_THROTTLE_INPUT_DISCREPANCY);
 		return 0;
 	}
 
 #endif
 
 	// calculate average of both readings
-	UINT throttle = (reading_1 + reading_2) / 2;
+	uint32_t throttle = accumulator / num_adcs;
 
 	trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) throttle, 0, 0, 0);
 	return throttle;
 }
 
 /**
- * @brief 		Blocking read from ADC
- *
- * @param[in]	adc_handle		ADC handle
- * @param[in]	data_ptr		Pointer to UINT to store 16 bit reading
- *
- * @retval		ADC_OK	 		ADC read successfully
- * @retval		ADC_ERR 		Error reading ADC
+ * @brief 			Scale raw ADC reading
+ * 
+ * @param[inout]	adc_reading_ptr		Pointer to ADC reading
  */
-UINT read_adc_blocking(ADC_HandleTypeDef* adc_handle, UINT* data_ptr)
+void scale_throttle_adc_reading(uint32_t* adc_reading_ptr)
 {
-	/*
-	 * Read from ADC
-	 * - 16 bit resolution, max 0xFFFF
-	 * - 3v3 reference
-	 */
-
-	// start ADC
-	// wait for conversion to complete
-	if (HAL_ADC_Start(adc_handle) == HAL_OK)
-	{
-		// block until conversion complete
-		HAL_ADC_PollForConversion(adc_handle, HAL_MAX_DELAY);
-
-		// read conversion data
-		*data_ptr = HAL_ADC_GetValue(adc_handle);
-
-		/*
-		 * alternatively to convert to float:
-		 * *data_ptr = 3.3f * ((float) adc_raw / (float) 0xFFFF);
-		 */
-		return ADC_OK;
-	}
-
-	return ADC_ERR;
+	const uint32_t input_resolution = THROTTLE_INPUT_RESOLUTION;
+	const uint32_t truncated_resolution = THROTTLE_SCALED_RESOLUTION;
+	
+	*adc_reading_ptr = *adc_reading_ptr >> (input_resolution - truncated_resolution);
 }
-#endif
