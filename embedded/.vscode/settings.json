@@ -30,7 +30,8 @@
         "can_tx_thread.h": "c",
         "init.h": "c",
         "can_rx_thread.h": "c",
-        "throttle_testbench_data.h": "c"
+        "throttle_testbench_data.h": "c",
+        "control_thread.h": "c"
     },
     "cortex-debug.variableUseNaturalFormat": false,
 }

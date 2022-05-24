@@ -12,7 +12,6 @@
 #include "control_thread.h"
 #include "sensor_thread.h"
 #include "watchdog_thread.h"
-#include "messaging_system.h"
 
 #include "pm100.h"
 #include "rtc_time.h"
@@ -32,11 +31,6 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr);
 UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
 {
     UINT ret = init_threads(stack_pool_ptr);
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = message_system_init();
-    }
 
     if (ret == TX_SUCCESS)
     {
