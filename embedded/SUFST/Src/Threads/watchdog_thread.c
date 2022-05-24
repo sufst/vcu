@@ -196,8 +196,8 @@ void watchdog_thread_entry(ULONG thread_input)
  */
 void critical_fault_handler(critical_fault_t fault)
 {
-	// immediately drive fault pin low and disable inverter
-	HAL_GPIO_WritePin(FAULT_GPIO_Port, FAULT_Pin, GPIO_PIN_RESET);
+	// immediately drive ready-to-drive pin inactive (HIGH) and disable inverter
+	HAL_GPIO_WritePin(RTD_OUT_GPIO_Port, RTD_OUT_Pin, GPIO_PIN_SET);
 	pm100_disable();
 
 	// shut down driver input and control

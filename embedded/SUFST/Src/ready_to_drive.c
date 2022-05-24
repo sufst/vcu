@@ -18,7 +18,7 @@
 /*
  * function prototypes
  */
-static bool rtd_pin_active();
+static bool rtd_input_active();
 static void sound_buzzer();
 
 /**
@@ -26,25 +26,20 @@ static void sound_buzzer();
  */
 void rtd_wait()
 {
-	// red LED on
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
 	// wait for active high
-	while (!rtd_pin_active());
+	while (!rtd_input_active());
 
 	// if ready to drive overridden ('USER' button input)
 	// wait for button to be released
 #if (READY_TO_DRIVE_OVERRIDE)
-	while (rtd_pin_active());
+	while (rtd_input_active());
 #endif
 
-	// disable inverter (lockout)
 	pm100_disable();
-
-	// produce sound
+	HAL_GPIO_WritePin(RTD_OUT_GPIO_Port, RTD_OUT_Pin, GPIO_PIN_RESET); // active low
 	sound_buzzer();
-
-	// red LED off
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
 
@@ -57,7 +52,7 @@ void rtd_wait()
  * @retval 	true:	ready-to-drive signal active
  * 			false:	ready-to-drive signal inactive otherwise
  */
-bool rtd_pin_active()
+bool rtd_input_active()
 {
 #if (READY_TO_DRIVE_OVERRIDE)
 	return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin) == GPIO_PIN_SET;
