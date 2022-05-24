@@ -10,8 +10,8 @@ assignees: ''
 ### Description
 High level description of the required feature.
 
-### Specification
-Detailed specifications.
+### Tasks
+- [ ] Task 1...
 
 ### Relevant competition rules
 **EV?.??.?** The vehicle...
