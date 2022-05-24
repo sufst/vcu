@@ -1,0 +1,9 @@
+{signal: [
+  {name: 'state',       	wave: '=.5...6..7.....|.9...', data: ['init', 'RTD wait', 'buzzer', 'driving', 'shutdown / fault']},
+  {name: 'rtd_in',      	wave: 'd.0...1x.......|.....'},
+  {name: 'rtd_out',     	wave: 'u.1...0........|.1...'},
+  {name: 'buzzer',      	wave: 'd.0...1..0.....|.....'},
+  {name: 'inverter_enable', wave: 'd.0...1........|.0...'},
+  {name: 'shutdown_in',		wave: 'd.0............|.1xxx'},
+  {name: ''},
+]}
