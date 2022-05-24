@@ -26,7 +26,6 @@ static void sound_buzzer();
  */
 void rtd_wait()
 {
-	// red LED on
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
 	// wait for active high
@@ -38,13 +37,9 @@ void rtd_wait()
 	while (rtd_pin_active());
 #endif
 
-	// disable inverter (lockout)
 	pm100_disable();
-
-	// produce sound
+	HAL_GPIO_WritePin(RTD_OUT_GPIO_Port, RTD_OUT_Pin, GPIO_PIN_RESET); // active low
 	sound_buzzer();
-
-	// red LED off
 	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
 

@@ -60,16 +60,22 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
-#define BUZZER_Pin GPIO_PIN_3
+#define FAULT_IN_Pin GPIO_PIN_1
+#define FAULT_IN_GPIO_Port GPIOF
+#define BUZZER_Pin GPIO_PIN_2
 #define BUZZER_GPIO_Port GPIOF
 #define GREEN_LED_Pin GPIO_PIN_0
 #define GREEN_LED_GPIO_Port GPIOB
-#define READY_TO_DRIVE_Pin GPIO_PIN_2
-#define READY_TO_DRIVE_GPIO_Port GPIOB
-#define FAULT_Pin GPIO_PIN_9
-#define FAULT_GPIO_Port GPIOE
+#define RTD_IN_Pin GPIO_PIN_2
+#define RTD_IN_GPIO_Port GPIOB
+#define RTD_OUT_Pin GPIO_PIN_9
+#define RTD_OUT_GPIO_Port GPIOE
 #define RED_LED_Pin GPIO_PIN_14
 #define RED_LED_GPIO_Port GPIOB
+#define CAN_RX_Pin GPIO_PIN_0
+#define CAN_RX_GPIO_Port GPIOD
+#define CAN_TX_Pin GPIO_PIN_1
+#define CAN_TX_GPIO_Port GPIOD
 #define YELLOW_LED_Pin GPIO_PIN_1
 #define YELLOW_LED_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
