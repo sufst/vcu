@@ -37,13 +37,14 @@ RELEASE_ASM_DEFS = \
 ALWAYS_FLAGS = \
 -Wall \
 -Wextra \
+-pedantic \
 -Wno-unused-parameter \
 -Werror=implicit-function-declaration \
 -fdata-sections \
 -ffunction-sections \
 
 DEBUG_C_FLAGS =  $(ALWAYS_FLAGS) -std=$(C_STANDARD) -g -gdwarf-2
-RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=$(C_STANDARD)
+RELEASE_C_FLAGS = $(ALWAYS_FLAGS) -std=$(C_STANDARD) -s
 DEBUG_ASM_FLAGS =  $(ALWAYS_FLAGS)
 RELEASE_ASM_FLAGS = $(ALWAYS_FLAGS)
 
