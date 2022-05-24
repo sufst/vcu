@@ -10,6 +10,8 @@
 
 #include "tx_api.h"
 
+extern TX_QUEUE torque_request_queue;
+
 UINT can_tx_thread_init(TX_BYTE_POOL* stack_pool_ptr);
 UINT can_tx_thread_terminate();
 

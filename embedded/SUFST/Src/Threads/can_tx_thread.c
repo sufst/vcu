@@ -9,7 +9,6 @@
 #include "config.h"
 #include "tx_api.h"
 
-#include "messaging_system.h"
 #include "pm100.h"
 #include "trace.h"
 
@@ -17,10 +16,24 @@
 #define CAN_TX_THREAD_PREEMPTION_THRESHOLD	CAN_TX_THREAD_PRIORITY
 #define CAN_TX_THREAD_NAME					"CAN Tx Thread"
 
+#define TORQUE_REQUEST_QUEUE_NAME			"CAN Tx Torque Request Queue"
+#define TORQUE_REQUEST_QUEUE_ITEM_SIZE		TX_1_ULONG
+#define TORQUE_REQUEST_QUEUE_SIZE			2
+
 /**
  * @brief Thread for CAN transmit
  */
 TX_THREAD can_tx_thread;
+
+/**
+ * @brief Torque request transmit queue
+ */
+TX_QUEUE torque_request_queue;
+
+/**
+ * @brief Torque request transmit queue memory area
+ */
+static ULONG torque_request_queue_mem[TORQUE_REQUEST_QUEUE_SIZE * TORQUE_REQUEST_QUEUE_ITEM_SIZE];
 
 /*
  * function prototypes
@@ -36,6 +49,7 @@ void can_tx_thread_entry(ULONG thread_input);
  */
 UINT can_tx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 {
+	// create thread
 	VOID* thread_stack_ptr;
 
 	UINT ret = tx_byte_allocate(stack_pool_ptr, 
@@ -55,6 +69,16 @@ UINT can_tx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 								CAN_TX_THREAD_PREEMPTION_THRESHOLD,
 								TX_NO_TIME_SLICE,
 								TX_AUTO_START);
+	}
+
+	// create torque request queue
+	if (ret == TX_SUCCESS)
+	{
+		ret = tx_queue_create(&torque_request_queue,
+							  TORQUE_REQUEST_QUEUE_NAME,
+							  TORQUE_REQUEST_QUEUE_ITEM_SIZE,
+							  torque_request_queue_mem,
+							  sizeof(torque_request_queue_mem));
 	}
 
 	return ret;
@@ -85,8 +109,9 @@ void can_tx_thread_entry(ULONG thread_input)
 	{
 		// wait for message to enter torque request queue
 		// -> thread suspended until message arrives
-		torque_request_message_t message;
-		UINT ret = message_receive((VOID*) &message, &torque_request_queue);
+		// torque_request_message_t message;
+		ULONG torque_request = 0;
+		UINT ret = tx_queue_receive(&torque_request_queue, &torque_request, TX_WAIT_FOREVER);
 
 		if (ret != TX_SUCCESS) 
 		{
@@ -101,8 +126,8 @@ void can_tx_thread_entry(ULONG thread_input)
 		pm100_speed_request(speed_request);
 #else
 	#if !(INVERTER_DISABLE_TORQUE_REQUESTS)
+		
 		// send the torque request to inverter through CAN
-		UINT torque_request = message.value;
 		pm100_status_t status = pm100_torque_request(torque_request);
 
 		// debug logging

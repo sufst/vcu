@@ -9,8 +9,9 @@
 #include "Test/testbench.h"
 
 #include "adc.h"
+#include "control_thread.h"
+#include "fault.h"
 #include "gpio.h"
-#include "messaging_system.h"
 #include "trace.h"
 
 #include <stdint.h>
@@ -140,18 +141,20 @@ void sensor_thread_entry(ULONG thread_input)
 		testbench_fault_state();
 #endif
 
-		// read throttle and send it to control thread
-		control_input_message_t message;
-
+		// read throttle
 #if (RUN_THROTTLE_TESTBENCH)
-		message.input = testbench_throttle();
+		uint32_t throttle = testbench_throttle();
 #else
-		message.input = read_throttle();
+		ULONG throttle = (ULONG) read_throttle();
 #endif
 
-    	message_set_timestamp(&message.timestamp);
-		trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) message.input, message.timestamp, 0, 0);\
-		message_post((VOID*) &message, &control_input_queue);
+		// transmit throttle to control thread
+		ret = tx_queue_send(&throttle_input_queue, (ULONG*) &throttle, TX_NO_WAIT);
+
+		if (ret == TX_QUEUE_FULL)
+		{
+			critical_fault(CRITICAL_FAULT_QUEUE_FULL);
+		}
 
 		// sleep thread to allow other threads to run
 		// tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
@@ -200,21 +203,10 @@ UINT read_throttle()
 #endif
 
 	// calculate average of both readings
-	// note: right shift 1 is a faster equivalent of divide by 2
-	UINT average = (reading_1 + reading_2) >> 1;
+	UINT throttle = (reading_1 + reading_2) / 2;
 
-	// apply dead-zone
-#if THROTTLE_ENABLE_DEADZONE
-
-	if (average < THROTTLE_DEADZONE)
-	{
-		return 0;
-	}
-
-#endif
-
-	// input legal and throttle outside dead-zone
-	return average;
+	trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) throttle, 0, 0, 0);
+	return throttle;
 }
 
 /**
