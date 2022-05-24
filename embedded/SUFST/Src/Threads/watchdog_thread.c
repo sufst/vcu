@@ -20,6 +20,7 @@
 
 #include "fault.h"
 #include "gpio.h"
+#include "pm100.h"
 
 #define WATCHDOG_THREAD_STACK_SIZE					512
 #define WATCHDOG_THREAD_PREEMPTION_THRESHOLD		WATCHDOG_THREAD_PRIORITY
@@ -72,6 +73,8 @@ TX_SEMAPHORE fault_semaphore;
 void watchdog_thread_entry(ULONG thread_input);
 void critical_fault_handler(critical_fault_t fault);
 void minor_fault_handler(minor_fault_t fault);
+void check_system_state();
+void check_pm100_state();
 
 /**
  * @brief 		Initialise fault state thread
@@ -171,10 +174,10 @@ void watchdog_thread_entry(ULONG thread_input)
 				break;
 			}
 
-			// timed out waiting for fault
+			// timed out waiting for fault semaphore, run generic checks
 			case TX_NO_INSTANCE:
 			{
-				// TODO: some other system checks?
+				check_system_state();
 				break;
 			}
 
@@ -193,8 +196,9 @@ void watchdog_thread_entry(ULONG thread_input)
  */
 void critical_fault_handler(critical_fault_t fault)
 {
-	// immediately drive fault pin low
+	// immediately drive fault pin low and disable inverter
 	HAL_GPIO_WritePin(FAULT_GPIO_Port, FAULT_Pin, GPIO_PIN_RESET);
+	pm100_disable();
 
 	// shut down driver input and control
 	sensor_thread_terminate();
@@ -216,5 +220,41 @@ void critical_fault_handler(critical_fault_t fault)
  */
 void minor_fault_handler(minor_fault_t fault)
 {
+
+}
+
+/**
+ * @brief Check system state for potential faults
+ */
+void check_system_state()
+{
+	check_pm100_state();
+}
+
+/**
+ * @brief 	Check inverter state for faults
+ * 
+ * @details	Checks for presence of "run faults" (see PM100 datasheet), but not which 
+ * 			specific fault occurred (this can be determined from the PM100 state with
+ * 			the debugger).
+ */
+void check_pm100_state()
+{
+	const pm100_state_index_t fault_indexes[] = {
+		PM100_RUN_FAULT_LO,
+		PM100_RUN_FAULT_HI
+	};
+
+	uint32_t state_value;
+
+	for (uint32_t i = 0; i < (sizeof(fault_indexes) / sizeof(fault_indexes[0])); i++)
+	{
+		pm100_read_state(fault_indexes[i], &state_value);
+		
+		if (state_value != 0)
+		{
+			critical_fault(CRITICAL_FAULT_INVERTER_INTERNAL);
+		}
+	}
 
 }

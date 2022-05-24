@@ -101,7 +101,14 @@ pm100_status_t pm100_init()
     UNUSED(pm100_parameter_write_msg);
 
     // create state mutex
-    pm100_status_t status = (tx_mutex_create(&pm100_state_mutex, PM100_STATE_MUTEX_NAME, TX_NO_INHERIT) == TX_SUCCESS) ? PM100_OK : PM100_ERROR; 
+    pm100_status_t status = PM100_OK;
+    if(tx_mutex_create(&pm100_state_mutex,
+                       PM100_STATE_MUTEX_NAME, 
+                       TX_NO_INHERIT)
+        != TX_SUCCESS)
+    {
+        status = PM100_ERROR;
+    }
 
     // reset state
     memset(pm100_state, 0x0000, sizeof(pm100_state));
