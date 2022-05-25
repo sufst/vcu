@@ -42,7 +42,7 @@ def run():
     torque_heading = 'TrqUsed'
     output_file_name ='throttle_testbench_data'
 
-    throttle_resolution = 15
+    throttle_resolution = 10
 
     # create output files
     script_path = os.path.abspath(os.path.dirname(__file__))
