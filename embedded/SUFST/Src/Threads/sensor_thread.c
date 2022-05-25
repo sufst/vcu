@@ -43,7 +43,7 @@ TX_TIMER sensor_thread_tick_timer;
  */
 void sensor_thread_entry(ULONG thread_input);
 
-#if (!RUN_THROTTLE_TESTBENCH)
+#if !RUN_THROTTLE_TESTBENCH
 uint32_t read_throttle();
 void scale_throttle_adc_reading(uint32_t* adc_reading_ptr);
 #endif
@@ -126,12 +126,12 @@ void sensor_thread_entry(ULONG thread_input)
 	while(1)
 	{
 		// check for fault state
-#if (RUN_FAULT_STATE_TESTBENCH)
+#if RUN_FAULT_STATE_TESTBENCH
 		testbench_fault_state();
 #endif
 
 		// read throttle
-#if (RUN_THROTTLE_TESTBENCH)
+#if RUN_THROTTLE_TESTBENCH
 		uint32_t throttle = testbench_throttle();
 #else
 		ULONG throttle = (ULONG) read_throttle();
@@ -152,6 +152,7 @@ void sensor_thread_entry(ULONG thread_input)
 	}
 }
 
+#if !RUN_THROTTLE_TESTBENCH
 /**
  * @brief 	Read throttle
  *
@@ -240,3 +241,4 @@ void scale_throttle_adc_reading(uint32_t* adc_reading_ptr)
 	
 	*adc_reading_ptr = *adc_reading_ptr >> (input_resolution - truncated_resolution);
 }
+#endif

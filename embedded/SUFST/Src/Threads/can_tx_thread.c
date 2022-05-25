@@ -122,7 +122,7 @@ void can_tx_thread_entry(ULONG thread_input)
 #if INVERTER_SPEED_MODE
 		// map torque to speed request and send to inverter through CAN
 		// UINT speed = foo(message.value);
-		UINT speed_request = message.value / 100;
+		UINT speed_request = torque_request * 10;
 		pm100_speed_request(speed_request);
 #else
 	#if !(INVERTER_DISABLE_TORQUE_REQUESTS)
