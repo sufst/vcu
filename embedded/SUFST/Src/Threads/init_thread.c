@@ -88,6 +88,7 @@ void init_thread_entry(ULONG thread_input)
     init_post_rtd();
 
     start_threads();
+    tx_thread_terminate(&init_thread);
 }
 
 /**
