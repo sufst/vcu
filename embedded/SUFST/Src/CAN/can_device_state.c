@@ -34,6 +34,7 @@ static void parser_std_little_endian(const can_msg_t* msg_ptr, uint32_t dict_ind
 static void parser_pm100_analog_voltage(const can_msg_t* msg_ptr, uint32_t dict_index);
 static void parser_pm100_internal_status(const can_msg_t* msg_ptr, uint32_t dict_index);
 static void parser_pm100_diagnostic(const can_msg_t* msg_ptr, uint32_t dict_index);
+static void parser_drs_little_endian(const can_msg_t* msg_ptr, uint32_t dict_index);
 
 /**
  * @brief 	CAN segment map types
