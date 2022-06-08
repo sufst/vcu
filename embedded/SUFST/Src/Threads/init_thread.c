@@ -8,6 +8,9 @@
 #include "init_thread.h"
 #include "config.h"
 
+#include "ready_to_drive.h"
+#include "init.h"
+
 #define INIT_THREAD_STACK_SIZE              512
 #define INIT_THREAD_PREEMPTION_THRESHOLD    INIT_THREAD_PRIORITY
 #define INIT_THREAD_NAME                    "Initialisation Thread"
@@ -57,10 +60,28 @@ UINT init_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 
 /**
  * @brief       Initialisation thread entry function
+ * 
+ * @details     This begins running as soon as the RTOS kernel is entered
+ *              (immediately following thread creation). The initialisation
+ *              thread then has the following responsibilities:
+ *              
+ *              1. Complete the pre ready-to-drive initialisation.
+ *              2. Wait for the ready-to-drive state to be entered.
+ *              3. Complete the post ready-to-drive initialisation.
+ *              4. Terminate itself and launch all other threads.
+ * 
+ *              The CAN receive thread should also run at the same time as this
+ *              thread
+ *              
  *
  * @param[in]	thread_input	Unused input
  */
 void init_thread_entry(ULONG thread_input)
 {
-    // ...
+    init_pre_rtd();
+    rtd_wait();
+    init_post_rtd();
+
+    // TODO: launch other threads
+    // TODO: terminate this thread
 }

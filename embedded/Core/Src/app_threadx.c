@@ -24,10 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
-#include "config.h"
 #include "init.h"
-#include "ready_to_drive.h"
-#include "trace.h"
 
 /* USER CODE END Includes */
 
@@ -71,10 +68,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN App_ThreadX_Init */
 
-    init_threads(byte_pool);
-    init_pre_rtd(byte_pool);
-    rtd_wait();
-    init_post_rtd();
+  init_threads(byte_pool);
 
   /* USER CODE END App_ThreadX_Init */
 
