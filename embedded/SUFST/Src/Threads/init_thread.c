@@ -11,6 +11,10 @@
 #include "ready_to_drive.h"
 #include "init.h"
 
+#include "can_tx_thread.h"
+#include "control_thread.h"
+#include "sensor_thread.h"
+
 #define INIT_THREAD_STACK_SIZE              512
 #define INIT_THREAD_PREEMPTION_THRESHOLD    INIT_THREAD_PRIORITY
 #define INIT_THREAD_NAME                    "Initialisation Thread"
@@ -24,6 +28,7 @@ static TX_THREAD init_thread;
  * function prototypes
  */
 static void init_thread_entry(ULONG thread_input);
+static void start_threads();
 
 /**
  * @brief 		Creates the initialisation thread
@@ -82,6 +87,24 @@ void init_thread_entry(ULONG thread_input)
     rtd_wait();
     init_post_rtd();
 
-    // TODO: launch other threads
-    // TODO: terminate this thread
+    start_threads();
+}
+
+/**
+ * @brief Start all threads which were not auto-started
+ */
+void start_threads()
+{
+    UINT (*thread_start_funcs[])() = {
+        can_tx_thread_start,
+        control_thread_start,
+        sensor_thread_start
+    };
+
+    const UINT num_to_start = sizeof(thread_start_funcs) / sizeof(thread_start_funcs[0]);
+
+    for (UINT i = 0; i < num_to_start; i++)
+    {
+        thread_start_funcs[i]();
+    }
 }
