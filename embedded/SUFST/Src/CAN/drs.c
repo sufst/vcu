@@ -10,7 +10,6 @@
 
 #include "can_message.h"
 #include "can_device_state.h"
-#include "rtc_time.h"
 #include "tx_api.h"
 
 #define DRS_STATE_MUTEX_NAME      "DRS State Mutex"

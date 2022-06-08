@@ -102,7 +102,6 @@ SUFST/Src/Threads/watchdog_thread.c \
 SUFST/Src/Threads/can_tx_thread.c \
 SUFST/Src/Threads/can_rx_thread.c \
 SUFST/Src/Threads/init_thread.c \
-SUFST/Src/Utility/rtc_time.c \
 Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/app_threadx.c \

@@ -15,7 +15,6 @@
 #include "init_thread.h"
 
 #include "pm100.h"
-#include "rtc_time.h"
 
 
 /**
@@ -60,12 +59,6 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
 {
     UINT ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
-
-    if (ret == TX_SUCCESS)
-    {
-        rtc_time_init();
-    }
-
     return ret;
 }
 
