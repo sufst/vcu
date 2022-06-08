@@ -83,7 +83,7 @@ void check_pm100_state();
  * 
  * @return 		See ThreadX return codes
  */
-UINT watchdog_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT watchdog_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
 	// create the thread
 	VOID* thread_stack_ptr;

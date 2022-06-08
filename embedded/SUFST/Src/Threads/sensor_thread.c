@@ -55,7 +55,7 @@ void scale_throttle_adc_reading(uint32_t* adc_reading_ptr);
  * 
  * @return		See ThreadX return codes
  */
-UINT sensor_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT sensor_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
 	VOID* thread_stack_ptr;
 
@@ -75,10 +75,20 @@ UINT sensor_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 								SENSOR_THREAD_PRIORITY,
 								SENSOR_THREAD_PREEMPTION_THRESHOLD,
 								TX_NO_TIME_SLICE,
-								TX_AUTO_START);
+								TX_DONT_START);
 	}
 
 	return ret;
+}
+
+/**
+ * @brief	Starts the sensor thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT sensor_thread_start()
+{
+	return tx_thread_resume(&sensor_thread);
 }
 
 /**

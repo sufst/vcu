@@ -42,13 +42,13 @@ static ULONG throttle_input_queue_mem[THROTTLE_INPUT_QUEUE_SIZE * THROTTLE_INPUT
 void control_thread_entry(ULONG thread_input);
 
 /**
- * @brief 		Initialise control thread
+ * @brief 		Create control thread
  * 
  * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
  * 
  * @return 		See ThreadX return codes
  */
-UINT control_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
 	// create thread
 	VOID* thread_stack_ptr;
@@ -69,7 +69,7 @@ UINT control_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 								CONTROL_THREAD_PRIORITY,
 								CONTROL_THREAD_PREEMPTION_THRESHOLD,
 								TX_NO_TIME_SLICE,
-								TX_AUTO_START);
+								TX_DONT_START);
 	}
 
 	// create throttle input queue
@@ -83,6 +83,16 @@ UINT control_thread_init(TX_BYTE_POOL* stack_pool_ptr)
 	}
 
 	return ret;
+}
+
+/**
+ * @brief	Starts the control thread
+ * 
+ * @return	See ThreadX return codes
+ */
+UINT control_thread_start()
+{
+	return tx_thread_resume(&control_thread);
 }
 
 /**

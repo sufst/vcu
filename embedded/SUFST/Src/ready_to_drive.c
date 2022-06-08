@@ -10,7 +10,6 @@
 #include "tx_api.h"
 
 #include "gpio.h"
-#include "rtc_time.h"
 #include "pm100.h"
 
 #include <stdbool.h>
@@ -67,7 +66,7 @@ bool rtd_input_active()
 void sound_buzzer()
 {
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
-	rtc_delay(READY_TO_DRIVE_BUZZER_TIME);
+	tx_thread_sleep(READY_TO_DRIVE_BUZZER_TIME);
 	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
 

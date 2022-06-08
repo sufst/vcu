@@ -34,13 +34,13 @@ TX_SEMAPHORE can_rx_semaphore;
 void can_rx_thread_entry(ULONG thread_input);
 
 /**
- * @brief 		Initialise CAN receive thread
+ * @brief 		Create CAN receive thread
  * 
  * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
  * 
  * @return 		See ThreadX return codes
  */
-UINT can_rx_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT can_rx_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
     // create thread
     VOID* thread_stack_ptr;

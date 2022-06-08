@@ -10,7 +10,6 @@
 
 #include "can_message.h"
 #include "can_device_state.h"
-#include "rtc_time.h"
 #include "tx_api.h"
 
 #define PM100_FDCAN_HANDLE          hfdcan1

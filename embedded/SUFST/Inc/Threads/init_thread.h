@@ -1,17 +1,15 @@
 /***************************************************************************
- * @file   init.h
+ * @file   init_thread.h
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-05-20
- * @brief  Initialisation function prototypes
+ * @date   2022-06-08
+ * @brief  Initialisation thread
  ***************************************************************************/
 
-#ifndef INIT_H
-#define INIT_H
+#ifndef INIT_THREAD_H
+#define INIT_THREAD_H
 
 #include "tx_api.h"
 
-UINT init_threads(TX_BYTE_POOL* stack_pool_ptr);
-UINT init_pre_rtd();
-UINT init_post_rtd();
+UINT init_thread_create(TX_BYTE_POOL* stack_pool_ptr);
 
 #endif
