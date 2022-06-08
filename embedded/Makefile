@@ -90,6 +90,7 @@ SUFST/Src/config_rules.c \
 SUFST/Src/ready_to_drive.c \
 SUFST/Src/CAN/can_device_state.c \
 SUFST/Src/CAN/pm100.c \
+SUFST/Src/CAN/drs.c \
 SUFST/Src/Profiles/driver_profiles.c \
 SUFST/Src/Profiles/driver_profile_data.c \
 SUFST/Src/Test/testbench.c \
