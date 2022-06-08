@@ -46,6 +46,7 @@
 #define CAN_RX_THREAD_PRIORITY              4
 #define WATCHDOG_THREAD_PRIORITY	        4
 #define WATCHDOG_THREAD_PRIORITY_ELEVATED   0       // elevated for critical fault handling
+#define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0       // enable TraceX logging
 
