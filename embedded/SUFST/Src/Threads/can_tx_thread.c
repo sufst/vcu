@@ -41,7 +41,7 @@ static ULONG torque_request_queue_mem[TORQUE_REQUEST_QUEUE_SIZE * TORQUE_REQUEST
 void can_tx_thread_entry(ULONG thread_input);
 
 /**
- * @brief 		Initialise CAN transmit thread
+ * @brief 		Create CAN transmit thread
  * 
  * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
  * 
@@ -68,7 +68,7 @@ UINT can_tx_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 								CAN_TX_THREAD_PRIORITY,
 								CAN_TX_THREAD_PREEMPTION_THRESHOLD,
 								TX_NO_TIME_SLICE,
-								TX_AUTO_START);
+								TX_DONT_START);
 	}
 
 	// create torque request queue

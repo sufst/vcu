@@ -34,7 +34,7 @@ TX_SEMAPHORE can_rx_semaphore;
 void can_rx_thread_entry(ULONG thread_input);
 
 /**
- * @brief 		Initialise CAN receive thread
+ * @brief 		Create CAN receive thread
  * 
  * @param[in]	stack_pool_ptr 	Pointer to start of application stack area
  * 

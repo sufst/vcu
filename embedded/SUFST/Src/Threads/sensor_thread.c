@@ -75,7 +75,7 @@ UINT sensor_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 								SENSOR_THREAD_PRIORITY,
 								SENSOR_THREAD_PREEMPTION_THRESHOLD,
 								TX_NO_TIME_SLICE,
-								TX_AUTO_START);
+								TX_DONT_START);
 	}
 
 	return ret;
