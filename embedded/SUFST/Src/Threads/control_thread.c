@@ -48,7 +48,7 @@ void control_thread_entry(ULONG thread_input);
  * 
  * @return 		See ThreadX return codes
  */
-UINT control_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
 	// create thread
 	VOID* thread_stack_ptr;

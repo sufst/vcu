@@ -12,6 +12,7 @@
 #include "control_thread.h"
 #include "sensor_thread.h"
 #include "watchdog_thread.h"
+#include "init_thread.h"
 
 #include "pm100.h"
 #include "rtc_time.h"
@@ -27,11 +28,12 @@
 UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 {
     UINT (*thread_init_funcs[])(TX_BYTE_POOL*) = {
-        can_rx_thread_init,
-        can_tx_thread_init,
-        control_thread_init,
-        watchdog_thread_init,
-        sensor_thread_init,
+        can_rx_thread_create,
+        can_tx_thread_create,
+        control_thread_create,
+        watchdog_thread_create,
+        sensor_thread_create,
+        init_thread_create,
     };
 
     const UINT num_threads = sizeof(thread_init_funcs) / sizeof(thread_init_funcs[0]);

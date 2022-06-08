@@ -55,7 +55,7 @@ void scale_throttle_adc_reading(uint32_t* adc_reading_ptr);
  * 
  * @return		See ThreadX return codes
  */
-UINT sensor_thread_init(TX_BYTE_POOL* stack_pool_ptr)
+UINT sensor_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 {
 	VOID* thread_stack_ptr;
 

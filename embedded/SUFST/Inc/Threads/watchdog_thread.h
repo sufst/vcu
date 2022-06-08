@@ -10,6 +10,6 @@
 
 #include "tx_api.h"
 
-UINT watchdog_thread_init();
+UINT watchdog_thread_create();
 
 #endif
