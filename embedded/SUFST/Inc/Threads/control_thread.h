@@ -13,6 +13,7 @@
 extern TX_QUEUE throttle_input_queue;
 
 UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr);
+UINT control_thread_start();
 UINT control_thread_terminate();
 
 #endif

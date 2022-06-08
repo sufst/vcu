@@ -85,6 +85,16 @@ UINT can_tx_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 }
 
 /**
+ * @brief	Starts the CAN transmit thread
+ * 
+ * @return	See ThreadX return codes
+ */
+UINT can_tx_thread_start()
+{
+	return tx_thread_resume(&can_tx_thread);
+}
+
+/**
  * @brief 	Terminate CAN transmit thread
  * 
  * @return 	See ThreadX return codes

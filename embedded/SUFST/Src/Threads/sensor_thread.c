@@ -82,6 +82,16 @@ UINT sensor_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 }
 
 /**
+ * @brief	Starts the sensor thread
+ * 
+ * @return 	See ThreadX return codes
+ */
+UINT sensor_thread_start()
+{
+	return tx_thread_resume(&sensor_thread);
+}
+
+/**
  * @brief 	Terminate sensor thread
  * 
  * @return 	See ThreadX return codes

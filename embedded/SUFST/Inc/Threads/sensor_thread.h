@@ -11,6 +11,7 @@
 #include "tx_api.h"
 
 UINT sensor_thread_create(TX_BYTE_POOL* stack_pool_ptr);
+UINT sensor_thread_start();
 UINT sensor_thread_terminate();
 
 #endif

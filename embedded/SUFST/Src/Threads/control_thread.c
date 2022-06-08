@@ -86,6 +86,16 @@ UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr)
 }
 
 /**
+ * @brief	Starts the control thread
+ * 
+ * @return	See ThreadX return codes
+ */
+UINT control_thread_start()
+{
+	return tx_thread_resume(&control_thread);
+}
+
+/**
  * @brief 	Terminate control thread
  * 
  * @return 	See ThreadX return codes
