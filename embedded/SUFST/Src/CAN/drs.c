@@ -41,7 +41,7 @@ drs_status_t CAN_drs_init()
     }
 
     // reset state
-    memset(DRS_state, 0x0000, sizeof(DRS_state));
+    memset(&DRS_state, 0x0000, sizeof(DRS_state));
 
     return status;
 }
