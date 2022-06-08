@@ -69,10 +69,16 @@ drs_status_t drs_read_state(uint32_t* value_ptr)
 /**
  * @brief       Thread-safe drs state update
  * 
+ * @note        Index parameter unused but required to match standard function signature
+ *              for CAN state setters
+ * 
+ * @param[in]   index   Unused
  * @param[in]   value   Value to write to state
  */
-void drs_update_state(uint32_t, uint32_t value)
+void drs_update_state(uint32_t index, uint32_t value)
 {
+    (void) index; // unused
+
     if (tx_mutex_get(&DRS_state_mutex, TX_WAIT_FOREVER) == TX_SUCCESS)
     {
         DRS_state = value;
