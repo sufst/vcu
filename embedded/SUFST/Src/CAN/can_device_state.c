@@ -12,6 +12,8 @@
 #include "gpio.h"
 #include "pm100.h"
 
+#include "drs.h"
+
 #define CAN_STATUS_LED_Pin      YELLOW_LED_Pin
 #define CAN_STATUS_LED_Port     YELLOW_LED_GPIO_Port
 
@@ -237,6 +239,7 @@ static can_dict_entry_t can_dict[] =
     {PM100_CAN_ID_OFFSET+0x0F, 	FDCAN_STANDARD_ID,	"Diagnostic",			NULL, 					        0, 	    parser_pm100_diagnostic,        pm100_update_state},
     {PM100_CAN_ID_OFFSET+0x10, 	FDCAN_STANDARD_ID,	"High_Speed_Message", 	PM100_HIGHSPEED_map, 			4, 	    parser_std_little_endian,       pm100_update_state},
     {PM100_CAN_ID_OFFSET+0x22, 	FDCAN_STANDARD_ID,	"Parameter_Response", 	PM100_PARAMETER_RESPONSE_map,   3,	    parser_std_little_endian,       pm100_update_state},
+    {DRS_CAN_ID,                FDCAN_STANDARD_ID,  "DRS_Input",            NULL,                           0,      parser_drs_little_endian,       drs_update_state},
     // ID					    Type	            Name                    Map                             Inputs  Parser                          State setter
 };
 
@@ -368,4 +371,25 @@ static void parser_pm100_diagnostic(const can_msg_t* msg_ptr, uint32_t dict_inde
     can_dict_entry_t* dict_entry = &can_dict[dict_index];
     dict_entry->state_setter(PM100_DIAGNOSTIC_DATA_LO, diagnostic_lo);
     dict_entry->state_setter(PM100_DIAGNOSTIC_DATA_HI, diagnostic_hi);
+}
+
+/**
+ * @brief Simple parser for unpacking DRS message from Dash (little endian)
+ */
+static void parser_drs_little_endian(const can_msg_t* msg_ptr, uint32_t dict_index)
+{
+    can_dict_entry_t* dict_entry = &can_dict[dict_index];
+
+    // iterate over first 4 bytes of the input
+    uint32_t word = 0;
+    for (int j = 4 - 1; j >= 0; j--)
+    {
+        // reverse endianness of bytes to construct word
+        uint32_t byte_index = j;
+        uint32_t byte = (uint32_t) msg_ptr->data[byte_index];
+        word <<= 8;
+        word |= byte;
+    }
+    // write to device state
+    dict_entry->state_setter(0, word);
 }
