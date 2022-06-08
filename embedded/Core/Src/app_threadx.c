@@ -71,6 +71,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN App_ThreadX_Init */
 
+    init_threads(byte_pool);
     init_pre_rtd(byte_pool);
     rtd_wait();
     init_post_rtd();

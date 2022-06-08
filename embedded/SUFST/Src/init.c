@@ -16,58 +16,13 @@
 #include "pm100.h"
 #include "rtc_time.h"
 
-/*
- * function prototypes
- */
-UINT init_threads(TX_BYTE_POOL* stack_pool_ptr);
-
-/**
- * @brief       Initialisation pre ready-to-drive
- * 
- * @note        Runs both before ready-to-drive and before ThreadX kernel entry
- * 
- * @param[in]   stack_pool_ptr  Pointer to start of application stack area
- */
-UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
-{
-    UINT ret = init_threads(stack_pool_ptr);
-
-    if (ret == TX_SUCCESS)
-    {
-        ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
-    }
-
-    if (ret == TX_SUCCESS)
-    {
-        rtc_time_init();
-    }
-
-    return ret;
-}
-
-/**
- * @brief Initialisation post ready-to-drive
- */
-UINT init_post_rtd()
-{
-    UINT ret;
-
-    #if TRACEX_ENABLE
-    ret = trace_init();
-    trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
-    #else 
-    ret = TX_SUCCESS;
-    #endif
-
-    return ret;
-}
 
 /**
  * @brief       Create and initialise threads
  * 
  * @param[in]   stack_pool_ptr  Pointer to start of application stack area
  * 
- * @return      UINT: See ThreadX return codes
+ * @return      See ThreadX return codes
  */
 UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 {
@@ -91,6 +46,40 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
             break;
         }
     }
+
+    return ret;
+}
+
+/**
+ * @brief       Initialisation pre ready-to-drive
+ * 
+ * @note        Runs both before ready-to-drive and before ThreadX kernel entry
+ */
+UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
+{
+    UINT ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
+
+    if (ret == TX_SUCCESS)
+    {
+        rtc_time_init();
+    }
+
+    return ret;
+}
+
+/**
+ * @brief Initialisation post ready-to-drive
+ */
+UINT init_post_rtd()
+{
+    UINT ret;
+
+    #if TRACEX_ENABLE
+    ret = trace_init();
+    trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
+    #else 
+    ret = TX_SUCCESS;
+    #endif
 
     return ret;
 }
