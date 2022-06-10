@@ -1,6 +1,50 @@
 # VCU - Vehicle Control Unit
 The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
 
+## Contributing
+
+### Conventional Commits
+Commits should follow the [conventional commits specification](https://www.conventionalcommits.org/en/v1.0.0/) with the format:
+```
+<type>(<scope>): <subject>
+```
+
+`<type>` __must__ be one of:
+| Type       | Description                                                         |
+|------------|---------------------------------------------------------------------|
+| `feat`     | New features                                                        |
+| `fix`      | Bug fixes                                                           |
+| `refactor` | Refactors (rewriting/restructuring code without changing behaviour) |
+| `perf`     | Refactors specifically to improve performance                       |
+| `style`    | Code formatting, whitespace etc                                     |
+| `test`     | New tests or changes to existing tests                              |
+| `docs`     | Changes to documentation                                            |
+| `build`    | Changes to build system, compilation, toolchain                     |      
+| `chore`    | |
+
+`<scope>` should be a single word describing a part of the system such as (but not limited to):
+| Scope      | Description                                                    |
+|------------|----------------------------------------------------------------|
+| `can`      | Communication with devices on the CAN bus                      |
+| `control`  | Control algorithms (throttle mapping, traction control...)     |
+| `drs`      | Drag reduction system                                          |
+| `io`       | Reading/writing/configuring general I/O                        |
+| `rtos`     | Real-time operating system (configuration, thread creation...) |
+| `safety`   | Safety checks, fault handling, ready-to-drive logic            |
+| `sensors`  | Sensor inputs                                                  |
+
+`<subject>` should written as "lowercase, imperative, present tense" (e.g. _'create control thread'_ or _'add init.c to Makefile'_).
+
+### Code Formatting
+Code should be formatted before committing using [`trunk`](https://docs.trunk.io) with the command:
+```
+trunk fmt
+```
+Install `trunk` for Linux or macOS with:
+```
+curl https://get.trunk.io -fsSL | bash
+```
+Alternatively, install the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=Trunk.io).
 
 ## Useful Resources
 
