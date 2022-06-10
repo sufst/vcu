@@ -4,7 +4,7 @@
  * @author Modified by Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2022-03-08
  * @brief  Data for throttle input test bench
-***************************************************************************/
+ ***************************************************************************/
 
 #include <stdint.h>
 
@@ -14,11 +14,11 @@
 #define THROTTLE_TESTBENCH_DATA_H
 
 #if (RUN_THROTTLE_TESTBENCH)
-	// lookup tables for time / throttle input
-	extern const uint16_t standing_start_time_lookup [1001];
-	extern const uint16_t standing_start_throttle_lookup [1001];
-	extern const uint16_t flying_lap_time_lookup [999];
-	extern const uint16_t flying_lap_throttle_lookup [999];
+// lookup tables for time / throttle input
+extern const uint16_t standing_start_time_lookup[1001];
+extern const uint16_t standing_start_throttle_lookup[1001];
+extern const uint16_t flying_lap_time_lookup[999];
+extern const uint16_t flying_lap_throttle_lookup[999];
 #endif
 
-#endif 
+#endif

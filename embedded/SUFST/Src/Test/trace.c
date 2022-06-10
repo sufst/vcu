@@ -3,9 +3,10 @@
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
  * @date   2022-05-14
  * @brief  TraceX profiling interface
-***************************************************************************/
+ ***************************************************************************/
 
 #include "trace.h"
+
 #include "config.h"
 
 #if TRACEX_ENABLE
@@ -21,7 +22,9 @@ static VOID trace_buffer_full_callback(VOID* trace_buffer_start);
  */
 UINT trace_init()
 {
-    UINT status = tx_trace_enable(trace_buffer, TRACEX_BUFFER_SIZE, TRACEX_REGISTRY_ENTRIES);
+    UINT status = tx_trace_enable(trace_buffer,
+                                  TRACEX_BUFFER_SIZE,
+                                  TRACEX_REGISTRY_ENTRIES);
 
     // remove all events from trace
     if (status == TX_SUCCESS)
@@ -46,10 +49,14 @@ UINT trace_init()
 
 /**
  * @brief   Log an event to the trace
- * 
- * @return 
+ *
+ * @return
  */
-VOID trace_log_event(ULONG event_id, ULONG data_1, ULONG data_2, ULONG data_3, ULONG data_4)
+VOID trace_log_event(ULONG event_id,
+                     ULONG data_1,
+                     ULONG data_2,
+                     ULONG data_3,
+                     ULONG data_4)
 {
     tx_trace_user_event_insert(TX_TRACE_USER_EVENT_START + event_id,
                                data_1,
@@ -60,14 +67,15 @@ VOID trace_log_event(ULONG event_id, ULONG data_1, ULONG data_2, ULONG data_3, U
 
 /**
  * @brief       Callback when trace buffer is full
- * 
- * @param[in]   trace_buffer_start  Start of trace buffer 
+ *
+ * @param[in]   trace_buffer_start  Start of trace buffer
  */
 VOID trace_buffer_full_callback(VOID* trace_buffer_start)
 {
     // breakpoint here!
-    // to dump trace with gdb (with buffer size of <size>): 
-    // dump binary memory ~/Desktop/file.trx trace_buffer (trace_buffer + <size>)
+    // to dump trace with gdb (with buffer size of <size>):
+    // dump binary memory ~/Desktop/file.trx trace_buffer (trace_buffer +
+    // <size>)
     tx_trace_disable();
 }
 

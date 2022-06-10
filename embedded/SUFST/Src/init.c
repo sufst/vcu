@@ -10,23 +10,22 @@
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
 #include "control_thread.h"
+#include "init_thread.h"
+#include "pm100.h"
 #include "sensor_thread.h"
 #include "watchdog_thread.h"
-#include "init_thread.h"
-
-#include "pm100.h"
-
 
 /**
  * @brief       Create and initialise threads
- * 
+ *
  * @param[in]   stack_pool_ptr  Pointer to start of application stack area
- * 
+ *
  * @return      See ThreadX return codes
  */
 UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 {
-    UINT (*thread_init_funcs[])(TX_BYTE_POOL*) = {
+    UINT(*thread_init_funcs[])
+    (TX_BYTE_POOL*) = {
         can_rx_thread_create,
         can_tx_thread_create,
         control_thread_create,
@@ -35,7 +34,8 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
         init_thread_create,
     };
 
-    const UINT num_threads = sizeof(thread_init_funcs) / sizeof(thread_init_funcs[0]);
+    const UINT num_threads
+        = sizeof(thread_init_funcs) / sizeof(thread_init_funcs[0]);
     UINT ret = TX_SUCCESS;
 
     for (UINT i = 0; i < num_threads; i++)
@@ -53,7 +53,7 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 
 /**
  * @brief       Initialisation pre ready-to-drive
- * 
+ *
  * @note        Runs both before ready-to-drive and before ThreadX kernel entry
  */
 UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
@@ -69,12 +69,12 @@ UINT init_post_rtd()
 {
     UINT ret;
 
-    #if TRACEX_ENABLE
+#if TRACEX_ENABLE
     ret = trace_init();
     trace_log_event(TRACE_READY_TO_DRIVE_EVENT, 0, 0, 0, 0);
-    #else 
+#else
     ret = TX_SUCCESS;
-    #endif
+#endif
 
     return ret;
 }

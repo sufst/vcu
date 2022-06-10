@@ -11,7 +11,8 @@
 /**
  * @brief Minor fault
  */
-typedef enum minor_fault_e {
+typedef enum minor_fault_e
+{
     MINOR_FAULT_CAN_TX_DROPPED,
     MINOR_FAULT_CAN_RX_DROPPED,
 } minor_fault_t;
@@ -19,7 +20,8 @@ typedef enum minor_fault_e {
 /**
  * @brief Critical fault
  */
-typedef enum critical_fault_e {
+typedef enum critical_fault_e
+{
     CRITICAL_FAULT_INIT_ERROR,
     CRITICAL_FAULT_THROTTLE_INPUT_DISCREPANCY,
     CRITICAL_FAULT_QUEUE_FULL,

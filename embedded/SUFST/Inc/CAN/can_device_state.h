@@ -9,15 +9,15 @@
 #ifndef CAN_DEVICE_STATE_H
 #define CAN_DEVICE_STATE_H
 
-#include "can_message.h"
-
 #include <stdint.h>
 
-/** 
+#include "can_message.h"
+
+/**
  * @brief       CAN device state setter function type
- * 
+ *
  * @note        Must be followed by all CAN device state setters
- * 
+ *
  * @param[in]   index 	 	Index of value (enum)
  * @param[in]   value		Value to set
  */

@@ -8,8 +8,9 @@ lint:
   ignore:
     - linters: [clang-format, gitleaks]
       paths:
-        - AZURE_RTOS/**
-        - Core/**
-        - Drivers/**
-        - Middlewares/**
-        - Scripts/**
+        - embedded/AZURE_RTOS/**
+        - embedded/Core/**
+        - embedded/Drivers/**
+        - embedded/Middlewares/**
+        - embedded/Scripts/**
+        - embedded/SUFST/Inc/config.h

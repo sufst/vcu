@@ -12,15 +12,15 @@
 #include <stdint.h>
 
 /* TODO: Determine the CAN ID from Dash */
-#define DRS_CAN_ID 	0xFF 
+#define DRS_CAN_ID 0xFF
 
 /**
  * @brief Return codes
  */
 typedef enum drs_status_e
 {
-	DRS_OK       = 0x00,
-	DRS_ERROR    = 0x01,
+    DRS_OK = 0x00,
+    DRS_ERROR = 0x01,
 } drs_status_t;
 
 /*
