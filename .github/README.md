@@ -4,7 +4,7 @@ The VCU is responsible for taking driver throttle inputs and communicating with 
 ## Contributing
 
 ### Conventional Commits
-Commits should follow the [conventional commits specification](https://www.conventionalcommits.org/en/v1.0.0/) with the format:
+Commits (and issue/pull request titles) should follow the [conventional commits specification](https://www.conventionalcommits.org/en/v1.0.0/) with the format:
 ```
 <type>(<scope>): <subject>
 ```
