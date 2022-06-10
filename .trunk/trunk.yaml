@@ -4,3 +4,12 @@ cli:
 lint:
   enabled:
     - gitleaks@8.8.7
+    - clang-format@13.0.0
+  ignore:
+    - linters: [clang-format, gitleaks]
+      paths:
+        - AZURE_RTOS/**
+        - Core/**
+        - Drivers/**
+        - Middlewares/**
+        - Scripts/**
