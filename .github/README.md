@@ -1,9 +1,19 @@
-# VCU - Vehicle Control Unit
+<h1 align="center"> VCU - Vehicle Control Unit </h2>
+
+# Table of Contents
+- [About](#about)  
+- [Contributing](#contributing)   
+- [Useful Resources](#useful-resources)   
+- [Related Projects](#related-projects)   
+
+# About
+
 The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
 
-## Contributing
 
-### Conventional Commits
+# Contributing
+
+## Conventional Commits
 Commits (and issue/pull request titles) should follow the [conventional commits specification](https://www.conventionalcommits.org/en/v1.0.0/) with the format:
 ```
 <type>(<scope>): <subject>
@@ -36,7 +46,7 @@ Commits (and issue/pull request titles) should follow the [conventional commits 
 
 `<subject>` should written as "lowercase, imperative, present tense" (e.g. _'create control thread'_ or _'add init.c to Makefile'_).
 
-### Code Formatting
+## Code Formatting
 Code should be formatted before committing using [`trunk`](https://docs.trunk.io) with the command:
 ```
 trunk fmt
@@ -47,7 +57,7 @@ curl https://get.trunk.io -fsSL | bash
 ```
 Alternatively, install the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=Trunk.io).
 
-## Useful Resources
+# Useful Resources
 
 Documentation and rules:
 - [VCU Wiki](https://github.com/sufst/vcu/wiki)
@@ -68,7 +78,7 @@ CAN / inverter:
 - [Cascadia Motion CAN Protocol](https://app.box.com/s/vf9259qlaadhzxqiqrt5cco8xpsn84hk/file/27334613044)
 
 
-## Related Projects
+# Related Projects
 
 - [VCU Driver Profiles App](https://github.com/sufst/vcu-driver-profile)
 - [VCU Breakout Board](https://github.com/sufst/vcu-breakout)
