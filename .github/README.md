@@ -20,7 +20,8 @@ Commits (and issue/pull request titles) should follow the [conventional commits 
 | `test`     | New tests or changes to existing tests                              |
 | `docs`     | Changes to documentation                                            |
 | `build`    | Changes to build system, compilation, toolchain                     |      
-| `chore`    | |
+| `chore`    | Chores (internal/organisational changes, updating .gitignore, etc)  |
+| `misc`     | Anything which absolutely does not match any of the other types     |
 
 `<scope>` should be a single word describing a part of the system such as (but not limited to):
 | Scope      | Description                                                    |
