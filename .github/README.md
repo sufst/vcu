@@ -10,7 +10,6 @@
 
 The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
 
-
 # Contributing
 
 ## Conventional Commits
@@ -45,6 +44,12 @@ Commits (and issue/pull request titles) should follow the [conventional commits 
 | `sensors`  | Sensor inputs                                                  |
 
 `<subject>` should written as "lowercase, imperative, present tense" (e.g. _'create control thread'_ or _'add init.c to Makefile'_).
+
+## Branch Names
+Branches should be named beginning with the `<type>` for the corresponding issue, followed by a `/` and a dash-separated title briefly describing the overall purpose of the branch:
+```
+<type>/dash-separated-title
+```
 
 ## Code Formatting
 Code should be formatted before committing using [`trunk`](https://docs.trunk.io) with the command:
