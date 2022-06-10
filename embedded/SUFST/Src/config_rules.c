@@ -3,7 +3,7 @@
  * @author Tim Brewis (tab1g19@soton.ac.uk)
  * @date   2022-03-15
  * @brief  Rules for checking system configuration against competition rules
-***************************************************************************/
+ ***************************************************************************/
 
 #include "config.h"
 
@@ -11,18 +11,17 @@
  * define rules / limits on parameters
  ***************************************************************************/
 
-#define MAX_READY_TO_DRIVE_BUZZER_TIME	3
-#define MIN_READY_TO_DRIVE_BUZZER_TIME	1
-
+#define MAX_READY_TO_DRIVE_BUZZER_TIME 3
+#define MIN_READY_TO_DRIVE_BUZZER_TIME 1
 
 /***************************************************************************
  * work out any values needed to check the rules
  ***************************************************************************/
 
-#define NUM_TESTBENCHES_RUNNING		(RUN_THROTTLE_TESTBENCH \
-									 +	RUN_FAULT_STATE_TESTBENCH)
+#define NUM_TESTBENCHES_RUNNING \
+    (RUN_THROTTLE_TESTBENCH + RUN_FAULT_STATE_TESTBENCH)
 
-#define TESTBENCHES_RUNNING			(NUM_TESTBENCHES_RUNNING > 0)
+#define TESTBENCHES_RUNNING (NUM_TESTBENCHES_RUNNING > 0)
 
 /***************************************************************************
  * general safeguards
@@ -48,7 +47,7 @@
 #endif
 
 // inverter cannot be in speed mode
-#if INVERTER_SPEED_MODE 
+#if INVERTER_SPEED_MODE
 #error "Inverter in speed mode"
 #endif
 

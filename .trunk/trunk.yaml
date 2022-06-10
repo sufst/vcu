@@ -1,0 +1,16 @@
+version: 0.1
+cli:
+  version: 0.13.0-beta
+lint:
+  enabled:
+    - gitleaks@8.8.7
+    - clang-format@13.0.0
+  ignore:
+    - linters: [clang-format, gitleaks]
+      paths:
+        - embedded/AZURE_RTOS/**
+        - embedded/Core/**
+        - embedded/Drivers/**
+        - embedded/Middlewares/**
+        - embedded/Scripts/**
+        - embedded/SUFST/Inc/config.h

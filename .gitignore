@@ -3,6 +3,7 @@
 /scripts/*.h
 /scripts/*.c
 /.vscode/**
+/.trunk/out
 
 ### C ###
 *.d

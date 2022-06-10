@@ -6,13 +6,15 @@
  ***************************************************************************/
 
 #include "ready_to_drive.h"
+
+#include <stdbool.h>
+
 #include "config.h"
 #include "tx_api.h"
 
 #include "gpio.h"
-#include "pm100.h"
 
-#include <stdbool.h>
+#include "pm100.h"
 
 /*
  * function prototypes
@@ -25,21 +27,25 @@ static void sound_buzzer();
  */
 void rtd_wait()
 {
-	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
-	// wait for active high
-	while (!rtd_input_active());
+    // wait for active high
+    while (!rtd_input_active())
+        ;
 
-	// if ready to drive overridden ('USER' button input)
-	// wait for button to be released
+        // if ready to drive overridden ('USER' button input)
+        // wait for button to be released
 #if (READY_TO_DRIVE_OVERRIDE)
-	while (rtd_input_active());
+    while (rtd_input_active())
+        ;
 #endif
 
-	pm100_disable();
-	HAL_GPIO_WritePin(RTD_OUT_GPIO_Port, RTD_OUT_Pin, GPIO_PIN_RESET); // active low
-	sound_buzzer();
-	HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
+    pm100_disable();
+    HAL_GPIO_WritePin(RTD_OUT_GPIO_Port,
+                      RTD_OUT_Pin,
+                      GPIO_PIN_RESET); // active low
+    sound_buzzer();
+    HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
 
 /**
@@ -54,9 +60,11 @@ void rtd_wait()
 bool rtd_input_active()
 {
 #if (READY_TO_DRIVE_OVERRIDE)
-	return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin) == GPIO_PIN_SET;
+    return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin)
+           == GPIO_PIN_SET;
 #else
-	return HAL_GPIO_ReadPin(READY_TO_DRIVE_Port, READY_TO_DRIVE_Pin) == GPIO_PIN_SET;
+    return HAL_GPIO_ReadPin(READY_TO_DRIVE_Port, READY_TO_DRIVE_Pin)
+           == GPIO_PIN_SET;
 #endif
 }
 
@@ -65,8 +73,7 @@ bool rtd_input_active()
  */
 void sound_buzzer()
 {
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
-	tx_thread_sleep(READY_TO_DRIVE_BUZZER_TIME);
-	HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
+    tx_thread_sleep(READY_TO_DRIVE_BUZZER_TIME);
+    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
 }
-
