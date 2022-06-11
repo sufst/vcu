@@ -26,9 +26,9 @@ static uint32_t DRS_state;
 static TX_MUTEX DRS_state_mutex;
 
 /**
- * @brief Initialise drs input receiver
+ * @brief Initialise drs CAN input and DAC output 
  */
-drs_status_t CAN_drs_init()
+drs_status_t drs_init()
 {
     // create state mutex
     drs_status_t status = DRS_OK;
@@ -40,6 +40,14 @@ drs_status_t CAN_drs_init()
 
     // reset state
     memset(&DRS_state, 0x0000, sizeof(DRS_state));
+
+    if(HAL_DAC_Start(&DRS_DAC_HANDLE, DAC_CHANNEL_1) != HAL_OK){
+        status = (status == DRS_OK)? DAC_ERROR:DRS_DAC_ERROR;
+    }
+    DRS_state = 0;
+    if(set_dac_val() != DRS_OK){
+        status = (status == DRS_OK)? DAC_ERROR:DRS_DAC_ERROR;
+    }       
 
     return status;
 }
@@ -81,4 +89,27 @@ void drs_update_state(uint32_t index, uint32_t value)
         DRS_state = value;
         tx_mutex_put(&DRS_state_mutex);
     }
+}
+
+/**
+ * @brief       Set dac value based on DRS state
+ *
+ * @param[in]   DRS_state   The state of DRS (on/off)
+ * 
+ * @return     The drs_status of setting dac value.
+ */
+drs_status_t set_dac_val()
+{
+    drs_status_t status = DRS_OK;
+    if(DRS_state == 0){
+        if(HAL_DAC_SetValue(&DRS_DAC_HANDLE, DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint32_t)DRS_OFF_VALUE) != HAL_OK){
+            status = DAC_ERROR;
+        }
+    }
+    else {
+        if(HAL_DAC_SetValue(&DRS_DAC_HANDLE, DAC_CHANNEL_1,DAC_ALIGN_12B_R,(uint32_t)DRS_ON_VALUE) != HAL_OK){
+            status = DAC_ERROR;
+        }
+    }
+    return status;
 }
