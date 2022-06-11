@@ -63,6 +63,16 @@
 #define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
 
 /***************************************************************************
+ * DRS
+ ***************************************************************************/
+
+#define VREFP                               3.3
+#define DAC_RESOLUTION	                    4096    // resolution of DAC
+#define DRS_ON_VALUE                        (3.2*(DAC_RESOLUTION/VREFP))     // DAC Register value (must be < 4096)
+#define DRS_OFF_VALUE                       (0.1*(DAC_RESOLUTION/VREFP))     // DAC Register value
+
+
+/***************************************************************************
  * sensors
  ***************************************************************************/
 
