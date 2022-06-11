@@ -106,6 +106,7 @@ Core/Src/main.c \
 Core/Src/gpio.c \
 Core/Src/app_threadx.c \
 Core/Src/adc.c \
+Core/Src/dac.c \
 Core/Src/fdcan.c \
 Core/Src/rtc.c \
 Core/Src/stm32h7xx_it.c \
@@ -114,6 +115,8 @@ Core/Src/stm32h7xx_hal_timebase_tim.c \
 AZURE_RTOS/App/app_azure_rtos.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_adc_ex.c \
+Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dac.c \
+Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dac_ex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_rcc_ex.c \
 Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c \
@@ -303,7 +306,7 @@ Middlewares/ST/threadx/common/src/tx_trace_isr_enter_insert.c \
 Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
 Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
-Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c
+Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c 
 
 ASM_SOURCES =  \
 startup_stm32h723xx.s \

@@ -21,6 +21,7 @@
 #include "main.h"
 #include "app_threadx.h"
 #include "adc.h"
+#include "dac.h"
 #include "fdcan.h"
 #include "rtc.h"
 #include "gpio.h"
@@ -97,6 +98,7 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   MX_RTC_Init();
+  MX_DAC1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
