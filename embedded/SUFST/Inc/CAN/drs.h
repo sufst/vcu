@@ -10,9 +10,10 @@
 #define DRS_H
 
 #include <stdint.h>
+
 #include "dac.h"
 
-#define DRS_DAC_HANDLE      hdac1
+#define DRS_DAC_HANDLE hdac1
 
 /* TODO: Determine the CAN ID from Dash */
 #define DRS_CAN_ID 0xFF
