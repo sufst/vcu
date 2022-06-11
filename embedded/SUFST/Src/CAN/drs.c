@@ -86,7 +86,8 @@ void drs_update_state(uint32_t index, uint32_t value)
 
     if (tx_mutex_get(&DRS_state_mutex, TX_WAIT_FOREVER) == TX_SUCCESS)
     {
-        DRS_state = value;
+        DRS_state != DRS_state;
+        set_dac_val();
         tx_mutex_put(&DRS_state_mutex);
     }
 }
