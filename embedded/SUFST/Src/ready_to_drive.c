@@ -63,8 +63,7 @@ bool rtd_input_active()
     return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin)
            == GPIO_PIN_SET;
 #else
-    return HAL_GPIO_ReadPin(RTD_IN_GPIO_Port, RTD_IN_Pin)
-           == GPIO_PIN_SET;
+    return HAL_GPIO_ReadPin(RTD_IN_GPIO_Port, RTD_IN_Pin) == GPIO_PIN_SET;
 #endif
 }
 
