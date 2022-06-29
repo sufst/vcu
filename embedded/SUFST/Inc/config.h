@@ -77,7 +77,7 @@
 
 // enable flags
 #define RUN_THROTTLE_TESTBENCH		        0		// throttle input from lookup table
-#define RUN_FAULT_STATE_TESTBENCH	        1		// 'USER' button (after ready to drive) causes fault state
+#define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
 #define THROTTLE_TESTBENCH_LAPS 	        4		// 1 for standing start only, 2+ to add flying laps
