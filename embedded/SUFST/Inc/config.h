@@ -27,7 +27,7 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_OVERRIDE		        0		// set to 0 to use the 'USER' button as the ready-to-drive signal
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
 /***************************************************************************
@@ -77,7 +77,7 @@
 
 // enable flags
 #define RUN_THROTTLE_TESTBENCH		        0		// throttle input from lookup table
-#define RUN_FAULT_STATE_TESTBENCH	        1		// 'USER' button (after ready to drive) causes fault state
+#define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
 #define THROTTLE_TESTBENCH_LAPS 	        4		// 1 for standing start only, 2+ to add flying laps

@@ -64,10 +64,10 @@ void Error_Handler(void);
 #define FAULT_IN_GPIO_Port GPIOF
 #define BUZZER_Pin GPIO_PIN_2
 #define BUZZER_GPIO_Port GPIOF
+#define RTD_IN_Pin GPIO_PIN_10
+#define RTD_IN_GPIO_Port GPIOF
 #define GREEN_LED_Pin GPIO_PIN_0
 #define GREEN_LED_GPIO_Port GPIOB
-#define RTD_IN_Pin GPIO_PIN_2
-#define RTD_IN_GPIO_Port GPIOB
 #define RTD_OUT_Pin GPIO_PIN_9
 #define RTD_OUT_GPIO_Port GPIOE
 #define RED_LED_Pin GPIO_PIN_14
