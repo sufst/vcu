@@ -67,14 +67,18 @@
  ***************************************************************************/
 
 #define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
+#define APPS_DISABLE_BOUNDS_CHECK           0       // disable check for APPS ADC reading out of bounds
+
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
-#define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 
-#define APPS_1_ADC_MIN                      1500    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      1500    // ^                                ^ channel 2
-#define APPS_1_ADC_MAX                      57000   //  maximum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MAX                      57000   // ^                                ^ channel 2
+#define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
+#define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f  // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
+
+#define APPS_1_ADC_MIN                      5000    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      5000    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      50000   //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      50000   // ^                                ^ channel 2
 
 /***************************************************************************
  * testbenches
