@@ -20,10 +20,12 @@
  * function prototypes
  */
 static void read_adcs(uint32_t readings[2]);
-static uint32_t
-map_adc_reading(uint32_t raw_reading, uint32_t min, uint32_t max);
-
+static uint32_t map_adc_reading(uint32_t reading, uint32_t min, uint32_t max);
 static uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max);
+
+#if !APPS_DISABLE_BOUNDS_CHECK
+static void validate_raw_reading(uint32_t* reading_ptr, uint32_t min, uint32_t max);
+#endif
 
 #if !APPS_DISABLE_DIFF_CHECK
 static void validate_mapped_readings(uint32_t readings[2]);
@@ -40,6 +42,11 @@ uint32_t read_apps()
     uint32_t apps_inputs[2];
 
     read_adcs(apps_inputs);
+
+#if !APPS_DISABLE_BOUNDS_CHECK
+    validate_raw_reading(&apps_inputs[0], APPS_1_ADC_MIN, APPS_1_ADC_MAX);
+    validate_raw_reading(&apps_inputs[1], APPS_2_ADC_MIN, APPS_2_ADC_MAX);
+#endif
 
     apps_inputs[0]
         = map_adc_reading(apps_inputs[0], APPS_1_ADC_MIN, APPS_1_ADC_MAX);
@@ -103,6 +110,42 @@ uint32_t map_adc_reading(uint32_t raw_reading, uint32_t min, uint32_t max)
 
     return mapped_reading;
 }
+
+#if !APPS_DISABLE_BOUNDS_CHECK
+/**
+ * @brief           Validates a raw APPS ADC reading and triggers a fault if
+ *                  it is invalid
+ *
+ * @details         Readings will be set to 0 if a fault is triggered
+ *
+ * @param[inout]    reading     Raw APPS ADC reading
+ */
+void validate_raw_reading(uint32_t* reading_ptr, uint32_t min, uint32_t max)
+{
+    static const uint32_t max_diff
+        = APPS_OUTSIDE_BOUNDS_FRACTION * ((1 << APPS_ADC_RESOLUTION) - 1);
+
+    uint32_t low_diff = 0;
+    uint32_t high_diff = 0;
+
+    if (*reading_ptr < min)
+    {
+        low_diff = min - *reading_ptr;
+    }
+
+    if (*reading_ptr > max)
+    {
+        high_diff = *reading_ptr - max;
+    }
+    
+    if (low_diff > max_diff || high_diff > max_diff)
+    {
+        critical_fault(CRITICAL_FAULT_APPS_INPUT_OUTSIDE_BOUNDS);
+
+        *reading_ptr = 0;
+    }
+}
+#endif
 
 #if !APPS_DISABLE_DIFF_CHECK
 /**
