@@ -66,8 +66,10 @@
  * sensors
  ***************************************************************************/
 
+#define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
+#define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 
 #define APPS_1_ADC_MIN                      1500    //  minimum raw ADC reading for APPS  channel 1
 #define APPS_2_ADC_MIN                      1500    // ^                                ^ channel 2

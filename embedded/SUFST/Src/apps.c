@@ -7,6 +7,8 @@
 
 #include "apps.h"
 
+#include <stdbool.h>
+
 #include "config.h"
 
 #include "fault.h"
@@ -18,9 +20,14 @@
  * function prototypes
  */
 static void read_adcs(uint32_t readings[2]);
-static void map_adc_reading(uint32_t* reading, uint32_t min, uint32_t max);
+static uint32_t
+map_adc_reading(uint32_t raw_reading, uint32_t min, uint32_t max);
 
 static uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max);
+
+#if !APPS_DISABLE_DIFF_CHECK
+static void validate_mapped_readings(uint32_t readings[2]);
+#endif
 
 /**
  * @brief   Reads the APPS input
@@ -30,18 +37,24 @@ static uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max);
  */
 uint32_t read_apps()
 {
-    uint32_t readings[2];
+    uint32_t apps_inputs[2];
 
-    read_adcs(readings);
+    read_adcs(apps_inputs);
 
-    map_adc_reading(&readings[0], APPS_1_ADC_MIN, APPS_1_ADC_MAX);
-    map_adc_reading(&readings[1], APPS_2_ADC_MIN, APPS_2_ADC_MAX);
+    apps_inputs[0]
+        = map_adc_reading(apps_inputs[0], APPS_1_ADC_MIN, APPS_1_ADC_MAX);
+    apps_inputs[1]
+        = map_adc_reading(apps_inputs[1], APPS_2_ADC_MIN, APPS_2_ADC_MAX);
 
-    uint32_t average_reading = (readings[0] + readings[1]) / 2;
+#if !APPS_DISABLE_DIFF_CHECK
+    validate_mapped_readings(apps_inputs);
+#endif
 
-    trace_log_event(TRACE_APPS_INPUT_EVENT, (ULONG) average_reading, 0, 0, 0);
+    uint32_t average_input = (apps_inputs[0] + apps_inputs[1]) / 2;
 
-    return average_reading;
+    trace_log_event(TRACE_APPS_INPUT_EVENT, (ULONG) average_input, 0, 0, 0);
+
+    return average_input;
 }
 
 /**
@@ -74,20 +87,49 @@ void read_adcs(uint32_t readings[2])
  * @brief           Maps a raw ADC reading to the required range and resolution
  *                  for APPS inputs
  *
- * @param[inout]    reading     Pointer to raw ADC reading
- * @param[in]       min         Minimum expected raw reading
- * @param[in]       max         Maximum expected raw reading
+ * @param[inout]    raw_reading     Raw ADC reading
+ * @param[in]       min             Minimum expected raw reading
+ * @param[in]       max             Maximum expected raw reading
  */
-void map_adc_reading(uint32_t* reading, uint32_t min, uint32_t max)
+uint32_t map_adc_reading(uint32_t raw_reading, uint32_t min, uint32_t max)
 {
-    uint32_t clipped = clip_to_range(*reading, min, max);
+    uint32_t clipped_reading = clip_to_range(raw_reading, min, max);
 
-    const uint32_t apps_max = (1 << APPS_SCALED_RESOLUTION) - 1;
+    static const uint32_t apps_max = (1 << APPS_SCALED_RESOLUTION) - 1;
     const uint32_t scale_factor = (max - min) / apps_max;
 
-    *reading = (clipped - min) / scale_factor;
-    *reading = clip_to_range(*reading, 0, apps_max);
+    uint32_t mapped_reading = (clipped_reading - min) / scale_factor;
+    mapped_reading = clip_to_range(mapped_reading, 0, apps_max);
+
+    return mapped_reading;
 }
+
+#if !APPS_DISABLE_DIFF_CHECK
+/**
+ * @brief           Validates the mapped APPS readings and triggers a fault if
+ *                  they are invalid
+ *
+ * @details         Readings will be set to 0 if a fault is triggered
+ *
+ * @param[inout]    readings    Array of two mapped APPS readings
+ */
+void validate_mapped_readings(uint32_t readings[2])
+{
+    static const uint32_t max_diff
+        = APPS_MAX_DIFF_FRACTION * ((1 << APPS_SCALED_RESOLUTION) - 1);
+
+    uint32_t diff = (readings[1] > readings[0]) ? (readings[1] - readings[0])
+                                                : (readings[0] - readings[1]);
+
+    if (diff > max_diff)
+    {
+        critical_fault(CRITICAL_FAULT_APPS_INPUT_DISCREPANCY);
+
+        readings[0] = 0;
+        readings[1] = 0;
+    }
+}
+#endif
 
 /**
  * @brief       Clips a value within a range

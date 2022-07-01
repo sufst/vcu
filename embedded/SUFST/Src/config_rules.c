@@ -66,6 +66,11 @@
 #error "Inverter in speed mode"
 #endif
 
+// cannot disable APPS signal checks
+#if APPS_DISABLE_DIFF_CHECK
+#error "APPS input discrepancy check disabled"
+#endif
+
 // restrict ready-to-drive buzzer time
 #if (READY_TO_DRIVE_BUZZER_TIME > MAX_READY_TO_DRIVE_BUZZER_TIME)
 #error "Ready-to-drive buzzer will sound for too long"
