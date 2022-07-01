@@ -36,8 +36,8 @@ TX_QUEUE apps_input_queue;
 /**
  * @brief APPS input queue memory area
  */
-static ULONG apps_input_queue_mem[APPS_INPUT_QUEUE_SIZE
-                                      * APPS_INPUT_QUEUE_ITEM_SIZE];
+static ULONG
+    apps_input_queue_mem[APPS_INPUT_QUEUE_SIZE * APPS_INPUT_QUEUE_ITEM_SIZE];
 
 /*
  * function prototypes
@@ -134,9 +134,7 @@ void control_thread_entry(ULONG thread_input)
         // -> thread suspended until message received
         ULONG apps_input = 0;
 
-        if (tx_queue_receive(&apps_input_queue,
-                             &apps_input,
-                             TX_WAIT_FOREVER)
+        if (tx_queue_receive(&apps_input_queue, &apps_input, TX_WAIT_FOREVER)
             == TX_SUCCESS)
         {
             // apply the thottle curve

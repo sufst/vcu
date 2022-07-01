@@ -20,9 +20,7 @@ static const driver_profile_t default_profile
     = {DRIVER_PROFILE_DEFAULT, "Default", default_linear_torque_map};
 
 static const driver_profile_t motor_testing_profile
-    = {DRIVER_PROFILE_MOTOR_TESTING,
-       "Motor Testing",
-       motor_testing_torque_map};
+    = {DRIVER_PROFILE_MOTOR_TESTING, "Motor Testing", motor_testing_torque_map};
 
 const driver_profile_t* driver_profiles[NUM_DRIVER_PROFILES] = {
     &default_profile,

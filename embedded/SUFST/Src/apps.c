@@ -39,11 +39,7 @@ uint32_t read_apps()
 
     uint32_t average_reading = (readings[0] + readings[1]) / 2;
 
-    trace_log_event(TRACE_APPS_INPUT_EVENT,
-                    (ULONG) average_reading,
-                    0,
-                    0,
-                    0);
+    trace_log_event(TRACE_APPS_INPUT_EVENT, (ULONG) average_reading, 0, 0, 0);
 
     return average_reading;
 }
@@ -75,7 +71,7 @@ void read_adcs(uint32_t readings[2])
 }
 
 /**
- * @brief           Maps a raw ADC reading to the required range and resolution 
+ * @brief           Maps a raw ADC reading to the required range and resolution
  *                  for APPS inputs
  *
  * @param[inout]    reading     Pointer to raw ADC reading
@@ -95,9 +91,9 @@ void map_adc_reading(uint32_t* reading, uint32_t min, uint32_t max)
 
 /**
  * @brief       Clips a value within a range
- * 
+ *
  * @details     Value is clipped to [min, max]
- * 
+ *
  * @param[in]   value   Value to clip
  * @param[in]   min     Minimum of range
  * @param[in]   max     Maximum of range

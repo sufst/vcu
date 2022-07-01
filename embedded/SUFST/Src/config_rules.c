@@ -18,10 +18,11 @@
  * work out any values needed to check the rules
  ***************************************************************************/
 
-#define NUM_TESTBENCHES_RUNNING \
-    (RUN_APPS_TESTBENCH + RUN_FAULT_STATE_TESTBENCH)
+#define NUM_TESTBENCHES_RUNNING (RUN_APPS_TESTBENCH + RUN_FAULT_STATE_TESTBENCH)
 
-#define TESTBENCHES_RUNNING (NUM_TESTBENCHES_RUNNING > 0)
+#define TESTBENCHES_RUNNING     (NUM_TESTBENCHES_RUNNING > 0)
+
+#define APPS_ADC_MAX            ((1 << APPS_ADC_RESOLUTION) - 1)
 
 /***************************************************************************
  * general safeguards
@@ -32,8 +33,6 @@
 #error "Scaled APPS resolution is greater than input resolution"
 #endif
 
-#define APPS_ADC_MAX ((1 << APPS_ADC_RESOLUTION) - 1)
-
 #if APPS_1_ADC_MAX > APPS_ADC_MAX || APPS_2_ADC_MAX > APPS_ADC_MAX
 #error "APPS ADC maximum greater than actual maximum ADC output"
 #endif
@@ -43,7 +42,7 @@
 #endif
 
 #if APPS_1_ADC_MIN >= APPS_1_ADC_MAX || APPS_2_ADC_MIN >= APPS_2_ADC_MAX
-#error "APPS ADC minimum greater than APPS ADC maximum"
+#error "APPS ADC minimum greater than or equal to APPS ADC maximum"
 #endif
 
 /***************************************************************************
