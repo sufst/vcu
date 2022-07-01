@@ -10,18 +10,17 @@
 /*
  * raw data for driver profiles defined in driver_profile_data.c
  */
-extern uint16_t default_linear_throttle_map[THROTTLE_MAP_SIZE];
-extern uint16_t motor_testing_throttle_map[THROTTLE_MAP_SIZE];
+extern uint16_t default_linear_torque_map[TORQUE_MAP_SIZE];
+extern uint16_t motor_testing_torque_map[TORQUE_MAP_SIZE];
 
 /*
  * lookup table for all profiles
  */
 static const driver_profile_t default_profile
-    = {DRIVER_PROFILE_DEFAULT, "Default", default_linear_throttle_map};
+    = {DRIVER_PROFILE_DEFAULT, "Default", default_linear_torque_map};
+
 static const driver_profile_t motor_testing_profile
-    = {DRIVER_PROFILE_MOTOR_TESTING,
-       "Motor Testing",
-       motor_testing_throttle_map};
+    = {DRIVER_PROFILE_MOTOR_TESTING, "Motor Testing", motor_testing_torque_map};
 
 const driver_profile_t* driver_profiles[NUM_DRIVER_PROFILES] = {
     &default_profile,
@@ -65,5 +64,5 @@ UINT driver_profile_lookup(const driver_profile_t** profile_ptr,
  */
 UINT apply_torque_map(const driver_profile_t* profile_ptr, UINT input)
 {
-    return profile_ptr->throttle_curve[input];
+    return profile_ptr->torque_curve[input];
 }

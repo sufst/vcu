@@ -27,7 +27,7 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        0		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
 /***************************************************************************
@@ -56,7 +56,7 @@
 
 #define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
 
-#define INVERTER_DISABLE_TORQUE_REQUESTS        0       // prevent torque requests from actually being sent
+#define INVERTER_DISABLE_TORQUE_REQUESTS        1       // prevent torque requests from actually being sent
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
@@ -66,20 +66,25 @@
  * sensors
  ***************************************************************************/
 
-#define THROTTLE_INPUT_RESOLUTION	        16		// resolution of ADC
-#define THROTTLE_SCALED_RESOLUTION	        10		// scaled resolution sent to control thread
-#define THROTTLE_MAX_DIFF_FRACTION	        0.05	// fractional maximum allowed difference between ADC readings
-#define THROTTLE_ENABLE_DIFF_CHECK	        0		// set to 1 to enable check for discrepancy between ADC readings
+#define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
+#define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
+#define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
+#define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
+
+#define APPS_1_ADC_MIN                      1500    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      1500    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      57000   //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      57000   // ^                                ^ channel 2
 
 /***************************************************************************
  * testbenches
  ***************************************************************************/
 
 // enable flags
-#define RUN_THROTTLE_TESTBENCH		        0		// throttle input from lookup table
+#define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
 #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
-#define THROTTLE_TESTBENCH_LAPS 	        4		// 1 for standing start only, 2+ to add flying laps
+#define APPS_TESTBENCH_LAPS 	            4		// 1 for standing start only, 2+ to add flying laps
 
 #endif

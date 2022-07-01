@@ -17,6 +17,7 @@
 #include "adc.h"
 #include "gpio.h"
 
+#include "apps.h"
 #include "control_thread.h"
 
 #define SENSOR_THREAD_STACK_SIZE           1024
@@ -35,20 +36,9 @@ TX_THREAD sensor_thread;
 TX_TIMER sensor_thread_tick_timer;
 
 /*
- * return codes
- */
-#define ADC_OK  0x0000
-#define ADC_ERR 0x0001
-
-/*
  * function prototypes
  */
 void sensor_thread_entry(ULONG thread_input);
-
-#if !RUN_THROTTLE_TESTBENCH
-uint32_t read_throttle();
-void scale_throttle_adc_reading(uint32_t* adc_reading_ptr);
-#endif
 
 /**
  * @brief 		Initialise sensor thread
@@ -144,16 +134,16 @@ void sensor_thread_entry(ULONG thread_input)
         testbench_fault_state();
 #endif
 
-        // read throttle
-#if RUN_THROTTLE_TESTBENCH
-        uint32_t throttle = testbench_throttle();
+        // read APPS
+#if RUN_APPS_TESTBENCH
+        uint32_t apps_input = testbench_apps_input();
 #else
-        ULONG throttle = (ULONG) read_throttle();
+        ULONG apps_input = (ULONG) read_apps();
 #endif
 
-        // transmit throttle to control thread
-        ret = tx_queue_send(&throttle_input_queue,
-                            (ULONG*) &throttle,
+        // transmit APPS input to control thread
+        ret = tx_queue_send(&apps_input_queue,
+                            (ULONG*) &apps_input,
                             TX_NO_WAIT);
 
         if (ret == TX_QUEUE_FULL)
@@ -162,102 +152,7 @@ void sensor_thread_entry(ULONG thread_input)
         }
 
         // sleep thread to allow other threads to run
-        // tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 10);
         tx_timer_activate(&sensor_thread_tick_timer);
         tx_thread_suspend(&sensor_thread);
     }
 }
-
-#if !RUN_THROTTLE_TESTBENCH
-/**
- * @brief 	Read throttle
- *
- * @details	The ADC readings from the throttle pedal are scaled to the
- * resolution specified by THROTTLE_SCALED_RESOLUTION. If the maximum allowed
- * discrepancy between the two ADC readings is exceeded, the throttle is cut off
- * and a critical error is raised.
- *
- * @note 	Throttle discrepancy checking currently does not scale to more
- * than 2 ADCs
- *
- * @return	Scaled throttle reading
- */
-uint32_t read_throttle()
-{
-    // start ADC readings in parallel
-    ADC_HandleTypeDef* adc_handles[] = {
-        &hadc1, // PA3 (A0 on CN9)
-        &hadc2, // PB1 (A3 on CN9)
-    };
-
-    const uint32_t num_adcs = sizeof(adc_handles) / sizeof(adc_handles[0]);
-
-    for (uint32_t i = 0; i < num_adcs; i++)
-    {
-        if (HAL_ADC_Start(adc_handles[i]) != HAL_OK)
-        {
-            critical_fault(CRITICAL_FAULT_HAL);
-        }
-    }
-
-    // fetch ADC results (blocking)
-    uint32_t adc_readings[num_adcs];
-    uint32_t accumulator = 0;
-
-    for (uint32_t i = 0; i < num_adcs; i++)
-    {
-        if (HAL_ADC_PollForConversion(adc_handles[i], HAL_MAX_DELAY) == HAL_OK)
-        {
-            adc_readings[i] = HAL_ADC_GetValue(adc_handles[i]);
-            scale_throttle_adc_reading(&adc_readings[i]);
-            accumulator += adc_readings[i];
-        }
-        else
-        {
-            critical_fault(CRITICAL_FAULT_HAL);
-        }
-    }
-
-    // check for discrepancy between readings
-#if THROTTLE_ENABLE_DIFF_CHECK
-
-    uint32_t diff;
-
-    if (adc_readings[1] > adc_readings[0])
-    {
-        diff = adc_readings[1] - adc_readings[0];
-    }
-    else
-    {
-        diff = adc_readings[0] - adc_readings[1];
-    }
-
-    if (diff > THROTTLE_MAX_DIFF)
-    {
-        critical_fault(CRITICAL_FAULT_THROTTLE_INPUT_DISCREPANCY);
-        return 0;
-    }
-
-#endif
-
-    // calculate average of both readings
-    uint32_t throttle = accumulator / num_adcs;
-
-    trace_log_event(TRACE_THROTTLE_INPUT_EVENT, (ULONG) throttle, 0, 0, 0);
-    return throttle;
-}
-
-/**
- * @brief 			Scale raw ADC reading
- *
- * @param[inout]	adc_reading_ptr		Pointer to ADC reading
- */
-void scale_throttle_adc_reading(uint32_t* adc_reading_ptr)
-{
-    const uint32_t input_resolution = THROTTLE_INPUT_RESOLUTION;
-    const uint32_t truncated_resolution = THROTTLE_SCALED_RESOLUTION;
-
-    *adc_reading_ptr
-        = *adc_reading_ptr >> (input_resolution - truncated_resolution);
-}
-#endif

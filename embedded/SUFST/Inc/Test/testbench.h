@@ -13,12 +13,12 @@
 #include "../config.h"
 
 /***************************************************************************
- * throttle input testbench
+ * APPS input testbench
  ***************************************************************************/
 
-#if RUN_THROTTLE_TESTBENCH
+#if RUN_APPS_TESTBENCH
 
-UINT testbench_throttle();
+UINT testbench_apps_input();
 
 #endif
 

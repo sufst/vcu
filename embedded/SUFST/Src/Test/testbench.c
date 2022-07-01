@@ -15,43 +15,42 @@
 #include "gpio.h"
 #endif
 
-#if RUN_THROTTLE_TESTBENCH
-#include "throttle_testbench_data.h"
+#if RUN_APPS_TESTBENCH
+#include "apps_testbench_data.h"
 #endif
 
 /***************************************************************************
- * throttle input testbench
+ * APPS input testbench
  ***************************************************************************/
 
-#if (RUN_THROTTLE_TESTBENCH)
-
-static UINT throttle = 0;
+#if RUN_APPS_TESTBENCH
 
 /**
- * @brief 	Testbench to simulate throttle inputs using data from a look-up
- * table
+ * @brief 	Testbench to simulate APPS inputs using data from a look-up
+ *          table
  *
- * @details If THROTTLE_TESTBENCH_LAPS (config.h) is set to 1, only the first
- * lap with a standing start will be simulated. For values of 2 or more,
- * additional flying laps are added. The simulated throttle is the same for laps
- * 2, 3, 4, etc.
+ * @details If APPS_TESTBENCH_LAPS (config.h) is set to 1, only the first
+ *          lap with a standing start will be simulated. For values of 2 or
+ *          more, additional flying laps are added. The simulated APPS input is
+ *          the same for laps 2, 3, 4, etc.
  *
- * @return	Simulated throttle input for current system timestamp
+ * @return	Simulated APPS input for current system timestamp
  */
-UINT testbench_throttle()
+UINT testbench_apps_input()
 {
     // persistent variables
     static UINT lap_count = 0;
     static UINT lookup_index = 0;
     static UINT last_lap_finish_time = 0;
+    static UINT apps_input = 0;
 
-    if (lap_count < THROTTLE_TESTBENCH_LAPS)
+    if (lap_count < APPS_TESTBENCH_LAPS)
     {
         // work out which lookup table to use
         // -> standing start data in first lap
         // -> flying lap data for any further laps
         const uint16_t* time_data;
-        const uint16_t* throttle_data;
+        const uint16_t* apps_data;
         UINT final_lookup_index;
 
         {
@@ -59,7 +58,8 @@ UINT testbench_throttle()
             if (lap_count == 0)
             {
                 time_data = standing_start_time_lookup;
-                throttle_data = standing_start_throttle_lookup;
+                apps_data = standing_start_apps_lookup;
+
                 final_lookup_index = (sizeof(standing_start_time_lookup)
                                       / sizeof(standing_start_time_lookup[0]))
                                      - 1;
@@ -68,7 +68,8 @@ UINT testbench_throttle()
             else
             {
                 time_data = flying_lap_time_lookup;
-                throttle_data = flying_lap_throttle_lookup;
+                apps_data = flying_lap_apps_lookup;
+
                 final_lookup_index = (sizeof(flying_lap_time_lookup)
                                       / sizeof(flying_lap_time_lookup[0]))
                                      - 1;
@@ -81,7 +82,7 @@ UINT testbench_throttle()
         const UINT lap_finish_time = time_data[final_lookup_index];
         const UINT current_lap_time = current_time - last_lap_finish_time;
 
-        // progress to next throttle input if in next time slot
+        // progress to next APPS input if in next time slot
         UINT next_time;
         bool end_of_lap = false;
 
@@ -97,7 +98,7 @@ UINT testbench_throttle()
             }
         }
 
-        throttle = throttle_data[lookup_index];
+        apps_input = apps_data[lookup_index];
 
         // end of lap handling
         if (end_of_lap)
@@ -110,10 +111,10 @@ UINT testbench_throttle()
     }
     else
     {
-        throttle = 0;
+        apps_input = 0;
     }
 
-    return throttle;
+    return apps_input;
 }
 
 #endif

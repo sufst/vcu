@@ -12,7 +12,7 @@
 
 #include "tx_api.h"
 
-#define THROTTLE_MAP_SIZE 1024
+#define TORQUE_MAP_SIZE 1024
 
 /*
  * driver profile IDs
@@ -22,7 +22,7 @@
 #define DRIVER_PROFILE_MOTOR_TESTING \
     1 // torque limited version of default profile for motor testing
 #define NUM_DRIVER_PROFILES \
-    2 // 1 profile exists, any IDs less than this number are valid
+    2 // 2 profile exist, any IDs less than this number are valid
 
 /*
  * return codes
@@ -47,9 +47,9 @@ typedef struct
     const CHAR* name;
 
     /**
-     * @brief Pointer to throttle curve lookup table
+     * @brief Pointer to APPS curve lookup table
      */
-    uint16_t* throttle_curve;
+    uint16_t* torque_curve;
 
 } driver_profile_t;
 

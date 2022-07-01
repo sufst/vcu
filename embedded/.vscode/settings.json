@@ -32,7 +32,9 @@
         "can_rx_thread.h": "c",
         "throttle_testbench_data.h": "c",
         "control_thread.h": "c",
-        "fault.h": "c"
+        "fault.h": "c",
+        "stdint.h": "c",
+        "apps.h": "c"
     },
-    "cortex-debug.variableUseNaturalFormat": false,
+    "cortex-debug.variableUseNaturalFormat": true,
 }
