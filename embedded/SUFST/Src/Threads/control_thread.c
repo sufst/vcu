@@ -19,9 +19,9 @@
 #define CONTROL_THREAD_PREEMPTION_THRESHOLD CONTROL_THREAD_PRIORITY
 #define CONTROL_THREAD_NAME                 "Control Thread"
 
-#define THROTTLE_INPUT_QUEUE_ITEM_SIZE      TX_1_ULONG
-#define THROTTLE_INPUT_QUEUE_SIZE           2
-#define THROTTLE_INPUT_QUEUE_NAME           "Throttle Input Queue"
+#define APPS_INPUT_QUEUE_ITEM_SIZE          TX_1_ULONG
+#define APPS_INPUT_QUEUE_SIZE               2
+#define APPS_INPUT_QUEUE_NAME               "APPS Input Queue"
 
 /**
  * @brief Thread for control task
@@ -29,15 +29,15 @@
 TX_THREAD control_thread;
 
 /**
- * @brief Throttle input queue
+ * @brief APPS input queue
  */
-TX_QUEUE throttle_input_queue;
+TX_QUEUE apps_input_queue;
 
 /**
- * @brief Throttle input queue memory area
+ * @brief APPS input queue memory area
  */
-static ULONG throttle_input_queue_mem[THROTTLE_INPUT_QUEUE_SIZE
-                                      * THROTTLE_INPUT_QUEUE_ITEM_SIZE];
+static ULONG apps_input_queue_mem[APPS_INPUT_QUEUE_SIZE
+                                      * APPS_INPUT_QUEUE_ITEM_SIZE];
 
 /*
  * function prototypes
@@ -75,14 +75,14 @@ UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr)
                                TX_DONT_START);
     }
 
-    // create throttle input queue
+    // create APPS input queue
     if (ret == TX_SUCCESS)
     {
-        ret = tx_queue_create(&throttle_input_queue,
-                              THROTTLE_INPUT_QUEUE_NAME,
-                              THROTTLE_INPUT_QUEUE_ITEM_SIZE,
-                              throttle_input_queue_mem,
-                              sizeof(throttle_input_queue_mem));
+        ret = tx_queue_create(&apps_input_queue,
+                              APPS_INPUT_QUEUE_NAME,
+                              APPS_INPUT_QUEUE_ITEM_SIZE,
+                              apps_input_queue_mem,
+                              sizeof(apps_input_queue_mem));
     }
 
     return ret;
@@ -132,16 +132,16 @@ void control_thread_entry(ULONG thread_input)
     {
         // wait for a message to enter the control input queue
         // -> thread suspended until message received
-        ULONG throttle_input = 0;
+        ULONG apps_input = 0;
 
-        if (tx_queue_receive(&throttle_input_queue,
-                             &throttle_input,
+        if (tx_queue_receive(&apps_input_queue,
+                             &apps_input,
                              TX_WAIT_FOREVER)
             == TX_SUCCESS)
         {
             // apply the thottle curve
             UINT torque_request
-                = apply_torque_map(driver_profile_ptr, throttle_input);
+                = apply_torque_map(driver_profile_ptr, apps_input);
 
             // create and send the torque request to the CAN thread
             UINT ret = tx_queue_send(&torque_request_queue,

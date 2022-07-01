@@ -134,15 +134,15 @@ void sensor_thread_entry(ULONG thread_input)
         testbench_fault_state();
 #endif
 
-        // read throttle
-#if RUN_THROTTLE_TESTBENCH
-        uint32_t throttle = testbench_throttle();
+        // read APPS
+#if RUN_APPS_TESTBENCH
+        uint32_t apps_input = testbench_apps_input();
 #else
         ULONG apps_input = (ULONG) read_apps();
 #endif
 
-        // transmit throttle to control thread
-        ret = tx_queue_send(&throttle_input_queue,
+        // transmit APPS input to control thread
+        ret = tx_queue_send(&apps_input_queue,
                             (ULONG*) &apps_input,
                             TX_NO_WAIT);
 

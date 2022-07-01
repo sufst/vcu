@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #define NUM_TESTBENCHES_RUNNING \
-    (RUN_THROTTLE_TESTBENCH + RUN_FAULT_STATE_TESTBENCH)
+    (RUN_APPS_TESTBENCH + RUN_FAULT_STATE_TESTBENCH)
 
 #define TESTBENCHES_RUNNING (NUM_TESTBENCHES_RUNNING > 0)
 

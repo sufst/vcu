@@ -35,7 +35,7 @@ uint32_t read_apps()
 
     uint32_t average_reading = (readings[0] + readings[1]) / 2;
 
-    trace_log_event(TRACE_THROTTLE_INPUT_EVENT,
+    trace_log_event(TRACE_APPS_INPUT_EVENT,
                     (ULONG) average_reading,
                     0,
                     0,

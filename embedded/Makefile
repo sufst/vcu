@@ -95,7 +95,7 @@ SUFST/Src/CAN/drs.c \
 SUFST/Src/Profiles/driver_profiles.c \
 SUFST/Src/Profiles/driver_profile_data.c \
 SUFST/Src/Test/testbench.c \
-SUFST/Src/Test/throttle_testbench_data.c \
+SUFST/Src/Test/apps_testbench_data.c \
 SUFST/Src/Test/trace.c \
 SUFST/Src/Threads/sensor_thread.c \
 SUFST/Src/Threads/control_thread.c \

@@ -10,7 +10,7 @@
 
 #include "tx_api.h"
 
-extern TX_QUEUE throttle_input_queue;
+extern TX_QUEUE apps_input_queue;
 
 UINT control_thread_create(TX_BYTE_POOL* stack_pool_ptr);
 UINT control_thread_start();

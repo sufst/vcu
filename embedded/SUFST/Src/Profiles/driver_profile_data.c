@@ -10,9 +10,9 @@
 #include "driver_profiles.h"
 
 /**
- * @brief Default linear throttle curve with a small deadzone
+ * @brief Default linear torque curve with a small deadzone
  */
-const uint16_t default_linear_throttle_map[THROTTLE_MAP_SIZE] = {
+const uint16_t default_linear_torque_map[TORQUE_MAP_SIZE] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
@@ -130,9 +130,9 @@ const uint16_t default_linear_throttle_map[THROTTLE_MAP_SIZE] = {
 };
 
 /**
- * @brief Linear torque limited throttle map with a moderate deadzone
+ * @brief Linear torque limited torque map with a moderate deadzone
  */
-const uint16_t motor_testing_throttle_map[THROTTLE_MAP_SIZE] = {
+const uint16_t motor_testing_torque_map[TORQUE_MAP_SIZE] = {
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
     0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000, 0x0000,
