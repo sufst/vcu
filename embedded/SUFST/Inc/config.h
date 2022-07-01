@@ -69,6 +69,11 @@
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
 
+#define APPS_1_ADC_MIN                      1500    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      1500    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      57000   //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      57000   // ^                                ^ channel 2
+
 /***************************************************************************
  * testbenches
  ***************************************************************************/

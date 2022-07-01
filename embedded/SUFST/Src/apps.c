@@ -18,7 +18,9 @@
  * function prototypes
  */
 static void read_adcs(uint32_t readings[2]);
-static void scale_adc_readings(uint32_t readings[2]);
+static void map_adc_reading(uint32_t* reading, uint32_t min, uint32_t max);
+
+static uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max);
 
 /**
  * @brief   Reads the APPS input
@@ -31,7 +33,9 @@ uint32_t read_apps()
     uint32_t readings[2];
 
     read_adcs(readings);
-    scale_adc_readings(readings);
+
+    map_adc_reading(&readings[0], APPS_1_ADC_MIN, APPS_1_ADC_MAX);
+    map_adc_reading(&readings[1], APPS_2_ADC_MIN, APPS_2_ADC_MAX);
 
     uint32_t average_reading = (readings[0] + readings[1]) / 2;
 
@@ -47,8 +51,8 @@ uint32_t read_apps()
 /**
  * @brief       Read APPS ADCs (raw)
  *
- * @details     APPS1: hadc1 (PA3)
- *              APPS2: hadc2 (PB1)
+ * @details     APPS 1: hadc1 (PA3)
+ *              APPS 2: hadc2 (PB1)
  *
  * @param[out]  readings    Array of two raw ADC readings
  */
@@ -71,16 +75,43 @@ void read_adcs(uint32_t readings[2])
 }
 
 /**
- * @brief           Scale raw ADC readings
+ * @brief           Maps a raw ADC reading to the required range and resolution 
+ *                  for APPS inputs
  *
- * @param[inout]    readings    Array of two raw ADC readings
+ * @param[inout]    reading     Pointer to raw ADC reading
+ * @param[in]       min         Minimum expected raw reading
+ * @param[in]       max         Maximum expected raw reading
  */
-void scale_adc_readings(uint32_t readings[2])
+void map_adc_reading(uint32_t* reading, uint32_t min, uint32_t max)
 {
-    const int shift = APPS_ADC_RESOLUTION - APPS_SCALED_RESOLUTION;
+    uint32_t clipped = clip_to_range(*reading, min, max);
 
-    for (int i = 0; i < 2; i++)
+    const uint32_t apps_max = (1 << APPS_SCALED_RESOLUTION) - 1;
+    const uint32_t scale_factor = (max - min) / apps_max;
+
+    *reading = (clipped - min) / scale_factor;
+    *reading = clip_to_range(*reading, 0, apps_max);
+}
+
+/**
+ * @brief       Clips a value within a range
+ * 
+ * @details     Value is clipped to [min, max]
+ * 
+ * @param[in]   value   Value to clip
+ * @param[in]   min     Minimum of range
+ * @param[in]   max     Maximum of range
+ */
+uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max)
+{
+    if (value < min)
     {
-        readings[i] >>= shift;
+        return min;
     }
+    else if (value > max)
+    {
+        return max;
+    }
+
+    return value;
 }
