@@ -27,15 +27,30 @@
  * general safeguards
  ***************************************************************************/
 
+// APPS
 #if APPS_ADC_RESOLUTION < APPS_SCALED_RESOLUTION
 #error "Scaled APPS resolution is greater than input resolution"
+#endif
+
+#define APPS_ADC_MAX ((1 << APPS_ADC_RESOLUTION) - 1)
+
+#if APPS_1_ADC_MAX > APPS_ADC_MAX || APPS_2_ADC_MAX > APPS_ADC_MAX
+#error "APPS ADC maximum greater than actual maximum ADC output"
+#endif
+
+#if APPS_1_ADC_MIN < 0 || APPS_1_ADC_MIN < 0
+#error "APPS ADC minimum less than zero"
+#endif
+
+#if APPS_1_ADC_MIN >= APPS_1_ADC_MAX || APPS_2_ADC_MIN >= APPS_2_ADC_MAX
+#error "APPS ADC minimum greater than APPS ADC maximum"
 #endif
 
 /***************************************************************************
  * competition rules
  ***************************************************************************/
 
-#if (COMPETITION_MODE)
+#if COMPETITION_MODE
 
 // testbenches must be disabled
 #if TESTBENCHES_RUNNING
