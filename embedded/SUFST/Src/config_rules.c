@@ -27,8 +27,9 @@
  * general safeguards
  ***************************************************************************/
 
-// TODO: prevent illegal combinations of test benches from running (if any)
-// TODO: if no test benches, make sure config values match the rules
+#if APPS_ADC_RESOLUTION < APPS_SCALED_RESOLUTION
+#error "Scaled APPS resolution is greater than input resolution"
+#endif
 
 /***************************************************************************
  * competition rules
@@ -36,7 +37,7 @@
 
 #if (COMPETITION_MODE)
 
-// testbenches must be disables
+// testbenches must be disabled
 #if TESTBENCHES_RUNNING
 #error "Testbenches are enabled"
 #endif
