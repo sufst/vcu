@@ -35,13 +35,14 @@ Commits (and issue/pull request titles) should follow the [conventional commits 
 `<scope>` should be a single word describing a part of the system such as (but not limited to):
 | Scope      | Description                                                    |
 |------------|----------------------------------------------------------------|
+| `apps`     | Accelerator pedal position sensor                              |
 | `can`      | Communication with devices on the CAN bus                      |
 | `control`  | Control algorithms (throttle mapping, traction control...)     |
 | `drs`      | Drag reduction system                                          |
 | `io`       | Reading/writing/configuring general I/O                        |
+| `rtd`      | Ready-to-drive procedure                                       |
 | `rtos`     | Real-time operating system (configuration, thread creation...) |
-| `safety`   | Safety checks, fault handling, ready-to-drive logic            |
-| `sensors`  | Sensor inputs                                                  |
+| `safety`   | Safety checks, fault handling                                  |
 
 `<subject>` should written as "lowercase, imperative, present tense" (e.g. _'create control thread'_ or _'add init.c to Makefile'_).
 
