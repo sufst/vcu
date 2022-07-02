@@ -67,7 +67,7 @@
  ***************************************************************************/
 
 #define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
-#define APPS_DISABLE_BOUNDS_CHECK           0       // disable check for APPS ADC reading out of bounds
+#define APPS_DISABLE_BOUNDS_CHECK           1       // disable check for APPS ADC reading out of bounds
 
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
@@ -79,6 +79,20 @@
 #define APPS_2_ADC_MIN                      5000    // ^                                ^ channel 2
 #define APPS_1_ADC_MAX                      50000   //  maximum raw ADC reading for APPS  channel 1
 #define APPS_2_ADC_MAX                      50000   // ^                                ^ channel 2
+
+/***************************************************************************
+ * BPS - brake pressure sensor
+ ***************************************************************************/
+
+#define BPS_ADC_MIN                         200     // minimum raw ADC reading for BPS
+#define BPS_ADC_MAX                         5000    // maximum raw ADC reading for BPS
+#define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
+
+/***************************************************************************
+ * SCS - safety critical signals
+ ***************************************************************************/
+
+#define SCS_OUTSIDE_BOUNDS_FRACTION         0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
 /***************************************************************************
  * testbenches

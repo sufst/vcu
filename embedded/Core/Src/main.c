@@ -97,6 +97,7 @@ int main(void)
   MX_FDCAN1_Init();
   MX_ADC2_Init();
   MX_RTC_Init();
+  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */

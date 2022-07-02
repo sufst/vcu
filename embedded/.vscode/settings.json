@@ -34,7 +34,8 @@
         "control_thread.h": "c",
         "fault.h": "c",
         "stdint.h": "c",
-        "apps.h": "c"
+        "apps.h": "c",
+        "limits": "c"
     },
     "cortex-debug.variableUseNaturalFormat": true,
 }
