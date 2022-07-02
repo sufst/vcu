@@ -8,6 +8,7 @@
 #include "bps.h"
 
 #include "config.h"
+
 #include "fault.h"
 
 #include "scs.h"

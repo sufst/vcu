@@ -71,7 +71,8 @@ uint32_t scs_read(scs_t* scs_ptr)
     }
 
     if (HAL_ADC_Start(scs_ptr->hadc_ptr) != HAL_OK
-        || HAL_ADC_PollForConversion(scs_ptr->hadc_ptr, HAL_MAX_DELAY) != HAL_OK)
+        || HAL_ADC_PollForConversion(scs_ptr->hadc_ptr, HAL_MAX_DELAY)
+               != HAL_OK)
     {
         scs_ptr->adc_reading = scs_ptr->adc_min;
         scs_ptr->mapped_reading = scs_ptr->min;
@@ -89,11 +90,11 @@ uint32_t scs_read(scs_t* scs_ptr)
 
 /**
  * @brief       Validates the ADC reading of a safety critical signal
- * 
- * @details     Validation logic: 
- * 
+ *
+ * @details     Validation logic:
+ *
  *              adc_reading
- *                  ^  
+ *                  ^
  *                  |   invalid
  *                  |   ------------------------- adc_max + max_bounds_diff
  *                  |   valid

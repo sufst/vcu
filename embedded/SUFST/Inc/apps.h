@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 
-uint32_t read_apps();
+void apps_init();
+uint32_t apps_read();
 
 #endif
