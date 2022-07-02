@@ -7,7 +7,9 @@
 
 #include "init.h"
 
+#include "apps.h"
 #include "bps.h"
+
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
 #include "control_thread.h"
@@ -60,6 +62,7 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
 {
     bps_init();
+    apps_init();
 
     UINT ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
     return ret;

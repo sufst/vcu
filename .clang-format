@@ -74,7 +74,7 @@ IncludeCategories:
         Priority: 3
         SortPriority: 3
         CaseSensitive: true
-    -   Regex: '^"(adc|dac|fdcan|gpio|rtc)([A-Za-z0-9.\/-_])+"'
+    -   Regex: '^"(adc|dac|fdcan|gpio|rtc|scs|apps|rtd|bps)([A-Za-z0-9.\/-_])+"'
         Priority: 4
         SortPriority: 4
         CaseSensitive: true

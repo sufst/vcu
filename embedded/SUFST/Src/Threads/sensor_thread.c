@@ -15,9 +15,9 @@
 #include "trace.h"
 
 #include "adc.h"
+#include "apps.h"
 #include "gpio.h"
 
-#include "apps.h"
 #include "control_thread.h"
 
 #define SENSOR_THREAD_STACK_SIZE           1024
@@ -138,7 +138,7 @@ void sensor_thread_entry(ULONG thread_input)
 #if RUN_APPS_TESTBENCH
         uint32_t apps_input = testbench_apps_input();
 #else
-        ULONG apps_input = (ULONG) read_apps();
+        ULONG apps_input = (ULONG) apps_read();
 #endif
 
         // transmit APPS input to control thread
