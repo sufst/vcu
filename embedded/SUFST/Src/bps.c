@@ -25,7 +25,7 @@ void bps_init()
     uint32_t bps_signal_max = (1 << BPS_SCALED_RESOLUTION) - 1;
 
     scs_create(&bps_signal,
-               &hadc2,
+               &hadc3,
                BPS_ADC_MIN,
                BPS_ADC_MAX,
                0,

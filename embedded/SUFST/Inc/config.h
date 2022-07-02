@@ -67,7 +67,7 @@
  ***************************************************************************/
 
 #define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
-#define APPS_DISABLE_BOUNDS_CHECK           0       // disable check for APPS ADC reading out of bounds
+#define APPS_DISABLE_BOUNDS_CHECK           1       // disable check for APPS ADC reading out of bounds
 
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
@@ -84,8 +84,8 @@
  * BPS - brake pressure sensor
  ***************************************************************************/
 
-#define BPS_ADC_MIN                         2000    // minimum raw ADC reading for BPS
-#define BPS_ADC_MAX                         55000   // maximum raw ADC reading for BPS
+#define BPS_ADC_MIN                         200     // minimum raw ADC reading for BPS
+#define BPS_ADC_MAX                         5000    // maximum raw ADC reading for BPS
 #define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
 
 /***************************************************************************
