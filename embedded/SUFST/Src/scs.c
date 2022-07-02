@@ -130,8 +130,8 @@ bool scs_validate(scs_t* scs_ptr)
         high_diff = scs_ptr->adc_reading - scs_ptr->adc_max;
     }
 
-    return low_diff > scs_ptr->max_bounds_diff
-           || high_diff > scs_ptr->max_bounds_diff;
+    return low_diff < scs_ptr->max_bounds_diff
+           && high_diff < scs_ptr->max_bounds_diff;
 }
 
 /**
