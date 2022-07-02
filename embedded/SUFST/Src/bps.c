@@ -40,10 +40,28 @@ uint32_t bps_read()
 {
     uint32_t reading = scs_read(&bps_signal);
 
+#if !BPS_DISABLE_SCS_CHECK
     if (!scs_validate(&bps_signal))
     {
         critical_fault(CRITICAL_FAULT_SCS_OUTSIDE_BOUNDS);
     }
+#endif
 
     return reading;
+}
+
+/**
+ * @brief   Checks if BPS is fully pressed
+ * 
+ * @return  true    BPS is fully pressed
+ * @return  false   BPS is not fully pressed
+ */
+bool bps_fully_pressed()
+{
+    const uint32_t bps_max = (1 << BPS_SCALED_RESOLUTION) - 1;
+    const uint32_t bps_threshold = bps_max * BPS_FULLY_PRESSED_THRESHOLD;
+
+    uint32_t bps_input = bps_read();
+
+    return bps_input > bps_threshold;
 }

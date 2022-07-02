@@ -66,19 +66,23 @@ uint32_t apps_read()
     {
         inputs[i] = scs_read(&apps_signals[i]);
 
+#if !APPS_DISABLE_SCS_CHECK
         if (!scs_validate(&apps_signals[i]))
         {
             critical_fault(CRITICAL_FAULT_SCS_OUTSIDE_BOUNDS);
             inputs[i] = 0;
         }
+#endif
 
         accumulator += inputs[i];
     }
 
+#if !APPS_DISABLE_DIFF_CHECK
     if (!apps_inputs_agree(inputs))
     {
         critical_fault(CRITICAL_FAULT_APPS_INPUT_DISCREPANCY);
     }
+#endif
 
     return accumulator / num_inputs;
 }

@@ -27,7 +27,7 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_OVERRIDE		        0		// set to 0 to use the 'USER' button as the ready-to-drive signal
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
 /***************************************************************************
@@ -67,13 +67,13 @@
  ***************************************************************************/
 
 #define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
-#define APPS_DISABLE_BOUNDS_CHECK           1       // disable check for APPS ADC reading out of bounds
+#define APPS_DISABLE_SCS_CHECK              1       // disable check for APPS ADC reading out of bounds
 
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
 #define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
 
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
-#define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f  // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
+#define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
 #define APPS_1_ADC_MIN                      5000    //  minimum raw ADC reading for APPS  channel 1
 #define APPS_2_ADC_MIN                      5000    // ^                                ^ channel 2
@@ -84,15 +84,18 @@
  * BPS - brake pressure sensor
  ***************************************************************************/
 
+#define BPS_DISABLE_SCS_CHECK               0       // disable check for BPS ADC reading out of bounds
+
 #define BPS_ADC_MIN                         200     // minimum raw ADC reading for BPS
-#define BPS_ADC_MAX                         5000    // maximum raw ADC reading for BPS
+#define BPS_ADC_MAX                         4000    // maximum raw ADC reading for BPS
 #define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
+#define BPS_FULLY_PRESSED_THRESHOLD         0.95f   // fraction of BPS full range beyond which it is considered to be fully pressed
 
 /***************************************************************************
  * SCS - safety critical signals
  ***************************************************************************/
 
-#define SCS_OUTSIDE_BOUNDS_FRACTION         0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
+#define SCS_OUTSIDE_BOUNDS_FRACTION         0.05f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
 /***************************************************************************
  * testbenches
