@@ -12,6 +12,7 @@
 #include "config.h"
 #include "tx_api.h"
 
+#include "bps.h"
 #include "gpio.h"
 
 #include "pm100.h"
@@ -30,7 +31,7 @@ void rtd_wait()
     HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
     // wait for active high
-    while (!rtd_input_active())
+    while (!(rtd_input_active() && bps_fully_pressed()))
         ;
 
         // if ready to drive overridden ('USER' button input)
