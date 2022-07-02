@@ -91,6 +91,7 @@ SUFST/Src/ready_to_drive.c \
 SUFST/Src/apps.c \
 SUFST/Src/scs.c \
 SUFST/Src/bps.c \
+SUFST/Src/shutdown.c \
 SUFST/Src/CAN/can_device_state.c \
 SUFST/Src/CAN/pm100.c \
 SUFST/Src/CAN/drs.c \

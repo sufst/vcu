@@ -17,6 +17,7 @@
 #include "adc.h"
 #include "apps.h"
 #include "gpio.h"
+#include "shutdown.h"
 
 #include "control_thread.h"
 
@@ -129,6 +130,8 @@ void sensor_thread_entry(ULONG thread_input)
     // loop forever
     while (1)
     {
+        check_shutdown();
+
         // check for fault state
 #if RUN_FAULT_STATE_TESTBENCH
         testbench_fault_state();
