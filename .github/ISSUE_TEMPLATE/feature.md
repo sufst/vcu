@@ -8,13 +8,13 @@ assignees: ''
 ---
 
 ### Description
-High level description of the required feature.
+A high level description of the required feature.
 
 ### Tasks
 - [ ] Task 1...
 
-### Relevant competition rules
+### Relevant FSUK Rules
 **EV?.??.?** The vehicle...
 
-### Additional context
-Any additional context.
+### Additional Notes
+Any additional notes.
