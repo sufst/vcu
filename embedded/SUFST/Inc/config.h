@@ -81,7 +81,15 @@
 #define APPS_2_ADC_MAX                      50000   // ^                                ^ channel 2
 
 /***************************************************************************
- * safety critical signals
+ * BPS - brake pressure sensor
+ ***************************************************************************/
+
+#define BPS_ADC_MIN                         2000    // minimum raw ADC reading for BPS
+#define BPS_ADC_MAX                         55000   // maximum raw ADC reading for BPS
+#define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
+
+/***************************************************************************
+ * SCS - safety critical signals
  ***************************************************************************/
 
 #define SCS_OUTSIDE_BOUNDS_FRACTION         0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
