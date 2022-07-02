@@ -8,10 +8,13 @@ assignees: ''
 ---
 
 ### Description
-Description of the issue.
+A description of the issue.
 
 ### Tasks
 - [ ] Task 1...
 
-### Additional context
-Any additional context.
+### Relevant FSUK Rules
+**EV?.??.?** The vehicle...
+
+### Additional Notes
+Any additional notes.

@@ -10,24 +10,18 @@ assignees: ''
 ### Description
 Description of the bug.
 
-### Steps to reproduce
+### Steps To Reproduce
 1. ...
 2. ...
 3. ...
 4. ...
 
-### Expected behaviour
-Expected behaviour.
+### Expected Behaviour
+Expected behaviour once fixed.
 
-### Relevant competition rules
+### Relevant FSUK Rules
 **EV?.??.?** The vehicle...
 
-### Toolchain
-```
-OS  : [e.g. Windows, macOS, Linux]
-IDE : [e.g. STM32CubeIDE v1.9.0]
-```
-
-### Additional context
-Any additional context, screenshots, etc.
+### Additional Notes
+Any additional notes.
 
