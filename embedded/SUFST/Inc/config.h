@@ -27,7 +27,7 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        0		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
 /***************************************************************************
@@ -84,7 +84,7 @@
  * BPS - brake pressure sensor
  ***************************************************************************/
 
-#define BPS_DISABLE_SCS_CHECK               0       // disable check for BPS ADC reading out of bounds
+#define BPS_DISABLE_SCS_CHECK               1       // disable check for BPS ADC reading out of bounds
 
 #define BPS_ADC_MIN                         200     // minimum raw ADC reading for BPS
 #define BPS_ADC_MAX                         4000    // maximum raw ADC reading for BPS
