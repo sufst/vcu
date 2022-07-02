@@ -34,7 +34,7 @@ void scs_create(scs_t* scs_ptr,
                 uint32_t min,
                 uint32_t max)
 {
-    if (scs_ptr == NULL || hadc_ptr != NULL)
+    if (scs_ptr == NULL || hadc_ptr == NULL)
     {
         scs_ptr->hadc_ptr = NULL;
         return;
