@@ -4,6 +4,7 @@
 /scripts/*.c
 /.vscode/**
 /.trunk/out
+/.trunk/logs
 
 ### C ###
 *.d
