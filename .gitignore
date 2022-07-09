@@ -1,90 +1,88 @@
+################################################################################
+#               :
+#   File        :   .gitignore
+#               :
+#   Description :   Files and folders ignored from version control
+#               :
+#   Note        :   Generated in part using gitignore.io
+#               :
+###############################################################################
 
-### specific files / folders ###
-/scripts/*.h
-/scripts/*.c
-/.vscode/**
-/.trunk/out
-/.trunk/logs
 
-### C ###
+################################################################################
+# C
+################################################################################
+
+/build
+
+# build artefacts
 *.d
 *.o
-*.ko
+*.lst
 *.obj
-*.elf
-*.ilk
 *.map
-*.exp
-*.gch
-*.pch
-*.lib
-*.a
-*.la
-*.lo
-*.dll
-*.so
-*.so.*
-*.dylib
-*.exe
+*.elf
 *.out
-*.app
-*.i*86
-*.x86_64
 *.hex
+
+compile_commands.json
+
+# executables / binaries
+*.bin
+*.exe
+*.app
+*.x86_64
+
+# libraries
+*.a
+*.dll
+*.dylib
+*.lib
+
+# debug
 *.dSYM/
-*.su
-*.idb
-*.pdb
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+debug/*
+!debug/*.svd
 
+################################################################################
+# STM32
+################################################################################
 
-### STM32 ###
-Drivers/*
+Debug/
 MDK-ARM/*
 EWARM/*
 *.settings
 *.mxproject
+*.cproject
+*.project
 *.metadata
 *.launch
-Debug/
+*.ftl
+*.scratch
 
-### Python ###
+################################################################################
+# Python
+################################################################################
+
 __pycache__/
 *.py[cod]
 *$py.class
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-.env
-.venv
-env/
-venv/
-ENV/
-env.bak/
-venv.bak/
 
-### macOS ###
+################################################################################
+# vscode 
+################################################################################
+
+.vscode
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/c_cpp_properties.json
+
+################################################################################
+# macOS
+################################################################################
+
 .DS_Store
 .AppleDouble
 .LSOverride
@@ -102,3 +100,49 @@ Icon^M
 Network Trash Folder
 Temporary Items
 .apdisk
+
+################################################################################
+# Windows
+################################################################################
+
+# thumbnail cache
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# folder config
+[Dd]esktop.ini
+
+# shortcuts
+*.lnk
+
+# installer files
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# other
+*.stackdump
+$RECYCLE.BIN/
+
+################################################################################
+# misc files and folders
+################################################################################
+
+# unnecessary embedded middleware and driver files
+src/Drivers/CMSIS/DSP/DSP_Lib_TestSuite
+src/Middlewares/ST/threadx/ports/cortex_m7/iar
+
+# script outputs
+/scripts/*.h
+/scripts/*.c
+
+# trunk
+/.trunk/out
+/.trunk/logs
+
+# TraceX
+*.trx

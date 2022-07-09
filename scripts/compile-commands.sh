@@ -47,14 +47,14 @@ for COMMAND in $(cat < "$TMP_FILE"); do
     
     # directory of build folder
     REPO_ROOT_DIR="$(git rev-parse --show-toplevel)"
-    EMBEDDED_DIR="$REPO_ROOT_DIR/embedded"
+    SRC_DIR="$REPO_ROOT_DIR"
     BUILD_DIR="$EMBEDDED_DIR/build"
 
     # escape quotes in the command 
     ESCAPED_COMMAND=$(echo "$COMMAND" | sed 's/"/\\"/g')
 
     # append JSON object describing command to file
-    JSON="\t{\n\t\t\"directory\": \"$BUILD_DIR\",\n\t\t\"command\": \"$ESCAPED_COMMAND\",\n\t\t\"file\": \"$EMBEDDED_DIR/$SOURCE_FILE\"\n\t},"
+    JSON="\t{\n\t\t\"directory\": \"$BUILD_DIR\",\n\t\t\"command\": \"$ESCAPED_COMMAND\",\n\t\t\"file\": \"$SRC_DIR/$SOURCE_FILE\"\n\t},"
     echo -e "$JSON" >> "$JSON_FILE"
 
 done

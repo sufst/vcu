@@ -53,7 +53,7 @@
         {
             "label": "generate compile_commands.json",
             "type": "shell",
-            "command": "./Scripts/compile-commands.sh",
+            "command": "./scripts/compile-commands.sh",
             "group": "build",
         },
         // open STM32CubeMX
