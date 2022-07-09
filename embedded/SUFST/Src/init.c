@@ -7,6 +7,10 @@
 
 #include "init.h"
 
+#include "config.h"
+
+#include "trace.h"
+
 #include "apps.h"
 #include "bps.h"
 
