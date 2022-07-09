@@ -17,9 +17,9 @@
 #include "adc.h"
 #include "apps.h"
 #include "gpio.h"
-#include "shutdown.h"
 
 #include "control_thread.h"
+#include "shutdown.h"
 
 #define SENSOR_THREAD_STACK_SIZE           1024
 #define SENSOR_THREAD_PREEMPTION_THRESHOLD SENSOR_THREAD_PRIORITY
