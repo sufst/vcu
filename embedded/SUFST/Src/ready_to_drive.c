@@ -30,9 +30,13 @@ void rtd_wait()
 {
     HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
 
-    // wait for active high
+#if !READY_TO_DRIVE_IGNORE_BPS
     while (!(rtd_input_active() && bps_fully_pressed()))
         ;
+#else
+    while (!rtd_input_active())
+        ;
+#endif
 
         // if ready to drive overridden ('USER' button input)
         // wait for button to be released

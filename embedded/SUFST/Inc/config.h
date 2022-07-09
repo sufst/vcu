@@ -28,6 +28,7 @@
  ***************************************************************************/
 
 #define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_IGNORE_BPS           1
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
 /***************************************************************************
@@ -48,7 +49,8 @@
 #define WATCHDOG_THREAD_PRIORITY_ELEVATED   0       // elevated for critical fault handling
 #define INIT_THREAD_PRIORITY                0
 
-#define TRACEX_ENABLE                       0       // enable TraceX logging
+#define TRACEX_ENABLE                       1
+       // enable TraceX logging
 
 /***************************************************************************
  * CAN / inverter

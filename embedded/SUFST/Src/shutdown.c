@@ -8,11 +8,12 @@
 #include "shutdown.h"
 
 #include "fault.h"
+
 #include "gpio.h"
 
 /**
  * @brief   Check if shutdown fault has occurred
- * 
+ *
  * @note    Shutdown is active low
  */
 void check_shutdown()

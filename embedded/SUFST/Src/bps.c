@@ -52,7 +52,7 @@ uint32_t bps_read()
 
 /**
  * @brief   Checks if BPS is fully pressed
- * 
+ *
  * @return  true    BPS is fully pressed
  * @return  false   BPS is not fully pressed
  */
