@@ -13,7 +13,7 @@
         ".vscode/*.log": true,
         "null.d": true,
         "compile_commands.json": true,
-        "**.svd": true,
+        "**/.mxproject": true
     },
     "files.associations": {
         "sensor_thread.h": "c",
