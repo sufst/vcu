@@ -72,7 +72,7 @@ __pycache__/
 # vscode 
 ################################################################################
 
-.vscode
+.vscode/*
 !.vscode/extensions.json
 !.vscode/launch.json
 !.vscode/settings.json
