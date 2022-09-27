@@ -1,10 +1,30 @@
 version: 0.1
+runtimes:
+  enabled:
+    - go@1.18.3
+    - node@16.14.2
+    - python@3.10.3
+actions:
+  enabled:
+    - trunk-announce
+    - trunk-cache-prune
+    - trunk-check-pre-push
+    - trunk-fmt-pre-commit
+    - trunk-upgrade-available
 cli:
-  version: 0.14.1-beta
+  version: 0.18.0-beta
+plugins:
+  sources:
+    - id: trunk
+      ref: v0.0.4
+      uri: https://github.com/trunk-io/plugins
 lint:
   enabled:
-    - gitleaks@8.8.7
-    - clang-format@13.0.0
+    - clang-format@14.0.0
+    - git-diff-check@SYSTEM
+    - gitleaks@8.13.0
+    - markdownlint@0.32.2
+    - prettier@2.7.1
   ignore:
     - linters: [clang-format, gitleaks]
       paths:
