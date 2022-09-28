@@ -29,6 +29,7 @@ lint:
           run: cppcheck --addon=./.trunk/config/misra.json --cppcheck-build-dir=./cppcheck ${target}
           read_output_from: stderr
           run_linter_from: workspace
+          run_when: [cli, lsp, monitor, ci]
   enabled:
     - cppcheck@SYSTEM
     - clang-format@14.0.0
