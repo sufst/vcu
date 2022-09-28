@@ -8,3 +8,6 @@ line_length: false
 spaces: false
 url: false
 whitespace: false
+
+# disabled checks
+MD041: false
