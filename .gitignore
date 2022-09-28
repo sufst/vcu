@@ -134,7 +134,6 @@ $RECYCLE.BIN/
 
 # unnecessary embedded middleware and driver files
 src/Drivers/CMSIS/*
-!src/Drivers/CMSIS/Include
 !src/Drivers/CMSIS/LICENSE.txt
 !src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f7xx.h
 !src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f723xx.h
