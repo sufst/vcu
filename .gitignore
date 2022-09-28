@@ -133,8 +133,13 @@ $RECYCLE.BIN/
 ################################################################################
 
 # unnecessary embedded middleware and driver files
-src/Drivers/CMSIS/DSP/DSP_Lib_TestSuite
-src/Middlewares/ST/threadx/ports/cortex_m7/iar
+src/Drivers/CMSIS/*
+!src/Drivers/CMSIS/Include
+!src/Drivers/CMSIS/LICENSE.txt
+!src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f7xx.h
+!src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f723xx.h
+!src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h
+!src/Drivers/CMSIS/Device/ST/STM32F7xx/LICENSE.txt
 
 # script outputs
 /scripts/*.h
