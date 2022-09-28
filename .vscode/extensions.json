@@ -1,8 +1,8 @@
 {
-    "recommendations": [
-        "marus25.cortex-debug",
-        "ms-vscode.makefile-tools",
-        "cschlosser.doxdocgen",
-        "dan-c-underwood.arm",
-    ]
+  "recommendations": [
+    "marus25.cortex-debug",
+    "ms-vscode.makefile-tools",
+    "cschlosser.doxdocgen",
+    "dan-c-underwood.arm"
+  ]
 }

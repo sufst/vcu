@@ -1,45 +1,42 @@
 {
-    "configurations": [
-        // debug with stutil
-        {
-            "cwd": "${workspaceFolder}",
-            "executable": "build/VCU.elf",
-            "name": "debug (stutil)",
-            "request": "launch",
-            "type": "cortex-debug",
-            "showDevDebugOutput": "none",
-            "servertype": "stutil",
-            "svdFile": "debug/STM32H7x3.svd",
-            "osx": {
-                "armToolchainPath": "/Applications/ARM/bin",
-                "serverpath": "st-util",
-            },
-            "linux": {
-                "armToolchainPath": "?",
-                "serverpath": "?",
-            }
-        },
-        // debug with openocd
-        {
-            "cwd": "${workspaceFolder}",
-            "executable": "build/VCU.elf",
-            "name": "debug (openocd)",
-            "request": "launch",
-            "type": "cortex-debug",
-            "showDevDebugOutput": "none",
-            "servertype": "openocd",
-            "configFiles": [
-                "interface/stlink.cfg",
-                "target/stm32h7x.cfg"
-            ],
-            "osx": {
-                "armToolchainPath": "/Applications/ARM/bin",
-                "serverpath": "openocd",
-            },
-            "linux": {
-                "armToolchainPath": "?",
-                "serverpath": "?",
-            }
-        }
-    ]
+  "configurations": [
+    // debug with stutil
+    {
+      "cwd": "${workspaceFolder}",
+      "executable": "build/VCU.elf",
+      "name": "debug (stutil)",
+      "request": "launch",
+      "type": "cortex-debug",
+      "showDevDebugOutput": "none",
+      "servertype": "stutil",
+      "svdFile": "debug/STM32H7x3.svd",
+      "osx": {
+        "armToolchainPath": "/Applications/ARM/bin",
+        "serverpath": "st-util"
+      },
+      "linux": {
+        "armToolchainPath": "?",
+        "serverpath": "?"
+      }
+    },
+    // debug with openocd
+    {
+      "cwd": "${workspaceFolder}",
+      "executable": "build/VCU.elf",
+      "name": "debug (openocd)",
+      "request": "launch",
+      "type": "cortex-debug",
+      "showDevDebugOutput": "none",
+      "servertype": "openocd",
+      "configFiles": ["interface/stlink.cfg", "target/stm32h7x.cfg"],
+      "osx": {
+        "armToolchainPath": "/Applications/ARM/bin",
+        "serverpath": "openocd"
+      },
+      "linux": {
+        "armToolchainPath": "?",
+        "serverpath": "?"
+      }
+    }
+  ]
 }
