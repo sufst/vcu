@@ -4,7 +4,7 @@
 
 Commits (and issue/pull request titles) should follow the [conventional commits specification](https://www.conventionalcommits.org/en/v1.0.0/) with the format:
 
-```
+```text
 <type>(<scope>): <subject>
 ```
 
@@ -40,7 +40,7 @@ Commits (and issue/pull request titles) should follow the [conventional commits 
 
 Branches should be named beginning with the `<type>` for the corresponding issue, followed by a `/` and a dash-separated title briefly describing the overall purpose of the branch:
 
-```
+```text
 <type>/dash-separated-title
 ```
 
@@ -48,13 +48,13 @@ Branches should be named beginning with the `<type>` for the corresponding issue
 
 Code should be formatted before committing using [`trunk`](https://docs.trunk.io) with the command:
 
-```
+```sh
 trunk fmt
 ```
 
 Install `trunk` for Linux or macOS with:
 
-```
+```sh
 curl https://get.trunk.io -fsSL | bash
 ```
 
