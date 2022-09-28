@@ -1,90 +1,73 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        // make build task (DEBUG)
-        {
-            "label": "build (DEBUG)",
-            "type": "shell",
-            "command": "make",
-            "args": [
-                "-j$(nproc)",
-                "-s",
-                "DEBUG=1",
-            ],
-            "problemMatcher": "$gcc",
-            "group": "build",
-        },
-        // make build task (RELEASE)
-        {
-            "label": "build (RELEASE)",
-            "type": "shell",
-            "command": "make",
-            "args": [
-                "-j$(nproc)",
-                "-s",
-                "DEBUG=0",
-            ],
-            "problemMatcher": "$gcc",
-            "group": "build",
-        },
-        // clean build directory
-        {
-            "label": "clean",
-            "type": "shell",
-            "command": "make",
-            "args": [
-                "clean",
-                "-s",
-            ],
-            "group": "build",
-        },
-        // flash VCU.bin
-        {
-            "label": "flash",
-            "type": "shell",
-            "command": "make",
-            "args": [
-                "flash",
-                "-s",
-                "-j$(nproc)"
-            ],
-            "group": "build",
-        },
-        {
-            "label": "generate compile_commands.json",
-            "type": "shell",
-            "command": "./scripts/compile-commands.sh",
-            "group": "build",
-        },
-        // open STM32CubeMX
-        {
-            "label": "STM32CubeMX",
-            "type": "shell",
-            "presentation": {
-                "echo": true,
-                "reveal": "silent",
-                "focus": false,
-                "panel": "shared",
-                "showReuseMessage": true,
-                "clear": true
-            },
-            "osx": {
-                "command": "/Applications/STMicroelectronics/STM32CubeMX.app/Contents/MacOs/STM32CubeMX",
-            },
-            "linux": {
-                "command": "?",
-            },
-            "args": [
-                "${workspaceRoot}/VCU.ioc",
-            ]
-        },
-        // open ThreadX docs
-        {
-            "label": "ThreadX Docs",
-            "type": "shell",
-            "osx": {
-                "command": "osascript -e \"open location \\\"https://docs.microsoft.com/en-us/azure/rtos/threadx/chapter4\\\"\""
-            }
-        }
-    ]
+  "version": "2.0.0",
+  "tasks": [
+    // make build task (DEBUG)
+    {
+      "label": "build (DEBUG)",
+      "type": "shell",
+      "command": "make",
+      "args": ["-j$(nproc)", "-s", "DEBUG=1"],
+      "problemMatcher": "$gcc",
+      "group": "build"
+    },
+    // make build task (RELEASE)
+    {
+      "label": "build (RELEASE)",
+      "type": "shell",
+      "command": "make",
+      "args": ["-j$(nproc)", "-s", "DEBUG=0"],
+      "problemMatcher": "$gcc",
+      "group": "build"
+    },
+    // clean build directory
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "make",
+      "args": ["clean", "-s"],
+      "group": "build"
+    },
+    // flash VCU.bin
+    {
+      "label": "flash",
+      "type": "shell",
+      "command": "make",
+      "args": ["flash", "-s", "-j$(nproc)"],
+      "group": "build"
+    },
+    {
+      "label": "generate compile_commands.json",
+      "type": "shell",
+      "command": "./scripts/compile-commands.sh",
+      "group": "build"
+    },
+    // open STM32CubeMX
+    {
+      "label": "STM32CubeMX",
+      "type": "shell",
+      "presentation": {
+        "echo": true,
+        "reveal": "silent",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": true,
+        "clear": true
+      },
+      "osx": {
+        "command": "/Applications/STMicroelectronics/STM32CubeMX.app/Contents/MacOs/STM32CubeMX"
+      },
+      "linux": {
+        "command": "?"
+      },
+      "args": ["${workspaceRoot}/src/VCU.ioc"]
+    },
+    // open ThreadX docs
+    {
+      "label": "ThreadX Docs",
+      "type": "shell",
+      "osx": {
+        "command": "osascript -e \"open location \\\"https://docs.microsoft.com/en-us/azure/rtos/threadx/chapter4\\\"\""
+      }
+    }
+  ]
 }
