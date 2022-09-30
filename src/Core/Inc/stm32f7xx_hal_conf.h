@@ -64,7 +64,7 @@
 /* #define HAL_MMC_MODULE_ENABLED   */
 /* #define HAL_SPDIFRX_MODULE_ENABLED   */
 /* #define HAL_SPI_MODULE_ENABLED   */
-/* #define HAL_TIM_MODULE_ENABLED   */
+#define HAL_TIM_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 /* #define HAL_USART_MODULE_ENABLED   */
 /* #define HAL_IRDA_MODULE_ENABLED   */
@@ -146,7 +146,7 @@
   * @brief This is the HAL system configuration section
   */
 #define  VDD_VALUE                    3300U /*!< Value of VDD in mv */
-#define  TICK_INT_PRIORITY            ((uint32_t)0U) /*!< tick interrupt priority */
+#define  TICK_INT_PRIORITY            ((uint32_t)15U) /*!< tick interrupt priority */
 #define  USE_RTOS                     0U
 #define  PREFETCH_ENABLE              0U
 #define  ART_ACCELERATOR_ENABLE        0U /* To enable instruction cache and prefetch */
