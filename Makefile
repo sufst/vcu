@@ -87,6 +87,28 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 ###############################################################################
 
 C_SOURCES =  \
+src/SUFST/Src/init.c \
+src/SUFST/Src/fault.c \
+src/SUFST/Src/config_rules.c \
+src/SUFST/Src/ready_to_drive.c \
+src/SUFST/Src/apps.c \
+src/SUFST/Src/scs.c \
+src/SUFST/Src/bps.c \
+src/SUFST/Src/shutdown.c \
+src/SUFST/Src/CAN/can_device_state.c \
+src/SUFST/Src/CAN/pm100.c \
+src/SUFST/Src/CAN/drs.c \
+src/SUFST/Src/Profiles/driver_profiles.c \
+src/SUFST/Src/Profiles/driver_profile_data.c \
+src/SUFST/Src/Test/testbench.c \
+src/SUFST/Src/Test/apps_testbench_data.c \
+src/SUFST/Src/Test/trace.c \
+src/SUFST/Src/Threads/sensor_thread.c \
+src/SUFST/Src/Threads/control_thread.c \
+src/SUFST/Src/Threads/watchdog_thread.c \
+src/SUFST/Src/Threads/can_tx_thread.c \
+src/SUFST/Src/Threads/can_rx_thread.c \
+src/SUFST/Src/Threads/init_thread.c \
 src/Core/Src/main.c \
 src/Core/Src/gpio.c \
 src/Core/Src/usart.c \
@@ -305,6 +327,11 @@ src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 
 C_INCLUDES =  \
 -Isrc/Core/Inc \
+-Isrc/SUFST/Inc \
+-Isrc/SUFST/Inc/CAN \
+-Isrc/SUFST/Inc/Profiles \
+-Isrc/SUFST/Inc/Test \
+-Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
 -Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \

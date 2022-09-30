@@ -19,6 +19,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "app_threadx.h"
+#include "adc.h"
+#include "can.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
@@ -89,6 +91,10 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
   MX_USB_OTG_FS_PCD_Init();
+  MX_ADC3_Init();
+  MX_ADC1_Init();
+  MX_ADC2_Init();
+  MX_CAN1_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
