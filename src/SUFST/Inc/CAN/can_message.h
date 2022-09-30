@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "fdcan.h"
+#include "can.h"
 
 /**
  * @brief 	CAN message type
@@ -25,12 +25,12 @@ typedef struct can_msg_s
         /**
          * @brief Transmit message header
          */
-        FDCAN_TxHeaderTypeDef tx_header;
+        CAN_TxHeaderTypeDef tx_header;
 
         /**
          * @brief Receive message header
          */
-        FDCAN_RxHeaderTypeDef rx_header;
+        CAN_RxHeaderTypeDef rx_header;
     };
 
     /**

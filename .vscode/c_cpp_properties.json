@@ -10,7 +10,8 @@
         "${workspaceFolder}/src/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
         "${workspaceFolder}/src/Drivers/CMSIS/Core/Include",
         "${workspaceFolder}/src/Middlewares/ST/threadx/common/inc",
-        "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc"
+        "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
+        "${workspaceFolder}/src/SUFST/Inc/CAN"
       ],
       "defines": [
         "TX_INCLUDE_USER_DEFINE_FILE",

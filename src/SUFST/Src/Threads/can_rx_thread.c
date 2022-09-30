@@ -95,8 +95,8 @@ void can_rx_thread_entry(ULONG thread_input)
     (void) thread_input;
 
     // start CAN receive
-    HAL_FDCAN_Start(&hfdcan1);
-    HAL_FDCAN_ActivateNotification(&hfdcan1, FDCAN_IT_RX_FIFO0_NEW_MESSAGE, 0);
+    HAL_CAN_Start(&hcan1);
+    HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
     // loop forever
     while (1)
@@ -107,15 +107,13 @@ void can_rx_thread_entry(ULONG thread_input)
             // read data
             can_msg_t message;
             HAL_StatusTypeDef hal_status
-                = HAL_FDCAN_GetRxMessage(&hfdcan1,
-                                         FDCAN_RX_FIFO0,
-                                         &message.rx_header,
-                                         message.data);
+                = HAL_CAN_GetRxMessage(&hcan1,
+                                       CAN_RX_FIFO0,
+                                       &message.rx_header,
+                                       message.data);
 
             // reactivate notification
-            HAL_FDCAN_ActivateNotification(&hfdcan1,
-                                           FDCAN_IT_RX_FIFO0_NEW_MESSAGE,
-                                           0);
+            HAL_CAN_ActivateNotification(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);
 
             // update device state
             if (hal_status == HAL_OK)
@@ -129,12 +127,13 @@ void can_rx_thread_entry(ULONG thread_input)
 /**
  * @brief      CAN Rx Fifo 0 message callback
  *
- * @param[in]  hfdcan  FDCAN handle
+ * @param[in]  hfdcan  CAN handle
  */
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs)
+void HAL_CAN_RxFIFO0MsgPendingCallback(CAN_HandleTypeDef* hcan,
+                                       uint32_t RxFifo0ITs)
 {
     // if new message in buffer, signal receive thread to wake
-    if ((RxFifo0ITs & FDCAN_IT_RX_FIFO0_NEW_MESSAGE) != RESET)
+    if ((RxFifo0ITs & CAN_IT_RX_FIFO0_MSG_PENDING) != RESET)
     {
         tx_semaphore_put(&can_rx_semaphore);
     }

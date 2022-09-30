@@ -110,6 +110,8 @@ src/SUFST/Src/Threads/can_tx_thread.c \
 src/SUFST/Src/Threads/can_rx_thread.c \
 src/SUFST/Src/Threads/init_thread.c \
 src/Core/Src/main.c \
+src/Core/Src/adc.c \
+src/Core/Src/can.c \
 src/Core/Src/gpio.c \
 src/Core/Src/usart.c \
 src/Core/Src/usb_otg.c \
@@ -119,7 +121,8 @@ src/Core/stm32f7xx_hal_timebase_tim.c \
 src/Core/Src/system_stm32f7xx.c \
 src/Core/app_threadx.c \
 src/AZURE_RTOS/App/app_azure_rtos.c \
-src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_flash.c \
@@ -129,11 +132,12 @@ src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_dma_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pwr_ex.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_cortex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_i2c_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_exti.c \
-src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_eth.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_can.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
