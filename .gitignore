@@ -136,7 +136,7 @@ $RECYCLE.BIN/
 src/Drivers/CMSIS/*
 !src/Drivers/CMSIS/LICENSE.txt
 !src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f7xx.h
-!src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f723xx.h
+!src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/stm32f746xx.h
 !src/Drivers/CMSIS/Device/ST/STM32F7xx/Include/system_stm32f7xx.h
 !src/Drivers/CMSIS/Device/ST/STM32F7xx/LICENSE.txt
 
