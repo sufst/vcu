@@ -1,4 +1,4 @@
 {
   "script": "misra.py",
-  "args": ["--rule-texts=./misra.txt"]
+  "args": ["--rule-texts=./.trunk/config/misra.txt"]
 }
