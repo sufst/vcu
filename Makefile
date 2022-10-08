@@ -94,6 +94,7 @@ src/SUFST/Src/ready_to_drive.c \
 src/SUFST/Src/apps.c \
 src/SUFST/Src/scs.c \
 src/SUFST/Src/bps.c \
+src/SUFST/Src/logger.c \
 src/SUFST/Src/shutdown.c \
 src/SUFST/Src/CAN/can_device_state.c \
 src/SUFST/Src/CAN/pm100.c \

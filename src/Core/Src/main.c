@@ -95,6 +95,7 @@ int main(void)
   MX_ADC1_Init();
   MX_ADC2_Init();
   MX_CAN1_Init();
+  MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
