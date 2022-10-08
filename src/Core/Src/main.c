@@ -77,7 +77,13 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
-
+  #ifdef DEBUG
+    // for some reason on STM32F7, when debugging with an interrupt on TIM3
+    // the debugger creates a breakpoint in the interrupt handler. This means
+    // the processor stops every single TIM3 interrupt.
+    // this is a fix for that
+    __HAL_DBGMCU_FREEZE_TIM3();
+  #endif
   /* USER CODE END Init */
 
   /* Configure the system clock */
