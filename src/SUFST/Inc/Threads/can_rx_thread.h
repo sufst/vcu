@@ -10,11 +10,10 @@
 
 #include "tx_api.h"
 
-#include "fdcan.h"
+#include "can.h"
 
 UINT can_rx_thread_create(TX_BYTE_POOL* stack_pool_ptr);
 UINT can_rx_thread_terminate();
-void HAL_FDCAN_RxFifo0Callback(FDCAN_HandleTypeDef* hfdcan,
-                               uint32_t RxFifo0ITs);
+void HAL_FDCAN_RxFifo0Callback(CAN_HandleTypeDef* hfdcan, uint32_t RxFifo0ITs);
 
 #endif
