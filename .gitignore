@@ -42,7 +42,7 @@ compile_commands.json
 # debug
 *.dSYM/
 debug/*
-!debug/*.svd
+!debug/STM32F7x6.svd
 
 ################################################################################
 # STM32
