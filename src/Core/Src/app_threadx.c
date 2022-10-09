@@ -49,7 +49,7 @@
 /**
  * @brief RTCAN service for sensor (S) CAN bus
  */
-static rtcan_context_t rtcan_s;
+static rtcan_handle_t rtcan_s;
 
 /* USER CODE END PV */
 

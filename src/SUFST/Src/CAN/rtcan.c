@@ -17,11 +17,11 @@
 /**
  * internal functions
  */
-static rtcan_status_t create_status(rtcan_context_t* rtcan_ptr);
-static bool no_errors(rtcan_context_t* rtcan_ptr);
+static rtcan_status_t create_status(rtcan_handle_t* rtcan_ptr);
+static bool no_errors(rtcan_handle_t* rtcan_ptr);
 static void rtcan_thread_entry(ULONG input);
 
-static rtcan_status_t transmit_internal(rtcan_context_t* rtcan_ptr,
+static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
                                         uint32_t identifier,
                                         const uint8_t* data_ptr,
                                         uint32_t data_length);
@@ -36,7 +36,7 @@ static rtcan_status_t transmit_internal(rtcan_context_t* rtcan_ptr,
  * @param[in]   hcan            CAN handle
  * @param[in]   stack_pool      Memory pool to allocate stack memory from
  */
-rtcan_status_t rtcan_init(rtcan_context_t* rtcan_ptr,
+rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_ptr,
                           CAN_HandleTypeDef* hcan,
                           ULONG priority,
                           TX_BYTE_POOL* stack_pool)
@@ -123,7 +123,7 @@ rtcan_status_t rtcan_init(rtcan_context_t* rtcan_ptr,
 /**
  * @brief   Starts the RTCAN service
  */
-rtcan_status_t rtcan_start(rtcan_context_t* rtcan_ptr)
+rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_ptr)
 {
     UINT tx_status = tx_thread_resume(&rtcan_ptr->thread);
 
@@ -144,7 +144,7 @@ rtcan_status_t rtcan_start(rtcan_context_t* rtcan_ptr)
  * @param[in]   rtcan_ptr       Pointer to RTCAN context
  * @param[in]   msg_ptr         Pointer to message to transmit
  */
-rtcan_status_t rtcan_transmit(rtcan_context_t* rtcan_ptr, rtcan_msg_t* msg_ptr)
+rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_ptr, rtcan_msg_t* msg_ptr)
 {
     UINT tx_status
         = tx_queue_send(&rtcan_ptr->tx_queue, (void*) msg_ptr, TX_NO_WAIT);
@@ -162,7 +162,7 @@ rtcan_status_t rtcan_transmit(rtcan_context_t* rtcan_ptr, rtcan_msg_t* msg_ptr)
  *
  * @param[in]   rtcan_ptr   Pointer to RTCAN context
  */
-uint32_t rtcan_get_error(rtcan_context_t* rtcan_ptr)
+uint32_t rtcan_get_error(rtcan_handle_t* rtcan_ptr)
 {
     return rtcan_ptr->err;
 }
@@ -174,7 +174,7 @@ uint32_t rtcan_get_error(rtcan_context_t* rtcan_ptr)
  */
 static void rtcan_thread_entry(ULONG input)
 {
-    rtcan_context_t* rtcan_ptr = (rtcan_context_t*) input;
+    rtcan_handle_t* rtcan_ptr = (rtcan_handle_t*) input;
 
     while (1)
     {
@@ -205,7 +205,7 @@ static void rtcan_thread_entry(ULONG input)
  * @param[in]   data_ptr        Pointer to data to transmit
  * @param[in]   data_length     Length of data to transmit
  */
-static rtcan_status_t transmit_internal(rtcan_context_t* rtcan_ptr,
+static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
                                         uint32_t identifier,
                                         const uint8_t* data_ptr,
                                         uint32_t data_length)
@@ -252,7 +252,7 @@ static rtcan_status_t transmit_internal(rtcan_context_t* rtcan_ptr,
  *
  * @param[in]   rtcan_ptr   Pointer to RTCAN context
  */
-static bool no_errors(rtcan_context_t* rtcan_ptr)
+static bool no_errors(rtcan_handle_t* rtcan_ptr)
 {
     return (rtcan_ptr->err == RTCAN_ERROR_NONE);
 }
@@ -262,7 +262,7 @@ static bool no_errors(rtcan_context_t* rtcan_ptr)
  *
  * @param[in]   rtcan_ptr   Pointer to RTCAN context
  */
-static rtcan_status_t create_status(rtcan_context_t* rtcan_ptr)
+static rtcan_status_t create_status(rtcan_handle_t* rtcan_ptr)
 {
     return (no_errors(rtcan_ptr)) ? RTCAN_OK : RTCAN_ERROR;
 }
