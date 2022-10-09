@@ -17,11 +17,11 @@
 /**
  * internal functions
  */
-static rtcan_status_t create_status(rtcan_handle_t* rtcan_ptr);
-static bool no_errors(rtcan_handle_t* rtcan_ptr);
+static rtcan_status_t create_status(rtcan_handle_t* rtcan_h);
+static bool no_errors(rtcan_handle_t* rtcan_h);
 static void rtcan_thread_entry(ULONG input);
 
-static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
+static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_h,
                                         uint32_t identifier,
                                         const uint8_t* data_ptr,
                                         uint32_t data_length);
@@ -32,17 +32,17 @@ static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
  * @details     The CAN instance of the handle should not be used by any other
  *              part of the system
  *
- * @param[in]   rtcan_ptr       Pointer to RTCAN context
+ * @param[in]   rtcan_h       Pointer to RTCAN context
  * @param[in]   hcan            CAN handle
  * @param[in]   stack_pool      Memory pool to allocate stack memory from
  */
-rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_ptr,
+rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
                           CAN_HandleTypeDef* hcan,
                           ULONG priority,
                           TX_BYTE_POOL* stack_pool)
 {
-    rtcan_ptr->hcan = hcan;
-    rtcan_ptr->err = RTCAN_ERROR_NONE;
+    rtcan_h->hcan = hcan;
+    rtcan_h->err = RTCAN_ERROR_NONE;
 
     // thread
     void* stack_ptr = NULL;
@@ -54,15 +54,15 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_ptr,
 
     if (tx_status != TX_SUCCESS)
     {
-        rtcan_ptr->err |= RTCAN_ERROR_INIT;
+        rtcan_h->err |= RTCAN_ERROR_INIT;
     }
 
-    if (no_errors(rtcan_ptr))
+    if (no_errors(rtcan_h))
     {
-        tx_status = tx_thread_create(&rtcan_ptr->thread,
+        tx_status = tx_thread_create(&rtcan_h->thread,
                                      RTCAN_THREAD_NAME,
                                      rtcan_thread_entry,
-                                     (ULONG) rtcan_ptr,
+                                     (ULONG) rtcan_h,
                                      stack_ptr,
                                      RTCAN_THREAD_STACK_SIZE,
                                      priority,
@@ -72,67 +72,67 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_ptr,
 
         if (tx_status != TX_SUCCESS) // must have been caused by invalid arg
         {
-            rtcan_ptr->err |= RTCAN_ERROR_INIT;
+            rtcan_h->err |= RTCAN_ERROR_INIT;
         }
     }
 
     // transmit queue
-    if (no_errors(rtcan_ptr))
+    if (no_errors(rtcan_h))
     {
-        tx_status = tx_queue_create(&rtcan_ptr->tx_queue,
+        tx_status = tx_queue_create(&rtcan_h->tx_queue,
                                     "RTCAN Transmit Queue",
                                     RTCAN_TX_QUEUE_ITEM_SIZE,
-                                    rtcan_ptr->tx_queue_mem,
+                                    rtcan_h->tx_queue_mem,
                                     RTCAN_TX_QUEUE_SIZE);
 
         if (tx_status != TX_SUCCESS)
         {
-            rtcan_ptr->err |= RTCAN_ERROR_INIT;
+            rtcan_h->err |= RTCAN_ERROR_INIT;
         }
     }
 
     // transmit mailbox semaphore
-    if (no_errors(rtcan_ptr))
+    if (no_errors(rtcan_h))
     {
         const uint32_t mailbox_size
-            = sizeof(rtcan_ptr->hcan->Instance->sTxMailBox)
+            = sizeof(rtcan_h->hcan->Instance->sTxMailBox)
               / sizeof(CAN_TxMailBox_TypeDef);
 
-        tx_status = tx_semaphore_create(&rtcan_ptr->sem, NULL, mailbox_size);
+        tx_status = tx_semaphore_create(&rtcan_h->sem, NULL, mailbox_size);
 
         if (tx_status != TX_SUCCESS)
         {
-            rtcan_ptr->err |= RTCAN_ERROR_INTERNAL;
+            rtcan_h->err |= RTCAN_ERROR_INTERNAL;
         }
     }
 
     // start peripheral
-    if (no_errors(rtcan_ptr))
+    if (no_errors(rtcan_h))
     {
-        HAL_StatusTypeDef hal_status = HAL_CAN_Start(rtcan_ptr->hcan);
+        HAL_StatusTypeDef hal_status = HAL_CAN_Start(rtcan_h->hcan);
 
         if (hal_status != HAL_OK)
         {
-            rtcan_ptr->err |= RTCAN_ERROR_INIT;
+            rtcan_h->err |= RTCAN_ERROR_INIT;
         }
     }
 
-    return create_status(rtcan_ptr);
+    return create_status(rtcan_h);
 }
 
 /**
  * @brief   Starts the RTCAN service
  */
-rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_ptr)
+rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h)
 {
-    UINT tx_status = tx_thread_resume(&rtcan_ptr->thread);
+    UINT tx_status = tx_thread_resume(&rtcan_h->thread);
 
     if (tx_status != TX_SUCCESS)
     {
-        rtcan_ptr->err |= RTCAN_ERROR_INIT;
+        rtcan_h->err |= RTCAN_ERROR_INIT;
     }
 
-    return create_status(rtcan_ptr);
+    return create_status(rtcan_h);
 }
 
 /**
@@ -141,30 +141,30 @@ rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_ptr)
  * @details     The message is queued for transmission in a FIFO buffer, and the
  *              contents of the message is copied (!) to the buffer
  *
- * @param[in]   rtcan_ptr       Pointer to RTCAN context
+ * @param[in]   rtcan_h       Pointer to RTCAN context
  * @param[in]   msg_ptr         Pointer to message to transmit
  */
-rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_ptr, rtcan_msg_t* msg_ptr)
+rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr)
 {
     UINT tx_status
-        = tx_queue_send(&rtcan_ptr->tx_queue, (void*) msg_ptr, TX_NO_WAIT);
+        = tx_queue_send(&rtcan_h->tx_queue, (void*) msg_ptr, TX_NO_WAIT);
 
     if (tx_status != TX_SUCCESS)
     {
-        rtcan_ptr->err |= RTCAN_ERROR_QUEUE_FULL;
+        rtcan_h->err |= RTCAN_ERROR_QUEUE_FULL;
     }
 
-    return create_status(rtcan_ptr);
+    return create_status(rtcan_h);
 }
 
 /**
  * @brief       Retrieves the error code
  *
- * @param[in]   rtcan_ptr   Pointer to RTCAN context
+ * @param[in]   rtcan_h   Pointer to RTCAN context
  */
-uint32_t rtcan_get_error(rtcan_handle_t* rtcan_ptr)
+uint32_t rtcan_get_error(rtcan_handle_t* rtcan_h)
 {
-    return rtcan_ptr->err;
+    return rtcan_h->err;
 }
 
 /**
@@ -174,18 +174,18 @@ uint32_t rtcan_get_error(rtcan_handle_t* rtcan_ptr)
  */
 static void rtcan_thread_entry(ULONG input)
 {
-    rtcan_handle_t* rtcan_ptr = (rtcan_handle_t*) input;
+    rtcan_handle_t* rtcan_h = (rtcan_handle_t*) input;
 
     while (1)
     {
         const rtcan_msg_t message;
-        UINT tx_status = tx_queue_receive(&rtcan_ptr->tx_queue,
+        UINT tx_status = tx_queue_receive(&rtcan_h->tx_queue,
                                           (void*) &message,
                                           TX_WAIT_FOREVER);
 
         if (tx_status == TX_SUCCESS)
         {
-            (void) transmit_internal(rtcan_ptr,
+            (void) transmit_internal(rtcan_h,
                                      message.identifier,
                                      message.data,
                                      message.length);
@@ -200,27 +200,27 @@ static void rtcan_thread_entry(ULONG input)
 /**
  * @brief       Internal transmit for RTCAN service thread
  *
- * @param[in]   rtcan_ptr       Pointer to RTCAN context
+ * @param[in]   rtcan_h       Pointer to RTCAN context
  * @param[in]   identifier      CAN standard identifier
  * @param[in]   data_ptr        Pointer to data to transmit
  * @param[in]   data_length     Length of data to transmit
  */
-static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
+static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_h,
                                         uint32_t identifier,
                                         const uint8_t* data_ptr,
                                         uint32_t data_length)
 {
     if ((data_ptr == NULL) || (data_length == 0U))
     {
-        rtcan_ptr->err |= RTCAN_ERROR_ARG;
+        rtcan_h->err |= RTCAN_ERROR_ARG;
     }
 
-    if (tx_semaphore_get(&rtcan_ptr->sem, TX_WAIT_FOREVER) != TX_SUCCESS)
+    if (tx_semaphore_get(&rtcan_h->sem, TX_WAIT_FOREVER) != TX_SUCCESS)
     {
-        rtcan_ptr->err |= RTCAN_ERROR_INTERNAL;
+        rtcan_h->err |= RTCAN_ERROR_INTERNAL;
     }
 
-    if (no_errors(rtcan_ptr))
+    if (no_errors(rtcan_h))
     {
         // create message
         CAN_TxHeaderTypeDef header = {
@@ -233,36 +233,36 @@ static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_ptr,
         // send it
         uint32_t tx_mailbox;
 
-        HAL_StatusTypeDef hal_status = HAL_CAN_AddTxMessage(rtcan_ptr->hcan,
+        HAL_StatusTypeDef hal_status = HAL_CAN_AddTxMessage(rtcan_h->hcan,
                                                             &header,
                                                             data_ptr,
                                                             &tx_mailbox);
 
         if (hal_status != HAL_OK)
         {
-            rtcan_ptr->err |= RTCAN_ERROR_INTERNAL;
+            rtcan_h->err |= RTCAN_ERROR_INTERNAL;
         }
     }
 
-    return create_status(rtcan_ptr);
+    return create_status(rtcan_h);
 }
 
 /**
  * @brief       Returns true if the RTCAN instance has encountered an error
  *
- * @param[in]   rtcan_ptr   Pointer to RTCAN context
+ * @param[in]   rtcan_h   Pointer to RTCAN context
  */
-static bool no_errors(rtcan_handle_t* rtcan_ptr)
+static bool no_errors(rtcan_handle_t* rtcan_h)
 {
-    return (rtcan_ptr->err == RTCAN_ERROR_NONE);
+    return (rtcan_h->err == RTCAN_ERROR_NONE);
 }
 
 /**
  * @brief       Create a status code based on the current error state
  *
- * @param[in]   rtcan_ptr   Pointer to RTCAN context
+ * @param[in]   rtcan_h   Pointer to RTCAN context
  */
-static rtcan_status_t create_status(rtcan_handle_t* rtcan_ptr)
+static rtcan_status_t create_status(rtcan_handle_t* rtcan_h)
 {
-    return (no_errors(rtcan_ptr)) ? RTCAN_OK : RTCAN_ERROR;
+    return (no_errors(rtcan_h)) ? RTCAN_OK : RTCAN_ERROR;
 }

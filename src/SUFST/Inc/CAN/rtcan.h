@@ -108,15 +108,15 @@ typedef enum
 /*
  * function prototypes
  */
-rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_ptr,
+rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
                           CAN_HandleTypeDef* hcan,
                           ULONG,
                           TX_BYTE_POOL* stack_pool);
 
-rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_ptr);
+rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h);
 
-rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_ptr, rtcan_msg_t* msg_ptr);
+rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr);
 
-uint32_t rtcan_get_error(rtcan_handle_t* rtcan_ptr);
+uint32_t rtcan_get_error(rtcan_handle_t* rtcan_h);
 
 #endif
