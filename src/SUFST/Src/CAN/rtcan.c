@@ -230,16 +230,12 @@ static rtcan_status_t transmit_internal(rtcan_context_t* rtcan_ptr,
             .StdId = identifier,
         };
 
-        // TODO: this memcpy is not needed!
-        uint8_t tx_data[8];
-        (void) memcpy(tx_data, data_ptr, data_length);
-
         // send it
         uint32_t tx_mailbox;
 
         HAL_StatusTypeDef hal_status = HAL_CAN_AddTxMessage(rtcan_ptr->hcan,
                                                             &header,
-                                                            tx_data,
+                                                            data_ptr,
                                                             &tx_mailbox);
 
         if (hal_status != HAL_OK)
