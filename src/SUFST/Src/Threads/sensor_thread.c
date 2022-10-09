@@ -19,6 +19,7 @@
 #include "gpio.h"
 
 #include "control_thread.h"
+#include "logger.h"
 #include "shutdown.h"
 
 #define SENSOR_THREAD_STACK_SIZE           1024
@@ -130,7 +131,7 @@ void sensor_thread_entry(ULONG thread_input)
     // loop forever
     while (1)
     {
-        check_shutdown();
+        // check_shutdown();
 
         // check for fault state
 #if RUN_FAULT_STATE_TESTBENCH
@@ -143,6 +144,8 @@ void sensor_thread_entry(ULONG thread_input)
 #else
         ULONG apps_input = (ULONG) apps_read();
 #endif
+
+        log_test(apps_input);
 
         // transmit APPS input to control thread
         ret = tx_queue_send(&apps_input_queue,
