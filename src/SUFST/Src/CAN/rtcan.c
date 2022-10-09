@@ -14,7 +14,7 @@
 /**
  * internal functions
  */
-static rtcan_status_t create_status(rtcan_context_t*);
+static rtcan_status_t create_status(rtcan_context_t* context_ptr);
 
 /**
  * @brief       Initialises the RTCAN instance
@@ -64,7 +64,7 @@ rtcan_status_t rtcan_transmit(rtcan_context_t* context_ptr,
                               uint8_t* data_ptr,
                               uint32_t data_length)
 {
-    if (data_ptr == NULL || data_length == 0)
+    if ((data_ptr == NULL) || (data_length == 0U))
     {
         context_ptr->err |= RTCAN_ERROR_ARG;
     }

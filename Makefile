@@ -99,6 +99,7 @@ src/SUFST/Src/shutdown.c \
 src/SUFST/Src/CAN/can_device_state.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/CAN/drs.c \
+src/SUFST/Src/CAN/rtcan.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Test/testbench.c \
