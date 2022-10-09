@@ -87,10 +87,6 @@ void MX_CAN2_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN CAN2_Init 2 */
-  if (HAL_CAN_Start(&hcan2) != HAL_OK)
-  {
-    Error_Handler();
-  }
   /* USER CODE END CAN2_Init 2 */
 
 }
