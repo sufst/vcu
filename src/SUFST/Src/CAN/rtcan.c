@@ -11,10 +11,13 @@
 
 #include <memory.h>
 
+/*
+ * thread constants
+ */
 #define RTCAN_THREAD_NAME       "RTCAN Thread"
 #define RTCAN_THREAD_STACK_SIZE 512 // TODO: this needs to be profiled
 
-/**
+/*
  * internal functions
  */
 static rtcan_status_t create_status(rtcan_handle_t* rtcan_h);
@@ -32,14 +35,15 @@ static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_h,
  * @details     The CAN instance of the handle should not be used by any other
  *              part of the system
  *
- * @param[in]   rtcan_h       Pointer to RTCAN context
+ * @param[in]   rtcan_h         RTCAN handle
  * @param[in]   hcan            CAN handle
- * @param[in]   stack_pool      Memory pool to allocate stack memory from
+ * @param[in]   priority        Service thread priority
+ * @param[in]   stack_pool_ptr  Memory pool to allocate stack memory from
  */
 rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
                           CAN_HandleTypeDef* hcan,
                           ULONG priority,
-                          TX_BYTE_POOL* stack_pool)
+                          TX_BYTE_POOL* stack_pool_ptr)
 {
     rtcan_h->hcan = hcan;
     rtcan_h->err = RTCAN_ERROR_NONE;
@@ -47,7 +51,7 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
     // thread
     void* stack_ptr = NULL;
 
-    UINT tx_status = tx_byte_allocate(stack_pool,
+    UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
                                       RTCAN_THREAD_STACK_SIZE,
                                       TX_NO_WAIT);
@@ -122,6 +126,8 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
 
 /**
  * @brief   Starts the RTCAN service
+ *
+ * @param[in]   rtcan_h     RTCAN handle
  */
 rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h)
 {
@@ -141,8 +147,8 @@ rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h)
  * @details     The message is queued for transmission in a FIFO buffer, and the
  *              contents of the message is copied (!) to the buffer
  *
- * @param[in]   rtcan_h       Pointer to RTCAN context
- * @param[in]   msg_ptr         Pointer to message to transmit
+ * @param[in]   rtcan_h     RTCAN handle
+ * @param[in]   msg_ptr     Pointer to message to transmit
  */
 rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr)
 {
@@ -158,9 +164,9 @@ rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr)
 }
 
 /**
- * @brief       Retrieves the error code
+ * @brief       Returns the error code
  *
- * @param[in]   rtcan_h   Pointer to RTCAN context
+ * @param[in]   rtcan_h   RTCAN handle
  */
 uint32_t rtcan_get_error(rtcan_handle_t* rtcan_h)
 {
@@ -170,7 +176,7 @@ uint32_t rtcan_get_error(rtcan_handle_t* rtcan_h)
 /**
  * @brief       Entry function for RTCAN service thread
  *
- * @param[in]   input   Pointer to RTCAN context
+ * @param[in]   input   RTCAN handle
  */
 static void rtcan_thread_entry(ULONG input)
 {
@@ -200,7 +206,7 @@ static void rtcan_thread_entry(ULONG input)
 /**
  * @brief       Internal transmit for RTCAN service thread
  *
- * @param[in]   rtcan_h       Pointer to RTCAN context
+ * @param[in]   rtcan_h       RTCAN handle
  * @param[in]   identifier      CAN standard identifier
  * @param[in]   data_ptr        Pointer to data to transmit
  * @param[in]   data_length     Length of data to transmit
@@ -250,7 +256,7 @@ static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_h,
 /**
  * @brief       Returns true if the RTCAN instance has encountered an error
  *
- * @param[in]   rtcan_h   Pointer to RTCAN context
+ * @param[in]   rtcan_h   RTCAN handle
  */
 static bool no_errors(rtcan_handle_t* rtcan_h)
 {
@@ -260,7 +266,7 @@ static bool no_errors(rtcan_handle_t* rtcan_h)
 /**
  * @brief       Create a status code based on the current error state
  *
- * @param[in]   rtcan_h   Pointer to RTCAN context
+ * @param[in]   rtcan_h   RTCAN handle
  */
 static rtcan_status_t create_status(rtcan_handle_t* rtcan_h)
 {

@@ -14,7 +14,7 @@
 #include "can.h"
 
 /*
- * error cores
+ * error codes
  */
 #define RTCAN_ERROR_NONE 0x00000000U // no error
 #define RTCAN_ERROR_INIT 0x00000001U // failed to start service
@@ -22,6 +22,15 @@
 #define RTCAN_ERROR_QUEUE_FULL \
     0x00000004U // too many messages queued for transmit
 #define RTCAN_ERROR_INTERNAL 0x80000000U // internal error
+
+/**
+ * @brief   RTCAN status
+ */
+typedef enum
+{
+    RTCAN_OK,
+    RTCAN_ERROR
+} rtcan_status_t;
 
 /**
  * @brief   RTCAN message
@@ -56,7 +65,7 @@ typedef struct
 #define RTCAN_TX_QUEUE_SIZE      (RTCAN_TX_QUEUE_LENGTH * RTCAN_TX_QUEUE_ITEM_SIZE)
 
 /**
- * @brief RTCAN context
+ * @brief RTCAN handle
  */
 typedef struct
 {
@@ -96,22 +105,13 @@ typedef struct
 
 } rtcan_handle_t;
 
-/**
- * @brief   RTCAN status
- */
-typedef enum
-{
-    RTCAN_OK,
-    RTCAN_ERROR
-} rtcan_status_t;
-
 /*
  * function prototypes
  */
 rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
                           CAN_HandleTypeDef* hcan,
                           ULONG,
-                          TX_BYTE_POOL* stack_pool);
+                          TX_BYTE_POOL* stack_pool_ptr);
 
 rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h);
 

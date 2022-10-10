@@ -24,8 +24,8 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "init.h"
-#include "can.h"
 #include "rtcan.h"
+#include "canbc.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,7 +50,7 @@
  * @brief RTCAN service for sensor (S) CAN bus
  */
 static rtcan_handle_t rtcan_s;
-
+static canbc_handle_t can_broadcaster;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -75,18 +75,12 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   init_threads(byte_pool);
 
   // TODO: move this somewhere else?
-  rtcan_status_t status = rtcan_init(&rtcan_s, &hcan2, 4, byte_pool);
-  
-  if (status == RTCAN_OK)
-  {
-    status = rtcan_start(&rtcan_s);
-  }
+  // TODO: check error codes
+  rtcan_init(&rtcan_s, &hcan2, 4, byte_pool);
+  rtcan_start(&rtcan_s);
 
-  if (status != RTCAN_OK)
-  {
-    ret = TX_START_ERROR;
-  }
-
+  canbc_init(&can_broadcaster, &rtcan_s, 4, byte_pool);
+  canbc_start(&can_broadcaster);
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
