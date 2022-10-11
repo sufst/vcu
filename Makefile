@@ -111,7 +111,6 @@ src/SUFST/Src/Threads/control_thread.c \
 src/SUFST/Src/Threads/watchdog_thread.c \
 src/SUFST/Src/Threads/can_tx_thread.c \
 src/SUFST/Src/Threads/can_rx_thread.c \
-src/SUFST/Src/Threads/init_thread.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \

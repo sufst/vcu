@@ -71,6 +71,8 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE END App_ThreadX_MEM_POOL */
 
   /* USER CODE BEGIN App_ThreadX_Init */
+
+  // TODO: move this to VCU init
   init_threads(byte_pool);
 
   if (ret == TX_SUCCESS)

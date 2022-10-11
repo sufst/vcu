@@ -43,6 +43,11 @@ typedef struct
     canbc_handle_t canbc;
 
     /**
+     * @brief   Initialisation thread
+     */
+    TX_THREAD init_thread;
+
+    /**
      * @brief   Current error code
      */
     uint32_t err;
