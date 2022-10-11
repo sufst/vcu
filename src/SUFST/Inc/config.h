@@ -104,7 +104,7 @@
  ***************************************************************************/
 
 // enable flags
-#define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
+#define RUN_APPS_TESTBENCH		            1		// APPS input from lookup table
 #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
