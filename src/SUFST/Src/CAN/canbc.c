@@ -260,17 +260,6 @@ static void canbc_thread_entry(ULONG input)
 {
     canbc_handle_t* canbc_h = (canbc_handle_t*) input;
 
-    canbc_segment_t* segment = NULL;
-    canbc_channel_t* channel = NULL;
-    uint32_t data = 500;
-
-    canbc_create_segment(canbc_h, &segment, 0x100, NULL);
-    canbc_create_channel(canbc_h,
-                         &channel,
-                         segment,
-                         (uint8_t*) &data,
-                         sizeof(data));
-
     while (1)
     {
         canbc_segment_t* segment_ptr = canbc_h->first_segment_ptr;
@@ -284,8 +273,6 @@ static void canbc_thread_entry(ULONG input)
 
             segment_ptr = segment_ptr->next_segment_ptr;
         }
-
-        tx_thread_sleep(100);
     }
 }
 
