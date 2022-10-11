@@ -102,7 +102,8 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
             = sizeof(rtcan_h->hcan->Instance->sTxMailBox)
               / sizeof(CAN_TxMailBox_TypeDef);
 
-        tx_status = tx_semaphore_create(&rtcan_h->sem, NULL, mailbox_size);
+        tx_status
+            = tx_semaphore_create(&rtcan_h->tx_mailbox_sem, NULL, mailbox_size);
 
         if (tx_status != TX_SUCCESS)
         {
@@ -114,6 +115,19 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
     if (no_errors(rtcan_h))
     {
         HAL_StatusTypeDef hal_status = HAL_CAN_Start(rtcan_h->hcan);
+
+        if (hal_status != HAL_OK)
+        {
+            rtcan_h->err |= RTCAN_ERROR_INIT;
+        }
+    }
+
+    if (no_errors(rtcan_h))
+    {
+        // TODO: does this work?
+        HAL_StatusTypeDef hal_status
+            = HAL_CAN_ActivateNotification(rtcan_h->hcan,
+                                           CAN_IT_TX_MAILBOX_EMPTY);
 
         if (hal_status != HAL_OK)
         {
@@ -158,6 +172,32 @@ rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr)
     if (tx_status != TX_SUCCESS)
     {
         rtcan_h->err |= RTCAN_ERROR_QUEUE_FULL;
+    }
+
+    return create_status(rtcan_h);
+}
+
+/**
+ * @brief       Transmit mailbox callback
+ *
+ * @details     Increments the mailbox semaphore to allow the next message to be
+ *              dispatched. This MUST be called by the user from
+ *              HAL_CAN_TxMailbox<n>CompleteCallback, for all n.
+ *
+ * @param[in]   rtcan_h     RTCAN handle
+ * @param[in]   can_h       CAN handle passed to HAL callback
+ */
+rtcan_status_t rtcan_tx_mailbox_callback(rtcan_handle_t* rtcan_h,
+                                         CAN_HandleTypeDef* can_h)
+{
+    if (rtcan_h->hcan == can_h)
+    {
+        UINT tx_status = tx_semaphore_put(&rtcan_h->tx_mailbox_sem);
+
+        if (tx_status != TX_SUCCESS)
+        {
+            rtcan_h->err |= RTCAN_ERROR_INTERNAL;
+        }
     }
 
     return create_status(rtcan_h);
@@ -221,7 +261,8 @@ static rtcan_status_t transmit_internal(rtcan_handle_t* rtcan_h,
         rtcan_h->err |= RTCAN_ERROR_ARG;
     }
 
-    if (tx_semaphore_get(&rtcan_h->sem, TX_WAIT_FOREVER) != TX_SUCCESS)
+    if (tx_semaphore_get(&rtcan_h->tx_mailbox_sem, TX_WAIT_FOREVER)
+        != TX_SUCCESS)
     {
         rtcan_h->err |= RTCAN_ERROR_INTERNAL;
     }

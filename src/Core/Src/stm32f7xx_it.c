@@ -55,6 +55,7 @@
 /* USER CODE END 0 */
 
 /* External variables --------------------------------------------------------*/
+extern CAN_HandleTypeDef hcan2;
 extern TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN EV */
@@ -171,6 +172,20 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 1 */
 
   /* USER CODE END TIM3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 TX interrupts.
+  */
+void CAN2_TX_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN2_TX_IRQn 0 */
+
+  /* USER CODE END CAN2_TX_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan2);
+  /* USER CODE BEGIN CAN2_TX_IRQn 1 */
+
+  /* USER CODE END CAN2_TX_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

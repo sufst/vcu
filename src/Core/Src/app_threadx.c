@@ -106,4 +106,22 @@ void MX_ThreadX_Init(void)
 
 /* USER CODE BEGIN 1 */
 
+/*
+ * these callbacks post to the RTCAN service semaphores to allow a new message
+ * to be transmitted on the corresponding bus
+ */
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+}
+
+void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+}
+
+void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+}
 /* USER CODE END 1 */
