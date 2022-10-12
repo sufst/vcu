@@ -22,11 +22,12 @@
 /*
  * error codes
  */
-#define CANBC_ERROR_NONE        0x00000000U // no error
-#define CANBC_ERROR_INIT        0x00000001U // failed to initialise
-#define CANBC_ERROR_MEMORY_FULL 0x00000002U // not enough memory to create
-#define CANBC_ERROR_ARG         0x00000004U // invalid argument
-#define CANBC_ERROR_INTERNAL    0x80000000U // internal error
+#define CANBC_ERROR_NONE         0x00000000U // no error
+#define CANBC_ERROR_INIT         0x00000001U // failed to initialise
+#define CANBC_ERROR_MEMORY_FULL  0x00000002U // not enough memory to create
+#define CANBC_ERROR_SEGMENT_FULL 0x00000004U // no memory left in segment
+#define CANBC_ERROR_ARG          0x00000010U // invalid argument
+#define CANBC_ERROR_INTERNAL     0x80000000U // internal error
 
 /*
  * CAN broadcast status
@@ -97,7 +98,8 @@ typedef struct _canbc_segment_t
     /**
      * @brief   Pointer to mutex to be locked when reading data
      *
-     * @details NULL pointer will not be locked
+     * @details NULL pointer will not be locked.
+     *          Enabling priority inheritance on this mutex is a good idea.
      */
     TX_MUTEX* mutex_ptr;
 
@@ -114,12 +116,12 @@ typedef struct _canbc_segment_t
  * TODO: what happens if these sizes are truncated due to sizeof broadcast
  *       channel not being a multiple of sizeof(ULONG)
  */
-#define CANBC_CHANNEL_POOL_BLOCK_SIZE (sizeof(canbc_channel_t) / sizeof(ULONG))
+#define CANBC_CHANNEL_POOL_BLOCK_SIZE (sizeof(canbc_channel_t))
 
 #define CANBC_CHANNEL_POOL_SIZE \
     (CANBC_CHANNEL_POOL_BLOCK_SIZE * CANBC_MAX_NUM_CHANNELS)
 
-#define CANBC_SEGMENT_POOL_BLOCK_SIZE (sizeof(canbc_segment_t) / sizeof(ULONG))
+#define CANBC_SEGMENT_POOL_BLOCK_SIZE (sizeof(canbc_segment_t))
 
 #define CANBC_SEGMENT_POOL_SIZE \
     (CANBC_SEGMENT_POOL_BLOCK_SIZE * CANBC_MAX_NUM_SEGMENTS)

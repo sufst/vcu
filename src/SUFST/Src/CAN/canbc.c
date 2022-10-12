@@ -260,25 +260,34 @@ canbc_status_t canbc_create_channel(canbc_handle_t* canbc_h,
         }
         else
         {
-            canbc_channel_t* end_channel_ptr = segment_ptr->first_channel_ptr;
+            canbc_channel_t* last_channel_ptr = segment_ptr->first_channel_ptr;
 
-            while (end_channel_ptr != NULL)
+            while (last_channel_ptr->next_channel_ptr != NULL)
             {
-                end_channel_ptr = end_channel_ptr->next_channel_ptr;
+                last_channel_ptr = last_channel_ptr->next_channel_ptr;
             }
+
+            last_channel_ptr->next_channel_ptr = new_channel;
         }
 
-        // write config into channel
-        new_channel->data_ptr = data_ptr;
-        new_channel->data_length = data_length;
-        new_channel->next_channel_ptr = NULL;
-        new_channel->byte_offset = segment_ptr->bytes_used;
+        // only continue if data length will not exceed maximum
+        if (segment_ptr->bytes_used + data_length > CANBC_BYTES_PER_SEGMENT)
+        {
+            canbc_h->err |= CANBC_ERROR_SEGMENT_FULL;
+        }
+        else
+        {
+            // write config into channel
+            new_channel->data_ptr = data_ptr;
+            new_channel->data_length = data_length;
+            new_channel->next_channel_ptr = NULL;
+            new_channel->byte_offset = segment_ptr->bytes_used;
 
-        segment_ptr->bytes_used += data_length;
-        // TODO: what if this exceeds data_length
+            segment_ptr->bytes_used += data_length;
 
-        // update address of pointer parameter
-        *channel_ptr = new_channel;
+            // return new channel
+            *channel_ptr = new_channel;
+        }
     }
     else
     {
