@@ -14,7 +14,6 @@
 #include "can_tx_thread.h"
 #include "init.h"
 #include "ready_to_drive.h"
-#include "sensor_thread.h"
 #include "watchdog_thread.h"
 
 /*
@@ -94,7 +93,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
             status = tx_thread_create(&vcu_h->init_thread,
                                       INIT_THREAD_NAME,
                                       init_thread_entry,
-                                      0,
+                                      (ULONG) vcu_h,
                                       stack_ptr,
                                       INIT_THREAD_STACK_SIZE,
                                       INIT_THREAD_PRIORITY,
@@ -115,6 +114,19 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         ts_ctrl_status_t status = ts_ctrl_init(&vcu_h->ts_ctrl, app_mem_pool);
 
         if (status != TS_CTRL_OK)
+        {
+            vcu_h->err |= VCU_ERROR_INIT;
+        }
+    }
+
+    // driver control input service
+    if (no_errors(vcu_h))
+    {
+        driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
+                                                       &vcu_h->ts_ctrl,
+                                                       app_mem_pool);
+
+        if (status != DRIVER_CTRL_OK)
         {
             vcu_h->err |= VCU_ERROR_INIT;
         }
@@ -174,7 +186,7 @@ static void init_thread_entry(ULONG input)
     // TODO: this will change once the other threads are wrapped in context
     //       structs
     UINT(*thread_start_funcs[])
-    () = {can_tx_thread_start, sensor_thread_start};
+    () = {can_tx_thread_start};
 
     const UINT num_to_start
         = sizeof(thread_start_funcs) / sizeof(thread_start_funcs[0]);
@@ -187,6 +199,7 @@ static void init_thread_entry(ULONG input)
     // new thread starts
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
+    (void) driver_ctrl_start(&vcu_h->driver_ctrl);
 
     // terminate this thread
     (void) tx_thread_terminate(&vcu_h->init_thread);

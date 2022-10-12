@@ -19,8 +19,7 @@
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
 #include "gpio.h"
-#include "pm100.h"
-#include "sensor_thread.h"
+#include "pm100.h" a
 
 #define WATCHDOG_THREAD_STACK_SIZE           512
 #define WATCHDOG_THREAD_PREEMPTION_THRESHOLD WATCHDOG_THREAD_PRIORITY
@@ -208,8 +207,7 @@ void critical_fault_handler(critical_fault_t fault)
     pm100_disable();
 
     // shut down driver input and control
-    sensor_thread_terminate();
-    // control_thread_terminate();
+    // TODO: shut down driver input service
     // TODO: shut down TS controller
 
     // the end

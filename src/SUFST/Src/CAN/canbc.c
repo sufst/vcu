@@ -260,20 +260,22 @@ static void canbc_thread_entry(ULONG input)
 {
     canbc_handle_t* canbc_h = (canbc_handle_t*) input;
 
-    while (1)
-    {
-        canbc_segment_t* segment_ptr = canbc_h->first_segment_ptr;
+    // TODO: tick to wake thread
+    // while (1)
+    // {
+    //     canbc_segment_t* segment_ptr = canbc_h->first_segment_ptr;
 
-        while (segment_ptr != NULL)
-        {
-            rtcan_msg_t message;
-            create_message(segment_ptr, &message);
+    //     while (segment_ptr != NULL)
+    //     {
+    //         rtcan_msg_t message;
+    //         create_message(segment_ptr, &message);
 
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+    //         rtcan_transmit(canbc_h->rtcan_h, &message);
 
-            segment_ptr = segment_ptr->next_segment_ptr;
-        }
-    }
+    //         segment_ptr = segment_ptr->next_segment_ptr;
+    //     }
+
+    // }
 }
 
 /**

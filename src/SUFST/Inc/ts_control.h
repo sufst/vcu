@@ -50,9 +50,10 @@ typedef struct
 /*
  * queue sizing constants
  */
+// TODO: something is wrong with these...
 #define TS_CTRL_INPUT_QUEUE_ITEM_SIZE (sizeof(ts_ctrl_input_t) / sizeof(ULONG))
 
-#define TS_CTRL_INPUT_QUEUE_LENGTH    1 // multiple inputs queued is bad!
+#define TS_CTRL_INPUT_QUEUE_LENGTH    5 // multiple inputs queued is bad!
 
 #define TS_CTRL_INPUT_QUEUE_SIZE \
     (TS_CTRL_INPUT_QUEUE_ITEM_SIZE * TS_CTRL_INPUT_QUEUE_LENGTH)
@@ -87,7 +88,7 @@ typedef struct
 } ts_ctrl_handle_t;
 
 /**
- * @brief   TS control status
+ * @brief   TS controller status
  */
 typedef enum
 {

@@ -14,6 +14,7 @@
 
 #include "can.h"
 #include "canbc.h"
+#include "driver_control.h"
 #include "rtcan.h"
 #include "ts_control.h"
 
@@ -46,6 +47,11 @@ typedef struct
      * @brief   Tractive system controller
      */
     ts_ctrl_handle_t ts_ctrl;
+
+    /**
+     * @brief   Driver control input service
+     */
+    driver_ctrl_handle_t driver_ctrl;
 
     /**
      * @brief   Initialisation thread
