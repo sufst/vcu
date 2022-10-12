@@ -70,6 +70,8 @@
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
 #define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
 
+#define CANBC_DRIVER_INPUTS_ID                  0x100   // CAN broadcast address for driver inputs
+
 /***************************************************************************
  * sensors
  ***************************************************************************/

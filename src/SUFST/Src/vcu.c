@@ -122,6 +122,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
                                                        &vcu_h->ts_ctrl,
+                                                       &vcu_h->canbc,
                                                        app_mem_pool);
 
         if (status != DRIVER_CTRL_OK)

@@ -11,6 +11,7 @@
 
 #include "tx_api.h"
 
+#include "canbc.h"
 #include "ts_control.h"
 
 /*
@@ -47,13 +48,14 @@ typedef struct
     ts_ctrl_handle_t* ts_ctrl_h;
 
     /**
+     * @brief   State mutex for CAN broadcast
+     */
+    TX_MUTEX state_mutex;
+
+    /**
      * @brief   Driver inputs state
      */
-    struct
-    {
-        uint32_t accel_pressure;
-        uint32_t brake_pressure;
-    } inputs;
+    ts_ctrl_input_t ts_inputs;
 
     /**
      * @brief   Current error code
@@ -76,6 +78,7 @@ typedef enum
  */
 driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
                                       ts_ctrl_handle_t* ts_ctrl_h,
+                                      canbc_handle_t* canbc_h,
                                       TX_BYTE_POOL* stack_pool_ptr);
 
 driver_ctrl_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h);
