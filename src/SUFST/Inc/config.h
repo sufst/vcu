@@ -56,6 +56,7 @@
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100 // times per second
+#define CANBC_BROADCAST_PERIOD              50 // milliseconds
 
 /***************************************************************************
  * CAN / inverter

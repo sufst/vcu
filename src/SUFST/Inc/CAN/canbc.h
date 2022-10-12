@@ -25,6 +25,7 @@
 #define CANBC_ERROR_NONE        0x00000000U // no error
 #define CANBC_ERROR_INIT        0x00000001U // failed to initialise
 #define CANBC_ERROR_MEMORY_FULL 0x00000002U // not enough memory to create
+#define CANBC_ERROR_ARG         0x00000004U // invalid argument
 #define CANBC_ERROR_INTERNAL    0x80000000U // internal error
 
 /*
@@ -134,6 +135,16 @@ typedef struct _canbc_handle_t
     TX_THREAD thread;
 
     /**
+     * @brief   Broadcast tick timer
+     */
+    TX_TIMER tick_timer;
+
+    /**
+     * @brief   Broadcast period in ticks
+     */
+    uint32_t tick_period;
+
+    /**
      * @brief   RTCAN service to use for broadcasting
      */
     rtcan_handle_t* rtcan_h;
@@ -176,6 +187,7 @@ typedef struct _canbc_handle_t
 canbc_status_t canbc_init(canbc_handle_t* canbc_h,
                           rtcan_handle_t* rtcan_h,
                           UINT priority,
+                          uint32_t broadcast_period,
                           TX_BYTE_POOL* stack_pool_ptr);
 
 canbc_status_t canbc_start(canbc_handle_t* canbc_h);
