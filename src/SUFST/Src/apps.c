@@ -25,7 +25,7 @@ scs_t apps_signals[2];
 /*
  * function prototypes
  */
-bool apps_inputs_agree(uint32_t inputs[2]);
+bool apps_inputs_agree(const uint32_t inputs[2]);
 
 /**
  * @brief   Initialises APPS inputs
@@ -95,7 +95,7 @@ uint32_t apps_read()
  * @return      true    The inputs agree
  * @return      false   The inputs differ significantly
  */
-bool apps_inputs_agree(uint32_t inputs[2])
+bool apps_inputs_agree(const uint32_t inputs[2])
 {
     uint32_t diff = (inputs[1] > inputs[0]) ? inputs[1] - inputs[0]
                                             : inputs[0] - inputs[1];

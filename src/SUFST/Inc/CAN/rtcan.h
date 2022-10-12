@@ -119,7 +119,7 @@ rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h);
 rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr);
 
 rtcan_status_t rtcan_handle_tx_mailbox_callback(rtcan_handle_t* rtcan_h,
-                                                CAN_HandleTypeDef* can_h);
+                                                const CAN_HandleTypeDef* can_h);
 
 uint32_t rtcan_get_error(rtcan_handle_t* rtcan_h);
 
