@@ -14,39 +14,6 @@
 #include "apps.h"
 #include "bps.h"
 
-#include "watchdog_thread.h"
-
-/**
- * @brief       Create and initialise threads
- *
- * @param[in]   stack_pool_ptr  Pointer to start of application stack area
- *
- * @return      See ThreadX return codes
- */
-UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
-{
-    UINT(*thread_init_funcs[])
-    (TX_BYTE_POOL*) = {
-        watchdog_thread_create,
-    };
-
-    const UINT num_threads
-        = sizeof(thread_init_funcs) / sizeof(thread_init_funcs[0]);
-    UINT ret = TX_SUCCESS;
-
-    for (UINT i = 0; i < num_threads; i++)
-    {
-        ret = thread_init_funcs[i](stack_pool_ptr);
-
-        if (ret != TX_SUCCESS)
-        {
-            break;
-        }
-    }
-
-    return ret;
-}
-
 /**
  * @brief       Initialisation pre ready-to-drive
  *

@@ -9,8 +9,6 @@
 
 #include "config.h"
 
-#include "fault.h"
-
 #include "scs.h"
 
 /**
@@ -43,7 +41,8 @@ uint32_t bps_read()
 #if !BPS_DISABLE_SCS_CHECK
     if (!scs_validate(&bps_signal))
     {
-        critical_fault(CRITICAL_FAULT_SCS_OUTSIDE_BOUNDS);
+        // TODO: create fault handling system
+        Error_Handler();
     }
 #endif
 

@@ -11,7 +11,6 @@
 
 #include "config.h"
 
-#include "fault.h"
 #include "trace.h"
 
 #include "adc.h"
@@ -69,7 +68,8 @@ uint32_t apps_read()
 #if !APPS_DISABLE_SCS_CHECK
         if (!scs_validate(&apps_signals[i]))
         {
-            critical_fault(CRITICAL_FAULT_SCS_OUTSIDE_BOUNDS);
+            // TODO: create internal fault handler
+            Error_Handler();
             inputs[i] = 0;
         }
 #endif
@@ -80,7 +80,8 @@ uint32_t apps_read()
 #if !APPS_DISABLE_DIFF_CHECK
     if (!apps_inputs_agree(inputs))
     {
-        critical_fault(CRITICAL_FAULT_APPS_INPUT_DISCREPANCY);
+        // TODO: create internal error handler
+        Error_Handler();
     }
 #endif
 

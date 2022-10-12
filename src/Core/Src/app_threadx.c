@@ -72,9 +72,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN App_ThreadX_Init */
 
-  // TODO: move this to VCU init
-  init_threads(byte_pool);
-
+  // initialise system
   if (ret == TX_SUCCESS)
   {
     vcu_status_t status = vcu_init(&vcu, &hcan2, byte_pool);
