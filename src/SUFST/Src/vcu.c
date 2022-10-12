@@ -12,7 +12,6 @@
 
 #include "init.h"
 #include "ready_to_drive.h"
-#include "watchdog_thread.h"
 
 /*
  * macro constants

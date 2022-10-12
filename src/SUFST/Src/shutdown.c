@@ -7,8 +7,6 @@
 
 #include "shutdown.h"
 
-#include "fault.h"
-
 #include "gpio.h"
 
 /**
@@ -20,6 +18,7 @@ void check_shutdown()
 {
     if (!HAL_GPIO_ReadPin(SHUTDOWN_IN_GPIO_Port, SHUTDOWN_IN_Pin))
     {
-        critical_fault(CRITICAL_FAULT_SHUTDOWN);
+        // TODO: create fault handler
+        Error_Handler();
     }
 }

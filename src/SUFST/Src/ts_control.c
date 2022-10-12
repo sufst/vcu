@@ -10,9 +10,8 @@
 
 #include "config.h"
 
-#include "fault.h"
-
 #include "driver_profiles.h"
+#include "main.h"
 
 /*
  * macro constants
@@ -170,7 +169,8 @@ static void ts_ctrl_thread_entry(ULONG input)
     if (driver_profile_lookup(&driver_profile_ptr, SELECTED_DRIVER_PROFILE)
         != DRIVER_PROFILE_FOUND)
     {
-        critical_fault(CRITICAL_FAULT_DRIVER_PROFILE_NOT_FOUND);
+        // TODO: create fault handling system
+        Error_Handler();
     }
 
     // loop forever
