@@ -12,7 +12,6 @@
 
 #include "fault.h"
 
-#include "can_tx_thread.h"
 #include "driver_profiles.h"
 
 /*

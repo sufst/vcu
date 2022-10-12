@@ -13,9 +13,6 @@
 
 #include "apps.h"
 #include "bps.h"
-#include "can_rx_thread.h"
-#include "can_tx_thread.h"
-#include "pm100.h"
 #include "watchdog_thread.h"
 
 /**
@@ -29,8 +26,6 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
 {
     UINT(*thread_init_funcs[])
     (TX_BYTE_POOL*) = {
-        can_rx_thread_create,
-        can_tx_thread_create,
         watchdog_thread_create,
     };
 
@@ -61,8 +56,7 @@ UINT init_pre_rtd(TX_BYTE_POOL* stack_pool_ptr)
     bps_init();
     apps_init();
 
-    UINT ret = pm100_init() == PM100_OK ? TX_SUCCESS : TX_START_ERROR;
-    return ret;
+    return TX_SUCCESS;
 }
 
 /**

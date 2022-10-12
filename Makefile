@@ -98,9 +98,6 @@ src/SUFST/Src/bps.c \
 src/SUFST/Src/shutdown.c \
 src/SUFST/Src/ts_control.c \
 src/SUFST/Src/driver_control.c \
-src/SUFST/Src/CAN/can_device_state.c \
-src/SUFST/Src/CAN/pm100.c \
-src/SUFST/Src/CAN/drs.c \
 src/SUFST/Src/CAN/rtcan.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
@@ -109,8 +106,6 @@ src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
 src/SUFST/Src/Threads/watchdog_thread.c \
-src/SUFST/Src/Threads/can_tx_thread.c \
-src/SUFST/Src/Threads/can_rx_thread.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
