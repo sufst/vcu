@@ -60,7 +60,7 @@ canbc_status_t canbc_init(canbc_handle_t* canbc_h,
     }
 
     // memory pool for channels
-    UINT tx_status = TX_SUCCESS;
+    UINT tx_status;
 
     if (no_errors(canbc_h))
     {
