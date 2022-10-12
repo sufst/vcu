@@ -15,7 +15,6 @@
 #include "bps.h"
 #include "gpio.h"
 
-
 /*
  * function prototypes
  */

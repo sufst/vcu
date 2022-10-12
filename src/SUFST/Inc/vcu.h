@@ -12,10 +12,11 @@
 
 #include "tx_api.h"
 
+#include "rtcan.h"
+
 #include "can.h"
 #include "canbc.h"
 #include "driver_control.h"
-#include "rtcan.h"
 #include "ts_control.h"
 
 /*

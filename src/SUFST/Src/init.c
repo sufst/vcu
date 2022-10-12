@@ -13,6 +13,7 @@
 
 #include "apps.h"
 #include "bps.h"
+
 #include "watchdog_thread.h"
 
 /**

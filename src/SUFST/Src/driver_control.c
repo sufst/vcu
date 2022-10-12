@@ -10,9 +10,10 @@
 
 #include "config.h"
 
-#include "Test/testbench.h"
 #include "apps.h"
 #include "bps.h"
+
+#include "Test/testbench.h"
 
 /*
  * macro constants
