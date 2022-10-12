@@ -62,6 +62,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         canbc_status_t status = canbc_init(&vcu_h->canbc,
                                            &vcu_h->rtcan_s,
                                            CANBC_PRIORITY,
+                                           CANBC_BROADCAST_PERIOD,
                                            app_mem_pool);
 
         if (status == CANBC_OK)
@@ -121,6 +122,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
                                                        &vcu_h->ts_ctrl,
+                                                       &vcu_h->canbc,
                                                        app_mem_pool);
 
         if (status != DRIVER_CTRL_OK)

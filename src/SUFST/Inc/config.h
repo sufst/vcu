@@ -56,6 +56,7 @@
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100 // times per second
+#define CANBC_BROADCAST_PERIOD              50 // milliseconds
 
 /***************************************************************************
  * CAN / inverter
@@ -68,6 +69,8 @@
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
 #define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
+
+#define CANBC_DRIVER_INPUTS_ID                  0x100   // CAN broadcast address for driver inputs
 
 /***************************************************************************
  * sensors

@@ -14,9 +14,10 @@
  * thread and pool constants
  */
 #define CANBC_THREAD_NAME       "CAN Broadcast Thread"
-#define CANBC_THREAD_STACK_SIZE 512 // TODO: this needs to be profiled
+#define CANBC_THREAD_STACK_SIZE 1024 // TODO: this needs to be profiled
 #define CANBC_CHANNEL_POOL_NAME "CAN Broadcast Channel Pool"
 #define CANBC_SEGMENT_POOL_NAME "CAN Broadcast Segment Pool"
+#define CANBC_TICK_TIMER_NAME   "CAN Broadcast Tick Timer"
 
 /*
  * internal functions
@@ -27,34 +28,51 @@ static void create_message(canbc_segment_t* segment_ptr, rtcan_msg_t* msg_ptr);
 
 static bool no_errors(canbc_handle_t* canbc_h);
 
+static void canbc_tick_callback(ULONG input);
+
 static void canbc_thread_entry(ULONG input);
 
 /**
  * @brief       Initialises the CAN broadcast service
  *
- * @param[in]   canbc_h     CAN broadcast handle
- * @param[in]   rtcan_h         RTCAN service handle for broadcasting data
- * @param[in]   priority        Service thread priority
- * @param[in]   stack_pool_ptr  Memory pool to allocate stack memory from
+ * @param[in]   canbc_h             CAN broadcast handle
+ * @param[in]   rtcan_h             RTCAN service handle for broadcasting data
+ * @param[in]   priority            Service thread priority
+ * @param[in]   broadcast_period    Broadcast period in milliseconds
+ * @param[in]   stack_pool_ptr      Memory pool to allocate stack memory from
  */
 canbc_status_t canbc_init(canbc_handle_t* canbc_h,
                           rtcan_handle_t* rtcan_h,
                           UINT priority,
+                          uint32_t broadcast_period,
                           TX_BYTE_POOL* stack_pool_ptr)
 {
     canbc_h->rtcan_h = rtcan_h;
     canbc_h->first_segment_ptr = NULL;
 
-    // memory pool for channels
-    UINT tx_status = tx_block_pool_create(&canbc_h->channel_pool,
-                                          CANBC_CHANNEL_POOL_NAME,
-                                          CANBC_CHANNEL_POOL_BLOCK_SIZE,
-                                          canbc_h->channel_pool_mem,
-                                          CANBC_CHANNEL_POOL_SIZE);
+    // timer tick period in ticks
+    canbc_h->tick_period
+        = (broadcast_period * TX_TIMER_TICKS_PER_SECOND) / 1000;
 
-    if (tx_status != TX_SUCCESS)
+    if (canbc_h->tick_period == 0)
     {
-        canbc_h->err |= CANBC_ERROR_INIT;
+        canbc_h->err |= CANBC_ERROR_ARG; // too fast!
+    }
+
+    // memory pool for channels
+    UINT tx_status;
+
+    if (no_errors(canbc_h))
+    {
+        tx_status = tx_block_pool_create(&canbc_h->channel_pool,
+                                         CANBC_CHANNEL_POOL_NAME,
+                                         CANBC_CHANNEL_POOL_BLOCK_SIZE,
+                                         canbc_h->channel_pool_mem,
+                                         CANBC_CHANNEL_POOL_SIZE);
+        if (tx_status != TX_SUCCESS)
+        {
+            canbc_h->err |= CANBC_ERROR_INIT;
+        }
     }
 
     // memory pool for segments
@@ -107,6 +125,23 @@ canbc_status_t canbc_init(canbc_handle_t* canbc_h,
         }
     }
 
+    // tick timer
+    if (no_errors(canbc_h))
+    {
+        tx_status = tx_timer_create(&canbc_h->tick_timer,
+                                    CANBC_TICK_TIMER_NAME,
+                                    canbc_tick_callback,
+                                    (ULONG) canbc_h,
+                                    canbc_h->tick_period,
+                                    canbc_h->tick_period,
+                                    TX_NO_ACTIVATE);
+
+        if (tx_status != TX_SUCCESS)
+        {
+            canbc_h->err |= CANBC_ERROR_INIT;
+        }
+    }
+
     return create_status(canbc_h);
 }
 
@@ -117,11 +152,24 @@ canbc_status_t canbc_init(canbc_handle_t* canbc_h,
  */
 canbc_status_t canbc_start(canbc_handle_t* canbc_h)
 {
-    UINT tx_status = tx_thread_resume(&canbc_h->thread);
-
-    if (tx_status != TX_SUCCESS)
+    if (no_errors(canbc_h))
     {
-        canbc_h->err |= CANBC_ERROR_INIT;
+        UINT tx_status = tx_thread_resume(&canbc_h->thread);
+
+        if (tx_status != TX_SUCCESS)
+        {
+            canbc_h->err |= CANBC_ERROR_INIT;
+        }
+    }
+
+    if (no_errors(canbc_h))
+    {
+        UINT tx_status = tx_timer_activate(&canbc_h->tick_timer);
+
+        if (tx_status != TX_SUCCESS)
+        {
+            canbc_h->err |= CANBC_ERROR_INIT;
+        }
     }
 
     return create_status(canbc_h);
@@ -212,25 +260,34 @@ canbc_status_t canbc_create_channel(canbc_handle_t* canbc_h,
         }
         else
         {
-            canbc_channel_t* end_channel_ptr = segment_ptr->first_channel_ptr;
+            canbc_channel_t* last_channel_ptr = segment_ptr->first_channel_ptr;
 
-            while (end_channel_ptr != NULL)
+            while (last_channel_ptr->next_channel_ptr != NULL)
             {
-                end_channel_ptr = end_channel_ptr->next_channel_ptr;
+                last_channel_ptr = last_channel_ptr->next_channel_ptr;
             }
+
+            last_channel_ptr->next_channel_ptr = new_channel;
         }
 
-        // write config into channel
-        new_channel->data_ptr = data_ptr;
-        new_channel->data_length = data_length;
-        new_channel->next_channel_ptr = NULL;
-        new_channel->byte_offset = segment_ptr->bytes_used;
+        // only continue if data length will not exceed maximum
+        if (segment_ptr->bytes_used + data_length > CANBC_BYTES_PER_SEGMENT)
+        {
+            canbc_h->err |= CANBC_ERROR_SEGMENT_FULL;
+        }
+        else
+        {
+            // write config into channel
+            new_channel->data_ptr = data_ptr;
+            new_channel->data_length = data_length;
+            new_channel->next_channel_ptr = NULL;
+            new_channel->byte_offset = segment_ptr->bytes_used;
 
-        segment_ptr->bytes_used += data_length;
-        // TODO: what if this exceeds data_length
+            segment_ptr->bytes_used += data_length;
 
-        // update address of pointer parameter
-        *channel_ptr = new_channel;
+            // return new channel
+            *channel_ptr = new_channel;
+        }
     }
     else
     {
@@ -250,6 +307,26 @@ uint32_t canbc_get_error(canbc_handle_t* canbc_h)
 {
     return canbc_h->err;
 }
+/**
+ * @brief       Tick timer callback
+ *
+ * @param[in]   input   CANBC handle
+ */
+static void canbc_tick_callback(ULONG input)
+{
+    canbc_handle_t* canbc_h = (canbc_handle_t*) input;
+
+    // restart thread
+    if (no_errors(canbc_h))
+    {
+        UINT status = tx_thread_resume(&canbc_h->thread);
+
+        if (status != TX_SUCCESS)
+        {
+            canbc_h->err |= CANBC_ERROR_INTERNAL;
+        }
+    }
+}
 
 /**
  * @brief       Entry function for CAN broadcast service thread
@@ -260,22 +337,25 @@ static void canbc_thread_entry(ULONG input)
 {
     canbc_handle_t* canbc_h = (canbc_handle_t*) input;
 
-    // TODO: tick to wake thread
-    // while (1)
-    // {
-    //     canbc_segment_t* segment_ptr = canbc_h->first_segment_ptr;
+    while (1)
+    {
+        // send off each channel for transmission
+        canbc_segment_t* segment_ptr = canbc_h->first_segment_ptr;
 
-    //     while (segment_ptr != NULL)
-    //     {
-    //         rtcan_msg_t message;
-    //         create_message(segment_ptr, &message);
+        while (segment_ptr != NULL)
+        {
+            rtcan_msg_t message;
+            create_message(segment_ptr, &message);
 
-    //         rtcan_transmit(canbc_h->rtcan_h, &message);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
 
-    //         segment_ptr = segment_ptr->next_segment_ptr;
-    //     }
+            segment_ptr = segment_ptr->next_segment_ptr;
+        }
 
-    // }
+        // suspend until resumed by next tick
+        // TODO: handle error
+        (void) tx_thread_suspend(&canbc_h->thread);
+    }
 }
 
 /**
