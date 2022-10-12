@@ -41,8 +41,11 @@
  * RTOS
  ***************************************************************************/
 
-#define SENSOR_THREAD_PRIORITY		        3
-#define CONTROL_THREAD_PRIORITY		        3
+#define RTCAN_S_PRIORITY                    3   
+#define RTCAN_I_PRIORITY                    2   // inverter more important than sensors
+#define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
+#define TS_CTRL_THREAD_PRIORITY		        3
+#define DRIVER_CTRL_THREAD_PRIORITY		    3
 #define CAN_TX_THREAD_PRIORITY			    2
 #define CAN_RX_THREAD_PRIORITY              4
 #define WATCHDOG_THREAD_PRIORITY	        4
@@ -51,6 +54,8 @@
 
 #define TRACEX_ENABLE                       1
        // enable TraceX logging
+
+#define DRIVER_CTRL_TICK_RATE               100 // times per second
 
 /***************************************************************************
  * CAN / inverter

@@ -187,8 +187,8 @@ rtcan_status_t rtcan_transmit(rtcan_handle_t* rtcan_h, rtcan_msg_t* msg_ptr)
  * @param[in]   rtcan_h     RTCAN handle
  * @param[in]   can_h       CAN handle passed to HAL callback
  */
-rtcan_status_t rtcan_tx_mailbox_callback(rtcan_handle_t* rtcan_h,
-                                         CAN_HandleTypeDef* can_h)
+rtcan_status_t rtcan_handle_tx_mailbox_callback(rtcan_handle_t* rtcan_h,
+                                                CAN_HandleTypeDef* can_h)
 {
     if (rtcan_h->hcan == can_h)
     {

@@ -24,8 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "init.h"
-#include "rtcan.h"
-#include "canbc.h"
+#include "vcu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,10 +46,10 @@
 /* USER CODE BEGIN PV */
 
 /**
- * @brief RTCAN service for sensor (S) CAN bus
+ * @brief   VCU instance
  */
-static rtcan_handle_t rtcan_s;
-static canbc_handle_t can_broadcaster;
+static vcu_handle_t vcu;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -72,15 +71,20 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   /* USER CODE END App_ThreadX_MEM_POOL */
 
   /* USER CODE BEGIN App_ThreadX_Init */
+
+  // TODO: move this to VCU init
   init_threads(byte_pool);
 
-  // TODO: move this somewhere else?
-  // TODO: check error codes
-  rtcan_init(&rtcan_s, &hcan2, 4, byte_pool);
-  rtcan_start(&rtcan_s);
+  if (ret == TX_SUCCESS)
+  {
+    vcu_status_t status = vcu_init(&vcu, &hcan2, byte_pool);
 
-  canbc_init(&can_broadcaster, &rtcan_s, 4, byte_pool);
-  canbc_start(&can_broadcaster);
+    if (status != VCU_OK)
+    {
+        ret = TX_START_ERROR;
+    }
+  }
+
   /* USER CODE END App_ThreadX_Init */
 
   return ret;
@@ -112,16 +116,16 @@ void MX_ThreadX_Init(void)
  */
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 
 void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 
 void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) rtcan_tx_mailbox_callback(&rtcan_s, can_h);
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 /* USER CODE END 1 */

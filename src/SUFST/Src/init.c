@@ -13,13 +13,9 @@
 
 #include "apps.h"
 #include "bps.h"
-
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
-#include "control_thread.h"
-#include "init_thread.h"
 #include "pm100.h"
-#include "sensor_thread.h"
 #include "watchdog_thread.h"
 
 /**
@@ -35,10 +31,7 @@ UINT init_threads(TX_BYTE_POOL* stack_pool_ptr)
     (TX_BYTE_POOL*) = {
         can_rx_thread_create,
         can_tx_thread_create,
-        control_thread_create,
         watchdog_thread_create,
-        sensor_thread_create,
-        init_thread_create,
     };
 
     const UINT num_threads
