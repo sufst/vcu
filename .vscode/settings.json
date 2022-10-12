@@ -38,5 +38,5 @@
     "limits": "c",
     "ready_to_drive.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": true
+  "cortex-debug.variableUseNaturalFormat": false
 }

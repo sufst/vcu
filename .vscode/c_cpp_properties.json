@@ -6,9 +6,9 @@
       "includePath": [
         "${workspaceFolder}/src/SUFST/Inc",
         "${workspaceFolder}/src/Core/Inc",
-        "${workspaceFolder}/src/Drivers/STM32H7xx_HAL_Driver/Inc",
-        "${workspaceFolder}/src/Drivers/CMSIS/Device/ST/STM32H7xx/Include",
-        "${workspaceFolder}/src/Drivers/CMSIS/Core/Include",
+        "${workspaceFolder}/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+        "${workspaceFolder}/src/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
+        "${workspaceFolder}/src/Drivers/CMSIS/Include",
         "${workspaceFolder}/src/Middlewares/ST/threadx/common/inc",
         "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
         "${workspaceFolder}/src/SUFST/Inc/CAN"
