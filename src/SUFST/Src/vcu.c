@@ -10,8 +10,6 @@
 
 #include "config.h"
 
-#include "can_rx_thread.h"
-#include "can_tx_thread.h"
 #include "init.h"
 #include "ready_to_drive.h"
 #include "watchdog_thread.h"
@@ -182,21 +180,7 @@ static void init_thread_entry(ULONG input)
     rtd_wait();
     init_post_rtd();
 
-    // start all the application threads
-    // TODO: this will change once the other threads are wrapped in context
-    //       structs
-    UINT(*thread_start_funcs[])
-    () = {can_tx_thread_start};
-
-    const UINT num_to_start
-        = sizeof(thread_start_funcs) / sizeof(thread_start_funcs[0]);
-
-    for (UINT i = 0; i < num_to_start; i++)
-    {
-        thread_start_funcs[i]();
-    }
-
-    // new thread starts
+    // start application threads
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
     (void) driver_ctrl_start(&vcu_h->driver_ctrl);

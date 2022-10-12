@@ -16,10 +16,7 @@
 
 #include "fault.h"
 
-#include "can_rx_thread.h"
-#include "can_tx_thread.h"
 #include "gpio.h"
-#include "pm100.h" a
 
 #define WATCHDOG_THREAD_STACK_SIZE           512
 #define WATCHDOG_THREAD_PREEMPTION_THRESHOLD WATCHDOG_THREAD_PRIORITY
@@ -73,7 +70,6 @@ void watchdog_thread_entry(ULONG thread_input);
 void critical_fault_handler(critical_fault_t fault);
 void minor_fault_handler(minor_fault_t fault);
 void check_system_state();
-void check_pm100_state();
 
 /**
  * @brief 		Initialise fault state thread
@@ -204,7 +200,7 @@ void critical_fault_handler(critical_fault_t fault)
 {
     // immediately drive ready-to-drive pin inactive (HIGH) and disable inverter
     HAL_GPIO_WritePin(RTD_OUT_GPIO_Port, RTD_OUT_Pin, GPIO_PIN_SET);
-    pm100_disable();
+    // TODO: disable inverter
 
     // shut down driver input and control
     // TODO: shut down driver input service
@@ -232,31 +228,5 @@ void minor_fault_handler(minor_fault_t fault)
  */
 void check_system_state()
 {
-    check_pm100_state();
-}
-
-/**
- * @brief 	Check inverter state for faults
- *
- * @details	Checks for presence of "run faults" (see PM100 datasheet), but not
- * which specific fault occurred (this can be determined from the PM100 state
- * with the debugger).
- */
-void check_pm100_state()
-{
-    const pm100_state_index_t fault_indexes[]
-        = {PM100_RUN_FAULT_LO, PM100_RUN_FAULT_HI};
-
-    uint32_t state_value;
-
-    for (uint32_t i = 0; i < (sizeof(fault_indexes) / sizeof(fault_indexes[0]));
-         i++)
-    {
-        pm100_read_state(fault_indexes[i], &state_value);
-
-        if (state_value != 0)
-        {
-            critical_fault(CRITICAL_FAULT_INVERTER_INTERNAL);
-        }
-    }
+    // TODO: ?
 }
