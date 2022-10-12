@@ -17,8 +17,6 @@
 #include "adc.h"
 #include "apps.h"
 #include "gpio.h"
-
-#include "control_thread.h"
 #include "shutdown.h"
 
 #define SENSOR_THREAD_STACK_SIZE           1024
@@ -144,15 +142,16 @@ void sensor_thread_entry(ULONG thread_input)
         ULONG apps_input = (ULONG) apps_read();
 #endif
 
-        // transmit APPS input to control thread
-        ret = tx_queue_send(&apps_input_queue,
-                            (ULONG*) &apps_input,
-                            TX_NO_WAIT);
+        (void) apps_input;
+        // TODO: transmit APPS input to control thread
+        // ret = tx_queue_send(&apps_input_queue,
+        //                     (ULONG*) &apps_input,
+        //                     TX_NO_WAIT);
 
-        if (ret == TX_QUEUE_FULL)
-        {
-            critical_fault(CRITICAL_FAULT_QUEUE_FULL);
-        }
+        // if (ret == TX_QUEUE_FULL)
+        // {
+        //     critical_fault(CRITICAL_FAULT_QUEUE_FULL);
+        // }
 
         // sleep thread to allow other threads to run
         tx_timer_activate(&sensor_thread_tick_timer);

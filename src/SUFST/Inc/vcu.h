@@ -12,10 +12,10 @@
 
 #include "tx_api.h"
 
-#include "rtcan.h"
-
 #include "can.h"
 #include "canbc.h"
+#include "rtcan.h"
+#include "ts_control.h"
 
 /*
  * error codes
@@ -41,6 +41,11 @@ typedef struct
      * @details Broadcasts to the sensors CAN bus using the RTCAN service
      */
     canbc_handle_t canbc;
+
+    /**
+     * @brief   Tractive system controller
+     */
+    ts_ctrl_handle_t ts_ctrl;
 
     /**
      * @brief   Initialisation thread

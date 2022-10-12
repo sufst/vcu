@@ -12,7 +12,6 @@
 
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
-#include "control_thread.h"
 #include "init.h"
 #include "ready_to_drive.h"
 #include "sensor_thread.h"
@@ -110,6 +109,17 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // tractive system controller
+    if (no_errors(vcu_h))
+    {
+        ts_ctrl_status_t status = ts_ctrl_init(&vcu_h->ts_ctrl, app_mem_pool);
+
+        if (status != TS_CTRL_OK)
+        {
+            vcu_h->err |= VCU_ERROR_INIT;
+        }
+    }
+
     return create_status(vcu_h);
 }
 
@@ -164,7 +174,7 @@ static void init_thread_entry(ULONG input)
     // TODO: this will change once the other threads are wrapped in context
     //       structs
     UINT(*thread_start_funcs[])
-    () = {can_tx_thread_start, control_thread_start, sensor_thread_start};
+    () = {can_tx_thread_start, sensor_thread_start};
 
     const UINT num_to_start
         = sizeof(thread_start_funcs) / sizeof(thread_start_funcs[0]);
@@ -173,6 +183,10 @@ static void init_thread_entry(ULONG input)
     {
         thread_start_funcs[i]();
     }
+
+    // new thread starts
+    // TODO: handle errors
+    (void) ts_ctrl_start(&vcu_h->ts_ctrl);
 
     // terminate this thread
     (void) tx_thread_terminate(&vcu_h->init_thread);

@@ -16,11 +16,9 @@
 
 #include "fault.h"
 
-#include "gpio.h"
-
 #include "can_rx_thread.h"
 #include "can_tx_thread.h"
-#include "control_thread.h"
+#include "gpio.h"
 #include "pm100.h"
 #include "sensor_thread.h"
 
@@ -211,7 +209,8 @@ void critical_fault_handler(critical_fault_t fault)
 
     // shut down driver input and control
     sensor_thread_terminate();
-    control_thread_terminate();
+    // control_thread_terminate();
+    // TODO: shut down TS controller
 
     // the end
     while (1)
