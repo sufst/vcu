@@ -12,16 +12,14 @@ The VCU is responsible for taking driver throttle inputs and communicating with 
 
 # Useful Resources
 
-Documentation and rules:
+Rules:
 
-- [VCU Wiki](https://github.com/sufst/vcu/wiki)
 - [FSUK 2022 rules](https://www.imeche.org/docs/default-source/1-oscar/formula-student/2022/rules/fsuk-2022-rules---final.pdf?sfvrsn=2)
 
 Microcontroller:
 
-- [STM32H723ZG MCU Datasheet](https://www.st.com/resource/en/datasheet/stm32h723vg.pdf)
-- [STM32H7 Nucleo 144 Dev Board User Manual](https://www.st.com/resource/en/user_manual/dm00499160-stm32h7-nucleo144-boards-mb1364-stmicroelectronics.pdf)
-- [STM32H7xx HAL Manual](https://www.st.com/resource/en/user_manual/um2217-description-of-stm32h7-hal-and-lowlayer-drivers-stmicroelectronics.pdf)
+- [STM32F746ZG MCU Datasheet](https://www.st.com/resource/en/datasheet/stm32f746zg.pdf)
+- [STM32F7xx HAL Manual](https://www.st.com/resource/en/user_manual/dm00189702-description-of-stm32f7-hal-and-lowlayer-drivers-stmicroelectronics.pdf)
 
 ThreadX RTOS:
 
