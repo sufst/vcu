@@ -1,7 +1,7 @@
 {
   "configurations": [
     {
-      "name": "arm-none-eabi-gcc",
+      "name": "MAC-arm-none-eabi-gcc",
       "compileCommands": "${workspaceFolder}/compile_commands.json",
       "includePath": [
         "${workspaceFolder}/src/SUFST/Inc",
@@ -18,6 +18,29 @@
         "USE_HAL_DRIVER",
         "STM32H723xx"
       ],
+      "cStandard": "gnu11",
+      "intelliSenseMode": "gcc-arm",
+      "configurationProvider": "ms-vscode.makefile-tools"
+    },
+    {
+      "name": "WIN-arm-none-eabi-gcc",
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/src/SUFST/Inc",
+        "${workspaceFolder}/src/Core/Inc",
+        "${workspaceFolder}/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+        "${workspaceFolder}/src/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
+        "${workspaceFolder}/src/Drivers/CMSIS/Include",
+        "${workspaceFolder}/src/Middlewares/ST/threadx/common/inc",
+        "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
+        "${workspaceFolder}/src/SUFST/Inc/CAN"
+      ],
+      "defines": [
+        "TX_INCLUDE_USER_DEFINE_FILE",
+        "USE_HAL_DRIVER",
+        "STM32H723xx"
+      ],
+      "compilerPath": "C:/Program Files (x86)/GNU Arm Embedded Toolchain/10 2021.10/bin/arm-none-eabi-gcc.exe",
       "cStandard": "gnu11",
       "intelliSenseMode": "gcc-arm",
       "configurationProvider": "ms-vscode.makefile-tools"
