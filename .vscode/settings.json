@@ -36,7 +36,9 @@
     "stdint.h": "c",
     "apps.h": "c",
     "limits": "c",
-    "ready_to_drive.h": "c"
+    "ready_to_drive.h": "c",
+    "vcu.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": false
+  "cortex-debug.variableUseNaturalFormat": false,
+  "C_Cpp.errorSquiggles": "Enabled"
 }
