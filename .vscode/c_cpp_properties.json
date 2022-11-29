@@ -25,7 +25,7 @@
         },
         {
             "name": "WIN-arm-none-eabi-gcc",
-            "compileCommands": "${workspaceFolder}/.vscode/compile_commands.json",
+            "compileCommands": "${workspaceFolder}/compile_commands.json",
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/src/Drivers/**"
