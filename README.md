@@ -8,13 +8,10 @@
 
 # About
 
-The VCU is responsible for taking driver throttle inputs and communicating with the inverter.
+The VCU is responsible for controlling the tractive system based on driver
+input.
 
 # Useful Resources
-
-Rules:
-
-- [FSUK 2022 rules](https://www.imeche.org/docs/default-source/1-oscar/formula-student/2022/rules/fsuk-2022-rules---final.pdf?sfvrsn=2)
 
 Microcontroller:
 
@@ -33,5 +30,5 @@ CAN / inverter:
 
 # Related Projects
 
-- [VCU Driver Profiles App](https://github.com/sufst/vcu-driver-profile)
-- [VCU Breakout Board](https://github.com/sufst/vcu-breakout)
+- [VCU GUI](https://github.com/sufst/vcu-gui)
+- [VCU PCB](https://github.com/sufst/pcb)
