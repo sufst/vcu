@@ -1,0 +1,3 @@
+[submodule "src/Middlewares/SUFST/can-defs"]
+	path = src/Middlewares/SUFST/can-defs
+	url = ssh://git@github.com/sufst/can-defs
