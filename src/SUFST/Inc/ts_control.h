@@ -10,8 +10,10 @@
 #include <stdint.h>
 
 #include "tx_api.h"
-#include "pm100.h"
+
 #include "rtcan.h"
+
+#include "pm100.h"
 
 /*
  * error codes

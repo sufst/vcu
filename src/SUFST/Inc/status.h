@@ -7,7 +7,8 @@
 #ifndef STATUS_H
 #define STATUS_H
 
-typedef enum {
+typedef enum
+{
     STATUS_OK,
     STATUS_ERROR
 } status_t;

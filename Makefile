@@ -338,7 +338,8 @@ C_INCLUDES =  \
 -Isrc/Drivers/CMSIS/Include \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
--Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/
+-Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
+-Isrc/Middlewares/SUFST/can-defs/inc/device
 
 ASM_INCLUDES = 
 

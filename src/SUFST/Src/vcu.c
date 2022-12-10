@@ -67,7 +67,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
             }
         }
     }
-    
+
     // CAN broadcast service
     if (no_errors(vcu_h))
     {
@@ -121,9 +121,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // tractive system controller
     if (no_errors(vcu_h))
     {
-        ts_ctrl_status_t status = ts_ctrl_init(&vcu_h->ts_ctrl,
-                                               &vcu_h->rtcan_c,
-                                               app_mem_pool);
+        ts_ctrl_status_t status
+            = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
 
         if (status != TS_CTRL_OK)
         {
