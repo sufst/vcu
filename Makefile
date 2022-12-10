@@ -333,7 +333,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
--Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
+-Isrc/Drivers/CMSIS/Device/ST/STM32f7xx/Include \
 -Isrc/Drivers/CMSIS/Include \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
@@ -425,7 +425,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
 	
 # create build directory
 $(BUILD_DIR):
-	mkdir $@	
+	mkdir -p $@	
 
 # clean
 clean:
