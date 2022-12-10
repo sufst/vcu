@@ -99,6 +99,7 @@ src/SUFST/Src/ts_control.c \
 src/SUFST/Src/driver_control.c \
 src/SUFST/Src/CAN/rtcan.c \
 src/SUFST/Src/CAN/canbc.c \
+src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Test/testbench.c \
@@ -333,11 +334,12 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
--Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
+-Isrc/Drivers/CMSIS/Device/ST/STM32f7xx/Include \
 -Isrc/Drivers/CMSIS/Include \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
--Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/
+-Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
+-Isrc/Middlewares/SUFST/can-defs/inc/device
 
 ASM_INCLUDES = 
 
@@ -425,7 +427,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
 	
 # create build directory
 $(BUILD_DIR):
-	mkdir $@	
+	mkdir -p $@	
 
 # clean
 clean:

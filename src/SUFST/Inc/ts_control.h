@@ -11,6 +11,10 @@
 
 #include "tx_api.h"
 
+#include "rtcan.h"
+
+#include "pm100.h"
+
 /*
  * error codes
  */
@@ -81,6 +85,11 @@ typedef struct
     ULONG input_queue_mem[TS_CTRL_INPUT_QUEUE_SIZE];
 
     /**
+     * @brief   Inverter driver
+     */
+    pm100_handle_t pm100;
+
+    /**
      * @brief   Current error code
      */
     uint32_t err;
@@ -101,6 +110,7 @@ typedef enum
  */
 
 ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
+                              rtcan_handle_t* rtcan_h,
                               TX_BYTE_POOL* stack_pool_ptr);
 
 ts_ctrl_status_t ts_ctrl_start(ts_ctrl_handle_t* ts_ctrl_h);

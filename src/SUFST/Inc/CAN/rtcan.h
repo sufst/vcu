@@ -111,7 +111,7 @@ typedef struct
  */
 rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
                           CAN_HandleTypeDef* hcan,
-                          ULONG,
+                          ULONG priority,
                           TX_BYTE_POOL* stack_pool_ptr);
 
 rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h);

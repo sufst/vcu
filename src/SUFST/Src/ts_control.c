@@ -31,9 +31,11 @@ static ts_ctrl_status_t create_status(ts_ctrl_handle_t* ts_ctrl_h);
  * @brief       Initialises the TS controller
  *
  * @param[in]   ts_ctrl_h       TS controller handle
+ * @param[in]   rtcan_h         RTCAN handle for inverter communications
  * @param[in]   stack_pool_ptr  Memory pool to allocate stack memory from
  */
 ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
+                              rtcan_handle_t* rtcan_h,
                               TX_BYTE_POOL* stack_pool_ptr)
 {
     // create thread
@@ -75,6 +77,17 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
                                       TS_CTRL_INPUT_QUEUE_SIZE);
 
         if (status != TX_SUCCESS)
+        {
+            ts_ctrl_h->err |= TS_CTRL_ERROR_INIT;
+        }
+    }
+
+    // initialise inverter driver
+    if (no_errors(ts_ctrl_h))
+    {
+        status_t status = pm100_init(&ts_ctrl_h->pm100, rtcan_h);
+
+        if (status != STATUS_OK)
         {
             ts_ctrl_h->err |= TS_CTRL_ERROR_INIT;
         }
@@ -128,12 +141,12 @@ ts_ctrl_status_t ts_ctrl_input_send(ts_ctrl_handle_t* ts_ctrl_h,
 
     // post to the queue, flushing it if not empty
     // -> the TS controller should have the most up to date inputs
+    // -> if the inverter is in lockout, new inputs are ignored by this
     if (no_errors(ts_ctrl_h))
     {
         status = TX_SUCCESS;
 
-        if (enqueued
-            != 0) // TODO: this really shouldn't happen - should log this?
+        if (enqueued != 0)
         {
             status = tx_queue_flush(&ts_ctrl_h->input_queue);
         }
@@ -173,6 +186,15 @@ static void ts_ctrl_thread_entry(ULONG input)
         Error_Handler();
     }
 
+    // start inverter, get out of lockout
+    status_t status = pm100_enable(&ts_ctrl_h->pm100);
+
+    if (status != STATUS_OK)
+    {
+        // TODO: proper error handler
+        Error_Handler();
+    }
+
     // loop forever
     while (1)
     {
@@ -189,8 +211,14 @@ static void ts_ctrl_thread_entry(ULONG input)
             UINT torque_request
                 = apply_torque_map(driver_profile_ptr, inputs.accel_pressure);
 
-            // TODO: send the torque request!
-            (void) torque_request;
+            // send the torque request
+            status = pm100_request_torque(&ts_ctrl_h->pm100, torque_request);
+
+            if (status != STATUS_OK)
+            {
+                // TODO: proper error handler!
+                Error_Handler();
+            }
         }
     }
 }
