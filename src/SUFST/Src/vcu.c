@@ -31,31 +31,43 @@ static vcu_status_t create_status(vcu_handle_t* vcu_h);
  * @brief       Initialises the VCU and all system services
  *
  * @param[in]   vcu_h           VCU instance handle
+ * @param[in]   can_c_h         Critical systems CAN bus handle
  * @param[in]   can_s_h         Sensor CAN bus handle
  * @param[in]   app_mem_pool    Pointer to RTOS application memory pool
  */
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
+                      CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
                       TX_BYTE_POOL* app_mem_pool)
 {
-    // RTCAN service
+    vcu_h->err = VCU_ERROR_NONE;
+
+    // RTCAN services
+    rtcan_handle_t* rtcan_handles[] = {&vcu_h->rtcan_s, &vcu_h->rtcan_c};
+    CAN_HandleTypeDef* can_handles[] = {can_s_h, can_c_h};
+    ULONG rtcan_priorities[] = {RTCAN_S_PRIORITY, RTCAN_C_PRIORITY};
+
+    for (uint32_t i = 0; i < 2; i++)
     {
-        rtcan_status_t status = rtcan_init(&vcu_h->rtcan_s,
-                                           can_s_h,
-                                           RTCAN_S_PRIORITY,
-                                           app_mem_pool);
-
-        if (status == RTCAN_OK)
+        if (no_errors(vcu_h))
         {
-            status = rtcan_start(&vcu_h->rtcan_s);
-        }
+            rtcan_status_t status = rtcan_init(rtcan_handles[i],
+                                               can_handles[i],
+                                               rtcan_priorities[i],
+                                               app_mem_pool);
 
-        if (status != RTCAN_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
+            if (status == RTCAN_OK)
+            {
+                status = rtcan_start(rtcan_handles[i]);
+            }
+
+            if (status != RTCAN_OK)
+            {
+                vcu_h->err |= VCU_ERROR_INIT;
+            }
         }
     }
-
+    
     // CAN broadcast service
     if (no_errors(vcu_h))
     {
@@ -109,7 +121,9 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // tractive system controller
     if (no_errors(vcu_h))
     {
-        ts_ctrl_status_t status = ts_ctrl_init(&vcu_h->ts_ctrl, app_mem_pool);
+        ts_ctrl_status_t status = ts_ctrl_init(&vcu_h->ts_ctrl,
+                                               &vcu_h->rtcan_c,
+                                               app_mem_pool);
 
         if (status != TS_CTRL_OK)
         {

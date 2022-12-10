@@ -111,30 +111,6 @@ rtcan_status_t rtcan_init(rtcan_handle_t* rtcan_h,
         }
     }
 
-    // start peripheral
-    if (no_errors(rtcan_h))
-    {
-        HAL_StatusTypeDef hal_status = HAL_CAN_Start(rtcan_h->hcan);
-
-        if (hal_status != HAL_OK)
-        {
-            rtcan_h->err |= RTCAN_ERROR_INIT;
-        }
-    }
-
-    if (no_errors(rtcan_h))
-    {
-        // TODO: does this work?
-        HAL_StatusTypeDef hal_status
-            = HAL_CAN_ActivateNotification(rtcan_h->hcan,
-                                           CAN_IT_TX_MAILBOX_EMPTY);
-
-        if (hal_status != HAL_OK)
-        {
-            rtcan_h->err |= RTCAN_ERROR_INIT;
-        }
-    }
-
     return create_status(rtcan_h);
 }
 
@@ -150,6 +126,30 @@ rtcan_status_t rtcan_start(rtcan_handle_t* rtcan_h)
     if (tx_status != TX_SUCCESS)
     {
         rtcan_h->err |= RTCAN_ERROR_INIT;
+    }
+
+    // start peripheral
+    if (no_errors(rtcan_h))
+    {
+        // TODO: does this work?
+        HAL_StatusTypeDef hal_status
+            = HAL_CAN_ActivateNotification(rtcan_h->hcan,
+                                           CAN_IT_TX_MAILBOX_EMPTY);
+
+        if (hal_status != HAL_OK)
+        {
+            rtcan_h->err |= RTCAN_ERROR_INIT;
+        }
+    }
+
+    if (no_errors(rtcan_h))
+    {
+        HAL_StatusTypeDef hal_status = HAL_CAN_Start(rtcan_h->hcan);
+
+        if (hal_status != HAL_OK)
+        {
+            rtcan_h->err |= RTCAN_ERROR_INIT;
+        }
     }
 
     return create_status(rtcan_h);

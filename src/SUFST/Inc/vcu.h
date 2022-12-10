@@ -38,6 +38,11 @@ typedef struct
     rtcan_handle_t rtcan_s;
 
     /**
+     * @brief   RTCAN service for critical systems CAN bus
+     */
+    rtcan_handle_t rtcan_c;
+
+    /**
      * @brief   CAN broadcasting service for VCU state
      *
      * @details Broadcasts to the sensors CAN bus using the RTCAN service
@@ -80,6 +85,7 @@ typedef enum
  */
 
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
+                      CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
                       TX_BYTE_POOL* app_mem_pool);
 
