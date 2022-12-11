@@ -69,6 +69,12 @@ To minimise the chance of merge conflicts, changes to the `.ioc` should be made
 as infrequently as possible as the `.ioc` format is not well suited to version
 control.
 
+> Note: CubeMX generates a Makefile in the `src` folder. This should *not* be
+  used, there is a custom Makefile in the project root. If CubeMX adds something
+  to the Makefile it generates which is not in the custom Makefile, it should be 
+  copied over. This should only happen infrequently when adding a new peripheral
+  or CubeMX managed middlewares.
+
 # Contributing
 
 Before contributing to this project, make sure to familiarise yourself with the
