@@ -3,13 +3,78 @@
 # Table of Contents
 
 - [About](#about)
+- [Development Environment](#development-environment)
+- [Contributing](#contributing)
 - [Useful Resources](#useful-resources)
 - [Related Projects](#related-projects)
 
 # About
 
 The VCU is responsible for controlling the tractive system based on driver
-input.
+input. The microcontroller used in this project is the STM32 F746ZG.
+
+More detailed information about this project is available to members on the
+SUFST Docs Site.
+
+# Development Environment
+
+## Building and Flashing
+
+To build this project and flash code to the microcontroller, you will need the
+following on your path:
+
+- [Make](https://www.gnu.org/software/make/)
+- [ARM GNU Embedded Toolchain](https://developer.arm.com/downloads/-/gnu-rm)
+- [STLink Open Source Toolset](https://github.com/stlink-org/stlink)
+- `mkdir`, `rm`, `tput` and `echo`
+
+Build with:
+
+```sh
+make -j -s
+```
+
+Flash with:
+
+```sh
+make flash
+```
+
+For detailed toolchain setup instructions, see the SUFST Docs Site.
+
+> Note: Windows users should run these commands from Git Bash.
+
+## VS Code
+
+This project is set up to be edited and debugged in [VS Code](https://code.visualstudio.com).
+The `.vscode`folder includes tasks and launch configurations. To improve
+Intellisense, it is recommended to use [`ccdgen`](https://github.com/t-bre/ccdgen)
+to generate a `compile_commands.json` database with the following command:
+
+```sh
+python -m ccdgen --extension .c .s --compiler arm-none-eabi-gcc -- make
+```
+
+Since the toolchain is set up to be fully command line based, it is also
+possible to use other code editors.
+
+> Note: Windows users should set Git Bash as the shell in VS Code.
+
+## STM32CubeMX
+
+[STM32CubeMX](https://www.st.com/en/development-tools/stm32cubemx.html) is used
+to generate boilerplate initialisation code for the microcontroller. These
+configurations are stored in `src/VCU.ioc` which should not be edited manually.
+To minimise the chance of merge conflicts, changes to the `.ioc` should be made
+as infrequently as possible as the `.ioc` format is not well suited to version
+control.
+
+# Contributing
+
+Before contributing to this project, make sure to familiarise yourself with the
+[project-specific contributing guidelines](.github/CONTRIBUTING_EXTRA.md). Until
+the STAG 9 codebase is stable, all branches should be created from and merged
+back into `develop`.
 
 # Useful Resources
 
