@@ -15,7 +15,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)
 {
     if(GPIO_pin == SHUTDOWN_IN_Pin)
     {
-        uint8_t x = 1;
+        HAL_GPIO_WritePin(GPIOB, GPIO_PIN_14, GPIO_PIN_SET);
         while(1);
     }
 

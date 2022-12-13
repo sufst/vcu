@@ -7,7 +7,7 @@
 
 #ifndef SHUTDOWN_H
 #define SHUTDOWN_H
-#define SHUTDOWN_PIN
+
 
 
 #endif
