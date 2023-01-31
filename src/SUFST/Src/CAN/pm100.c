@@ -7,9 +7,15 @@
 
 #include "pm100.h"
 
+/*
+ * PM100DZ inverter definitions
+ */
+
 #define PM100DZ_GEN              5    // TODO: double check this
 #define PM100DZ_FIRMWARE_VERSION 2000 // TODO: this is unknown
-#include "pm100dz_def.h"
+
+#define CAN_ID_PM100DZ_COMMAND           0x0C0
+#define CAN_ID_PM100DZ_INTERNAL_STATES   0x0AA
 
 #define PM100_MAX_TORQUE_REQUEST         0x7FFF
 #define PM100_DIRECTION_FORWARD          0x1
@@ -23,6 +29,10 @@
 #define PM100_SPEED_MODE_ENABLE          0x4
 
 #define PM100_LOCKOUT_SEM_NAME           "PM100 Lockout Semaphore"
+
+/*
+ * types
+ */
 
 /**
  * @brief       Initialises the inverter context
@@ -166,15 +176,16 @@ status_t pm100_handle_broadcast_msg(pm100_handle_t* pm100_h,
     {
         if (pm100_h->waiting_on_lockout)
         {
-            pm100dz_internal_states_t* state
-                = (pm100dz_internal_states_t*) msg_ptr;
+            // TODO: this needs to be re-implemented
+            // pm100dz_internal_states_t* state
+            //     = (pm100dz_internal_states_t*) msg_ptr;
 
-            if (state->lockout_enabled == 0)
-            {
-                status = (tx_semaphore_put(&pm100_h->lockout_sem) == TX_SUCCESS)
-                             ? STATUS_OK
-                             : STATUS_ERROR;
-            }
+            // if (state->lockout_enabled == 0)
+            // {
+            //     status = (tx_semaphore_put(&pm100_h->lockout_sem) == TX_SUCCESS)
+            //                  ? STATUS_OK
+            //                  : STATUS_ERROR;
+            // }
         }
     }
 
