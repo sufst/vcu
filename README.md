@@ -16,7 +16,20 @@ input. The microcontroller used in this project is the STM32 F746ZG.
 More detailed information about this project is available to members on the
 SUFST Docs Site.
 
-# Development Environment
+# Setup / Development Environment
+
+## Submodules
+
+This project depends on middlewares in the `src/Middlewares/` folder, some of
+which are Git submodules. When first cloning this repo, run the following
+commands:
+
+```sh
+git submodule init
+git submodule update
+```
+
+For more information on submodules, see the [Git submodules documentation](https://git-scm.com/book/en/v2/Git-Tools-Submodules).
 
 ## Building and Flashing
 
