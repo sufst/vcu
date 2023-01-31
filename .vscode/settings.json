@@ -37,7 +37,9 @@
     "apps.h": "c",
     "limits": "c",
     "ready_to_drive.h": "c",
+    "vcu.h": "c"
     "stm32f7xx_hal_def.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": false
+  "cortex-debug.variableUseNaturalFormat": false,
+  "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -61,6 +61,7 @@ void Error_Handler(void);
 #define USER_BUTTON_GPIO_Port GPIOC
 #define SHUTDOWN_IN_Pin GPIO_PIN_1
 #define SHUTDOWN_IN_GPIO_Port GPIOF
+#define SHUTDOWN_IN_EXTI_IRQn EXTI1_IRQn
 #define BUZZER_Pin GPIO_PIN_2
 #define BUZZER_GPIO_Port GPIOF
 #define RTD_IN_Pin GPIO_PIN_10

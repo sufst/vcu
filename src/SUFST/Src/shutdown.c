@@ -1,24 +1,26 @@
-/***************************************************************************
- * @file   shutdown.c
- * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-07-02
- * @brief  Shutdown check
- ***************************************************************************/
+/******************************************************************************
+ * @file    shutdown.c
+ * @author  Alexander Mills (Scaniox#7130 am9g22@soton.ac.uk)
+ * @brief   shutdown interrupt causes the system to enter a shutdown thread
+ *****************************************************************************/
 
 #include "shutdown.h"
 
+#include <stdint.h>
+
+#include "tx_api.h"
+
 #include "gpio.h"
 
-/**
- * @brief   Check if shutdown fault has occurred
- *
- * @note    Shutdown is active low
- */
-void check_shutdown()
+#include <inttypes.h>
+
+// ISR for all EXTI pin change interupts
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)
 {
-    if (!HAL_GPIO_ReadPin(SHUTDOWN_IN_GPIO_Port, SHUTDOWN_IN_Pin))
+    if (GPIO_pin == SHUTDOWN_IN_Pin)
     {
-        // TODO: create fault handler
-        Error_Handler();
+        __ASM("NOP");
     }
+
+    // start shutdown thread
 }
