@@ -1,0 +1,3 @@
+[submodule "src/Middlewares/SUFST/rtcan"]
+	path = src/Middlewares/SUFST/rtcan
+	url = https://github.com/sufst/rtcan
