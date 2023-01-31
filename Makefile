@@ -97,7 +97,6 @@ src/SUFST/Src/bps.c \
 src/SUFST/Src/shutdown.c \
 src/SUFST/Src/ts_control.c \
 src/SUFST/Src/driver_control.c \
-src/SUFST/Src/CAN/rtcan.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
@@ -308,7 +307,8 @@ src/Middlewares/ST/threadx/common/src/tx_trace_isr_enter_insert.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
-src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c  
+src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
+src/Middlewares/SUFST/rtcan/src/rtcan.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
@@ -339,7 +339,7 @@ C_INCLUDES =  \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
 -Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
--Isrc/Middlewares/SUFST/can-defs/inc/device
+-Isrc/Middlewares/SUFST/rtcan/inc/
 
 ASM_INCLUDES = 
 
