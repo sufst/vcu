@@ -83,6 +83,8 @@ int main(void)
     // the processor stops every single TIM3 interrupt.
     // this is a fix for that
     __HAL_DBGMCU_FREEZE_TIM3();
+    __HAL_DBGMCU_FREEZE_CAN2();
+    __HAL_DBGMCU_FREEZE_CAN1();
   #endif
   /* USER CODE END Init */
 

@@ -11,8 +11,8 @@
  * PM100DZ inverter definitions
  */
 
-#define PM100DZ_GEN              5    // TODO: double check this
-#define PM100DZ_FIRMWARE_VERSION 2000 // TODO: this is unknown
+#define PM100DZ_GEN                      5    // TODO: double check this
+#define PM100DZ_FIRMWARE_VERSION         2000 // TODO: this is unknown
 
 #define CAN_ID_PM100DZ_COMMAND           0x0C0
 #define CAN_ID_PM100DZ_INTERNAL_STATES   0x0AA
@@ -182,7 +182,8 @@ status_t pm100_handle_broadcast_msg(pm100_handle_t* pm100_h,
 
             // if (state->lockout_enabled == 0)
             // {
-            //     status = (tx_semaphore_put(&pm100_h->lockout_sem) == TX_SUCCESS)
+            //     status = (tx_semaphore_put(&pm100_h->lockout_sem) ==
+            //     TX_SUCCESS)
             //                  ? STATUS_OK
             //                  : STATUS_ERROR;
             // }
