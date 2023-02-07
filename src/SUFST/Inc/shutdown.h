@@ -8,4 +8,8 @@
 #ifndef SHUTDOWN_H
 #define SHUTDOWN_H
 
+
+void shutdown_fault_registerer();
+}
+
 #endif

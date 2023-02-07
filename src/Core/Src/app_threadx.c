@@ -126,4 +126,19 @@ void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
 {
     (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
+
+/** 
+ * @brief ISR for all EXTI pin change interupts (including shutdown signal)
+ */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)
+{
+  if (GPIO_pin == SHUTDOWN_IN_Pin)
+  {
+    // TODO : call the RTD checking intermediary function 
+    __ASM("NOP");
+  }
+
+  // start shutdown thread
+}
+
 /* USER CODE END 1 */
