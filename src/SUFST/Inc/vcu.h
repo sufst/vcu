@@ -18,6 +18,7 @@
 #include "canbc.h"
 #include "driver_control.h"
 #include "ts_control.h"
+#include "shutdown.h"
 
 /*
  * error codes
