@@ -14,3 +14,11 @@
 
 #include <inttypes.h>
 
+ /**
+  * @brief checks RTD status before registering a critical error
+  */
+void shutdown_fault_registerer() 
+{
+    // check vcu rtd status
+    // register critical fault
+}
