@@ -10,15 +10,13 @@
 
 #include "config.h"
 
+#include "can_database.h"
 #include "driver_profiles.h"
-#include "main.h"
 
 /*
  * macro constants
  */
 #define TS_CTRL_THREAD_STACK_SIZE 1024
-#define TS_CTRL_THREAD_NAME       "Tractive System Control Thread"
-#define TS_CTRL_INPUT_QUEUE_NAME  "Tractive System Control Input Queue"
 
 /*
  * internal functions
@@ -38,6 +36,8 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
                               rtcan_handle_t* rtcan_h,
                               TX_BYTE_POOL* stack_pool_ptr)
 {
+    ts_ctrl_h->rtcan_h = rtcan_h;
+
     // create thread
     {
         void* stack_ptr = NULL;
@@ -50,7 +50,7 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
         if (status == TX_SUCCESS)
         {
             status = tx_thread_create(&ts_ctrl_h->thread,
-                                      TS_CTRL_THREAD_NAME,
+                                      "Tractive System Control Thread",
                                       ts_ctrl_thread_entry,
                                       (ULONG) ts_ctrl_h,
                                       stack_ptr,
@@ -71,10 +71,10 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
     if (no_errors(ts_ctrl_h))
     {
         UINT status = tx_queue_create(&ts_ctrl_h->input_queue,
-                                      TS_CTRL_INPUT_QUEUE_NAME,
-                                      TS_CTRL_INPUT_QUEUE_ITEM_SIZE,
+                                      "Tractive System Control Input Queue",
+                                      sizeof(ts_ctrl_input_t) / sizeof(ULONG),
                                       ts_ctrl_h->input_queue_mem,
-                                      TS_CTRL_INPUT_QUEUE_SIZE);
+                                      sizeof(ts_ctrl_h->input_queue_mem));
 
         if (status != TX_SUCCESS)
         {
@@ -101,11 +101,14 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
  */
 ts_ctrl_status_t ts_ctrl_start(ts_ctrl_handle_t* ts_ctrl_h)
 {
-    UINT status = tx_thread_resume(&ts_ctrl_h->thread);
-
-    if (status != TX_SUCCESS)
+    if (no_errors(ts_ctrl_h))
     {
-        ts_ctrl_h->err |= TS_CTRL_ERROR_INTERNAL;
+        UINT status = tx_thread_resume(&ts_ctrl_h->thread);
+
+        if (status != TX_SUCCESS)
+        {
+            ts_ctrl_h->err |= TS_CTRL_ERROR_INTERNAL;
+        }
     }
 
     return create_status(ts_ctrl_h);
@@ -186,15 +189,6 @@ static void ts_ctrl_thread_entry(ULONG input)
         Error_Handler();
     }
 
-    // start inverter, get out of lockout
-    status_t status = pm100_enable(&ts_ctrl_h->pm100);
-
-    if (status != STATUS_OK)
-    {
-        // TODO: proper error handler
-        Error_Handler();
-    }
-
     // loop forever
     while (1)
     {
@@ -211,8 +205,12 @@ static void ts_ctrl_thread_entry(ULONG input)
             UINT torque_request
                 = apply_torque_map(driver_profile_ptr, inputs.accel_pressure);
 
+            // handle any incoming CAN messages before creating a torque request
+            // TODO: check for error here?
+
             // send the torque request
-            status = pm100_request_torque(&ts_ctrl_h->pm100, torque_request);
+            status_t status
+                = pm100_request_torque(&ts_ctrl_h->pm100, torque_request);
 
             if (status != STATUS_OK)
             {

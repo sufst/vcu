@@ -54,13 +54,8 @@ typedef struct
 /*
  * queue sizing constants
  */
-// TODO: something is wrong with these...
-#define TS_CTRL_INPUT_QUEUE_ITEM_SIZE (sizeof(ts_ctrl_input_t) / sizeof(ULONG))
-
-#define TS_CTRL_INPUT_QUEUE_LENGTH    5 // multiple inputs queued is bad!
-
-#define TS_CTRL_INPUT_QUEUE_SIZE \
-    (TS_CTRL_INPUT_QUEUE_ITEM_SIZE * TS_CTRL_INPUT_QUEUE_LENGTH)
+#define TS_CTRL_INPUT_QUEUE_LENGTH  5 // multiple inputs queued is bad!
+#define TS_CTRL_CAN_RX_QUEUE_LENGTH 10
 
 /**
  * @brief   TS control handle
@@ -74,15 +69,19 @@ typedef struct
     TX_THREAD thread;
 
     /**
+     * @brief   RTCAN handle
+     */
+    rtcan_handle_t* rtcan_h;
+
+    /**
      * @brief   Control input queue
      */
     TX_QUEUE input_queue;
 
     /**
      * @brief   Memory for control input queue
-     *
      */
-    ULONG input_queue_mem[TS_CTRL_INPUT_QUEUE_SIZE];
+    ts_ctrl_input_t input_queue_mem[TS_CTRL_INPUT_QUEUE_LENGTH];
 
     /**
      * @brief   Inverter driver

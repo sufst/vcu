@@ -308,7 +308,8 @@ src/Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
-src/Middlewares/SUFST/rtcan/src/rtcan.c
+src/Middlewares/SUFST/rtcan/src/rtcan.c \
+src/Middlewares/SUFST/can-defs/out/can_database.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
@@ -339,7 +340,8 @@ C_INCLUDES =  \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
 -Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
--Isrc/Middlewares/SUFST/rtcan/inc/
+-Isrc/Middlewares/SUFST/rtcan/inc/ \
+-Isrc/Middlewares/SUFST/can-defs/out/
 
 ASM_INCLUDES = 
 

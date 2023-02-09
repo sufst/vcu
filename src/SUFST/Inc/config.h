@@ -44,14 +44,14 @@
 #define RTCAN_S_PRIORITY                    3   
 #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
 #define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
-#define TS_CTRL_THREAD_PRIORITY		        3
-#define DRIVER_CTRL_THREAD_PRIORITY		    3
+#define TS_CTRL_THREAD_PRIORITY		        2
+#define DRIVER_CTRL_THREAD_PRIORITY		    TS_CTRL_THREAD_PRIORITY + 1 // WARNING: this MUST be higher than TS ctrl thread priority
 #define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging
 
-#define DRIVER_CTRL_TICK_RATE               100 // times per second
+#define DRIVER_CTRL_TICK_RATE               100  // times per second
 #define CANBC_BROADCAST_PERIOD              1000 // milliseconds
 
 /***************************************************************************

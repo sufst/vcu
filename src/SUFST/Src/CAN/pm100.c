@@ -7,16 +7,6 @@
 
 #include "pm100.h"
 
-/*
- * PM100DZ inverter definitions
- */
-
-#define PM100DZ_GEN                      5    // TODO: double check this
-#define PM100DZ_FIRMWARE_VERSION         2000 // TODO: this is unknown
-
-#define CAN_ID_PM100DZ_COMMAND           0x0C0
-#define CAN_ID_PM100DZ_INTERNAL_STATES   0x0AA
-
 #define PM100_MAX_TORQUE_REQUEST         0x7FFF
 #define PM100_DIRECTION_FORWARD          0x1
 #define PM100_DIRECTION_REVERSE          0x0
@@ -28,7 +18,14 @@
 #define PM100_SPEED_MODE_DISABLE         0x0
 #define PM100_SPEED_MODE_ENABLE          0x4
 
-#define PM100_LOCKOUT_SEM_NAME           "PM100 Lockout Semaphore"
+#define ADD_ERROR_IF(cond, error, inst) \
+    if (cond)                           \
+    {                                   \
+        inst->err |= error;             \
+    }
+
+static bool no_errors(pm100_handle_t* pm100_h);
+static status_t create_status(pm100_handle_t* pm100_h);
 
 /*
  * types
@@ -43,18 +40,32 @@
 status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
 {
     pm100_h->rtcan_h = rtcan_h;
-    pm100_h->waiting_on_lockout = false;
+    pm100_h->waiting_on_lockout = true; // assume lockout state
     pm100_h->err = PM100_ERROR_NONE;
 
-    // create lockout semaphore
-    status_t status
-        = (tx_semaphore_create(&pm100_h->lockout_sem, PM100_LOCKOUT_SEM_NAME, 0)
-           == TX_SUCCESS)
-              ? STATUS_OK
-              : STATUS_ERROR;
+    // setup RTCAN subscriptions
+    if (no_errors(pm100_h))
+    {
+        UINT status = tx_queue_create(&pm100_h->can_rx_queue,
+                                      "PM100 CAN Receive Queue",
+                                      TX_1_ULONG,
+                                      pm100_h->can_rx_queue_mem,
+                                      sizeof(pm100_h->can_rx_queue_mem));
 
-    // TODO: subscribe to RTCAN messages for inverter broadcasts
-    return status;
+        ADD_ERROR_IF(status != STATUS_OK, PM100_ERROR_INIT, pm100_h);
+    }
+
+    if (no_errors(pm100_h))
+    {
+        rtcan_status_t status
+            = rtcan_subscribe(pm100_h->rtcan_h,
+                              CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID,
+                              &pm100_h->can_rx_queue);
+
+        ADD_ERROR_IF(status != RTCAN_OK, PM100_ERROR_INIT, pm100_h);
+    }
+
+    return create_status(pm100_h);
 }
 
 /**
@@ -70,29 +81,29 @@ status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
  */
 status_t pm100_enable(pm100_handle_t* pm100_h)
 {
-    // disable inverter
-    status_t status = pm100_disable(pm100_h);
+    // // disable inverter
+    // status_t status = pm100_disable(pm100_h);
 
-    // wait for lockout
-    if (status == STATUS_OK)
-    {
-        pm100_h->waiting_on_lockout = true;
+    // // wait for lockout
+    // if (status == STATUS_OK)
+    // {
+    //     pm100_h->waiting_on_lockout = true;
 
-        status = (tx_semaphore_get(&pm100_h->lockout_sem, TX_WAIT_FOREVER)
-                  == TX_SUCCESS)
-                     ? STATUS_OK
-                     : STATUS_ERROR;
+    //     status = (tx_semaphore_get(&pm100_h->lockout_sem, TX_WAIT_FOREVER)
+    //               == TX_SUCCESS)
+    //                  ? STATUS_OK
+    //                  : STATUS_ERROR;
 
-        pm100_h->waiting_on_lockout = false;
-    }
+    //     pm100_h->waiting_on_lockout = false;
+    // }
 
-    // send a zero torque request
-    if (status == STATUS_OK)
-    {
-        status = pm100_request_torque(pm100_h, 0);
-    }
+    // // send a zero torque request
+    // if (status == STATUS_OK)
+    // {
+    //     status = pm100_request_torque(pm100_h, 0);
+    // }
 
-    return status;
+    return STATUS_OK;
 }
 
 /**
@@ -106,13 +117,13 @@ status_t pm100_enable(pm100_handle_t* pm100_h)
  */
 status_t pm100_disable(pm100_handle_t* pm100_h)
 {
-    rtcan_msg_t msg = {.identifier = CAN_ID_PM100DZ_COMMAND,
-                       .data = {0, 0, 0, 0, 0, 0, 0, 0},
-                       .length = 8};
+    // rtcan_msg_t msg = {.identifier = CAN_ID_PM100DZ_COMMAND,
+    //                    .data = {0, 0, 0, 0, 0, 0, 0, 0},
+    //                    .length = 8};
 
-    rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
+    // rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
 
-    return (status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
+    return STATUS_OK;
 }
 
 /**
@@ -125,72 +136,84 @@ status_t pm100_disable(pm100_handle_t* pm100_h)
  */
 status_t pm100_request_torque(pm100_handle_t* pm100_h, uint32_t torque)
 {
-    status_t status
-        = (torque <= PM100_MAX_TORQUE_REQUEST) ? STATUS_OK : STATUS_ERROR;
+    // status_t status
+    //     = (torque <= PM100_MAX_TORQUE_REQUEST) ? STATUS_OK : STATUS_ERROR;
 
-    if (status == STATUS_OK)
-    {
-        rtcan_msg_t msg = {
-            .identifier = CAN_ID_PM100DZ_COMMAND,
-            .data = {
-                // torque request
-                (torque & 0x00FF),
-                (torque & 0xFF00) >> 8,
-                // speed command
-                0,
-                0, 
-                // direction
-                PM100_DIRECTION_FORWARD,
-                // inverter and speed control
-                PM100_INVERTER_ENABLE 
-                | PM100_INVERTER_DISCHARGE_DISABLE 
-                | PM100_SPEED_MODE_DISABLE,
-                // torque limit
-                (PM100_MAX_TORQUE_REQUEST & 0x00FF),
-                (PM100_MAX_TORQUE_REQUEST & 0xFF00) >> 8
-            },
-            .length = 8
-        };
+    // if (status == STATUS_OK)
+    // {
+    //     rtcan_msg_t msg = {
+    //         .identifier = CAN_ID_PM100DZ_COMMAND,
+    //         .data = {
+    //             // torque request
+    //             (torque & 0x00FF),
+    //             (torque & 0xFF00) >> 8,
+    //             // speed command
+    //             0,
+    //             0,
+    //             // direction
+    //             PM100_DIRECTION_FORWARD,
+    //             // inverter and speed control
+    //             PM100_INVERTER_ENABLE
+    //             | PM100_INVERTER_DISCHARGE_DISABLE
+    //             | PM100_SPEED_MODE_DISABLE,
+    //             // torque limit
+    //             (PM100_MAX_TORQUE_REQUEST & 0x00FF),
+    //             (PM100_MAX_TORQUE_REQUEST & 0xFF00) >> 8
+    //         },
+    //         .length = 8
+    //     };
 
-        status = (rtcan_transmit(pm100_h->rtcan_h, &msg) == RTCAN_OK)
-                     ? STATUS_OK
-                     : STATUS_ERROR;
-    }
+    //     status = (rtcan_transmit(pm100_h->rtcan_h, &msg) == RTCAN_OK)
+    //                  ? STATUS_OK
+    //                  : STATUS_ERROR;
+    // }
 
-    return status;
+    return STATUS_OK;
 }
 
 /**
- * @brief       Handles broadcast messages received from the inverter
+ * @brief       Processes all incoming broadcast messages from the PM100
  *
  * @param[in]   pm100_h     PM100 handle
- * @param[in]   msg_ptr     Pointer to broadcast message ID
  */
-status_t pm100_handle_broadcast_msg(pm100_handle_t* pm100_h,
-                                    rtcan_msg_t* msg_ptr)
+status_t pm100_process_broadcast_msgs(pm100_handle_t* pm100_h)
 {
-    status_t status = STATUS_OK;
+    rtcan_msg_t* msg_ptr = NULL;
 
-    // handle lockout
-    if (msg_ptr->identifier == CAN_ID_PM100DZ_INTERNAL_STATES)
+    while (
+        tx_queue_receive(&pm100_h->can_rx_queue, (void*) &msg_ptr, TX_NO_WAIT))
     {
-        if (pm100_h->waiting_on_lockout)
+        switch (msg_ptr->identifier)
         {
-            // TODO: this needs to be re-implemented
-            // pm100dz_internal_states_t* state
-            //     = (pm100dz_internal_states_t*) msg_ptr;
+        case CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID:
+            break;
 
-            // if (state->lockout_enabled == 0)
-            // {
-            //     status = (tx_semaphore_put(&pm100_h->lockout_sem) ==
-            //     TX_SUCCESS)
-            //                  ? STATUS_OK
-            //                  : STATUS_ERROR;
-            // }
+        default:
+            break;
         }
     }
 
-    // TODO: check for faults
+    // TODO: are any errors possible here?
+    return STATUS_OK;
+}
 
-    return status;
+/**
+ * @brief       Returns true if the PM100 instance has encountered an
+ *              error
+ *
+ * @param[in]   pm100_h     PM100 handle
+ */
+static bool no_errors(pm100_handle_t* pm100_h)
+{
+    return (pm100_h->err == PM100_ERROR_NONE);
+}
+
+/**
+ * @brief       Create a status code based on the current error state
+ *
+ * @param[in]   pm100_h   PM100 handle
+ */
+static status_t create_status(pm100_handle_t* pm100_h)
+{
+    return (no_errors(pm100_h)) ? STATUS_OK : STATUS_ERROR;
 }
