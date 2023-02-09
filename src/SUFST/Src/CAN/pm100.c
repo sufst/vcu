@@ -7,16 +7,31 @@
 
 #include "pm100.h"
 
-#define PM100_MAX_TORQUE_REQUEST         0x7FFF
-#define PM100_DIRECTION_FORWARD          0x1
-#define PM100_DIRECTION_REVERSE          0x0
+#define PM100_MAX_TORQUE_REQUEST           0x7FFF
+#define PM100_DIRECTION_FORWARD            0x1
+#define PM100_DIRECTION_REVERSE            0x0
 
-#define PM100_INVERTER_DISABLE           0x0
-#define PM100_INVERTER_ENABLE            0x1
-#define PM100_INVERTER_DISCHARGE_DISABLE 0x0
-#define PM100_INVERTER_DISCHARGE_ENABLE  0x2
-#define PM100_SPEED_MODE_DISABLE         0x0
-#define PM100_SPEED_MODE_ENABLE          0x4
+#define PM100_LOCKOUT_DISABLED             0x0
+#define PM100_LOCKOUT_ENABLED              0x1
+#define PM100_CAN_MODE                     0x0
+#define PM100_VSM_MODE                     0x1
+#define PM100_DIRECTION_REVERSE            0x0
+#define PM100_DIRECTION_FORWARD            0x1
+#define PM100_INVERTER_OFF                 0x0
+#define PM100_INVERTER_ON                  0x1
+#define PM100_TORQUE_MODE                  0x0
+#define PM100_SPEED_MODE                   0x1
+#define PM100_SPEED_MODE_DISABLE           0x0
+#define PM100_SPEED_MODE_ENABLE            0x1
+
+#define PM100_VSM_START_STATE              0x0
+#define PM100_VSM_PRECHARGE_INIT_STATE     0x1
+#define PM100_VSM_PRECHARGE_ACTIVE_STATE   0x2
+#define PM100_VSM_PRECHARGE_COMPLETE_STATE 0x3
+#define PM100_VSM_WAIT_STATE               0x4
+#define PM100_VSM_READY_STATE              0x5
+#define PM100_VSM_MOTOR_RUNNING_STATE      0x6
+#define PM100_VSM_BLINK_FAULT_CODE_STATE   0x7
 
 #define ADD_ERROR_IF(cond, error, inst) \
     if (cond)                           \
@@ -40,8 +55,9 @@ static status_t create_status(pm100_handle_t* pm100_h);
 status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
 {
     pm100_h->rtcan_h = rtcan_h;
-    pm100_h->waiting_on_lockout = true; // assume lockout state
     pm100_h->err = PM100_ERROR_NONE;
+
+    pm100_h->state.pm100_inverter_enable_lockout = PM100_LOCKOUT_ENABLED;
 
     // setup RTCAN subscriptions
     if (no_errors(pm100_h))
@@ -117,13 +133,14 @@ status_t pm100_enable(pm100_handle_t* pm100_h)
  */
 status_t pm100_disable(pm100_handle_t* pm100_h)
 {
-    // rtcan_msg_t msg = {.identifier = CAN_ID_PM100DZ_COMMAND,
-    //                    .data = {0, 0, 0, 0, 0, 0, 0, 0},
-    //                    .length = 8};
+    rtcan_msg_t msg
+        = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
+           .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+           .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-    // rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
+    rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
 
-    return STATUS_OK;
+    return (status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 }
 
 /**
@@ -136,39 +153,33 @@ status_t pm100_disable(pm100_handle_t* pm100_h)
  */
 status_t pm100_request_torque(pm100_handle_t* pm100_h, uint32_t torque)
 {
-    // status_t status
-    //     = (torque <= PM100_MAX_TORQUE_REQUEST) ? STATUS_OK : STATUS_ERROR;
+    if (pm100_h->state.pm100_inverter_enable_lockout == PM100_LOCKOUT_DISABLED)
+    {
+        torque = (torque > PM100_MAX_TORQUE_REQUEST) ? PM100_MAX_TORQUE_REQUEST
+                                                     : torque;
 
-    // if (status == STATUS_OK)
-    // {
-    //     rtcan_msg_t msg = {
-    //         .identifier = CAN_ID_PM100DZ_COMMAND,
-    //         .data = {
-    //             // torque request
-    //             (torque & 0x00FF),
-    //             (torque & 0xFF00) >> 8,
-    //             // speed command
-    //             0,
-    //             0,
-    //             // direction
-    //             PM100_DIRECTION_FORWARD,
-    //             // inverter and speed control
-    //             PM100_INVERTER_ENABLE
-    //             | PM100_INVERTER_DISCHARGE_DISABLE
-    //             | PM100_SPEED_MODE_DISABLE,
-    //             // torque limit
-    //             (PM100_MAX_TORQUE_REQUEST & 0x00FF),
-    //             (PM100_MAX_TORQUE_REQUEST & 0xFF00) >> 8
-    //         },
-    //         .length = 8
-    //     };
+        rtcan_msg_t msg
+            = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
+               .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+               .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-    //     status = (rtcan_transmit(pm100_h->rtcan_h, &msg) == RTCAN_OK)
-    //                  ? STATUS_OK
-    //                  : STATUS_ERROR;
-    // }
+        struct can_database_pm100_command_message_t cmd
+            = {.pm100_torque_command = torque,
+               .pm100_direction_command = PM100_DIRECTION_FORWARD,
+               .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
+               .pm100_inverter_enable = PM100_INVERTER_ON};
 
-    return STATUS_OK;
+        can_database_pm100_command_message_pack(msg.data, &cmd, msg.length);
+
+        rtcan_transmit(pm100_h->rtcan_h, &msg);
+    }
+    else
+    {
+        // have to send lockout disable, can't send torque request
+        pm100_disable(pm100_h);
+    }
+
+    return create_status(pm100_h);
 }
 
 /**
@@ -181,16 +192,24 @@ status_t pm100_process_broadcast_msgs(pm100_handle_t* pm100_h)
     rtcan_msg_t* msg_ptr = NULL;
 
     while (
-        tx_queue_receive(&pm100_h->can_rx_queue, (void*) &msg_ptr, TX_NO_WAIT))
+        tx_queue_receive(&pm100_h->can_rx_queue, (void*) &msg_ptr, TX_NO_WAIT)
+        == TX_SUCCESS)
     {
         switch (msg_ptr->identifier)
         {
         case CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID:
+            can_database_pm100_internal_states_unpack(
+                &pm100_h->state,
+                msg_ptr->data,
+                CAN_DATABASE_PM100_INTERNAL_STATES_LENGTH);
+            __ASM("NOP");
             break;
 
         default:
             break;
         }
+
+        rtcan_msg_consumed(pm100_h->rtcan_h, msg_ptr);
     }
 
     // TODO: are any errors possible here?

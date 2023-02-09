@@ -158,7 +158,14 @@ vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
 {
     // TODO: how to handle CAN C vs CAN S
     rtcan_status_t status
-        = rtcan_handle_tx_mailbox_callback(&vcu_h->rtcan_s, can_h);
+        = rtcan_handle_tx_mailbox_callback(&vcu_h->rtcan_c, can_h);
+
+    if (status != RTCAN_OK)
+    {
+        vcu_h->err |= VCU_ERROR_PERIPHERAL;
+    }
+
+    status = rtcan_handle_tx_mailbox_callback(&vcu_h->rtcan_s, can_h);
 
     if (status != RTCAN_OK)
     {
@@ -188,6 +195,33 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
     else if (vcu_h->rtcan_s.hcan == can_h)
     {
         status = rtcan_handle_rx_it(&vcu_h->rtcan_s, can_h, rx_fifo);
+    }
+
+    if (status != RTCAN_OK)
+    {
+        vcu_h->err |= VCU_ERROR_PERIPHERAL;
+    }
+
+    return create_status(vcu_h);
+}
+
+/**
+ * @brief       Handles CAN errors
+ *
+ * @param[in]   vcu_h
+ * @param[in]   can_h
+ */
+vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
+{
+    rtcan_status_t status;
+
+    if (vcu_h->rtcan_c.hcan == can_h)
+    {
+        status = rtcan_handle_hal_error(&vcu_h->rtcan_c, can_h);
+    }
+    else if (vcu_h->rtcan_s.hcan == can_h)
+    {
+        status = rtcan_handle_hal_error(&vcu_h->rtcan_s, can_h);
     }
 
     if (status != RTCAN_OK)

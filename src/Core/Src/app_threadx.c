@@ -137,4 +137,9 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* can_h)
     (void) vcu_handle_can_rx_it(&vcu, can_h, 1);
 }
 
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_err(&vcu, can_h);
+}
+
 /* USER CODE END 1 */

@@ -82,17 +82,6 @@ ts_ctrl_status_t ts_ctrl_init(ts_ctrl_handle_t* ts_ctrl_h,
         }
     }
 
-    // initialise inverter driver
-    if (no_errors(ts_ctrl_h))
-    {
-        status_t status = pm100_init(&ts_ctrl_h->pm100, rtcan_h);
-
-        if (status != STATUS_OK)
-        {
-            ts_ctrl_h->err |= TS_CTRL_ERROR_INIT;
-        }
-    }
-
     return create_status(ts_ctrl_h);
 }
 
@@ -178,6 +167,17 @@ static void ts_ctrl_thread_entry(ULONG input)
 {
     ts_ctrl_handle_t* ts_ctrl_h = (ts_ctrl_handle_t*) input;
 
+    // initialise inverter driver
+    if (no_errors(ts_ctrl_h))
+    {
+        status_t status = pm100_init(&ts_ctrl_h->pm100, ts_ctrl_h->rtcan_h);
+
+        if (status != STATUS_OK)
+        {
+            ts_ctrl_h->err |= TS_CTRL_ERROR_INIT;
+        }
+    }
+
     // look-up the driver profile
     // (note this is fixed at compile time at the moment)
     const driver_profile_t* driver_profile_ptr;
@@ -205,8 +205,10 @@ static void ts_ctrl_thread_entry(ULONG input)
             UINT torque_request
                 = apply_torque_map(driver_profile_ptr, inputs.accel_pressure);
 
+            torque_request /= 10;
+
             // handle any incoming CAN messages before creating a torque request
-            // TODO: check for error here?
+            pm100_process_broadcast_msgs(&ts_ctrl_h->pm100);
 
             // send the torque request
             status_t status

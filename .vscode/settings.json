@@ -41,5 +41,6 @@
     "stm32f7xx_hal_def.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": false,
-  "C_Cpp.errorSquiggles": "Enabled"
+  "C_Cpp.errorSquiggles": "Enabled",
+  "mcu-debug.rtos-views.showRTOS": false
 }

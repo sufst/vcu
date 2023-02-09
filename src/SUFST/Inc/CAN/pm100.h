@@ -33,9 +33,9 @@ typedef struct
     rtcan_handle_t* rtcan_h;
 
     /**
-     * @brief   Waiting on lockout flag
+     * @brief   Internal states from broadcast message
      */
-    bool waiting_on_lockout;
+    struct can_database_pm100_internal_states_t state;
 
     /**
      * @brief   RTCAN receive queue for PM100 messages

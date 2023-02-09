@@ -45,20 +45,20 @@
 #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
 #define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
 #define TS_CTRL_THREAD_PRIORITY		        2
-#define DRIVER_CTRL_THREAD_PRIORITY		    TS_CTRL_THREAD_PRIORITY + 1 // WARNING: this MUST be higher than TS ctrl thread priority
+#define DRIVER_CTRL_THREAD_PRIORITY		    2
 #define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100  // times per second
-#define CANBC_BROADCAST_PERIOD              1000 // milliseconds
+#define CANBC_BROADCAST_PERIOD              100000 // milliseconds
 
 /***************************************************************************
  * CAN / inverter
  ***************************************************************************/
 
-#define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
+#define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_DEFAULT
 
 #define INVERTER_DISABLE_TORQUE_REQUESTS        1       // prevent torque requests from actually being sent
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
@@ -81,10 +81,10 @@
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
-#define APPS_1_ADC_MIN                      5000    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      5000    // ^                                ^ channel 2
-#define APPS_1_ADC_MAX                      50000   //  maximum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MAX                      50000   // ^                                ^ channel 2
+#define APPS_1_ADC_MIN                      1240    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      1240    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      2780    //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      2780    // ^                                ^ channel 2
 
 /***************************************************************************
  * BPS - brake pressure sensor
@@ -108,10 +108,10 @@
  ***************************************************************************/
 
 // enable flags
-#define RUN_APPS_TESTBENCH		            1		// APPS input from lookup table
+#define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
 #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
-#define APPS_TESTBENCH_LAPS 	            4		// 1 for standing start only, 2+ to add flying laps
+#define APPS_TESTBENCH_LAPS 	            2		// 1 for standing start only, 2+ to add flying laps
 
 #endif
