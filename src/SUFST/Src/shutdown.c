@@ -17,8 +17,24 @@
  /**
   * @brief checks RTD status before registering a critical error
   */
-void shutdown_fault_registerer() 
+void shutdown_fault_registerer(shutdown_handle_t* sd_handle_t)
 {
-    // check vcu rtd status
-    // register critical fault
+    if(sd_handle_t->RTD) 
+      Major_Error_Handler(sd_handle_t, Shutdown_Error);
+}
+
+
+/**
+ * @brief is used for registering a major fault
+ */
+void Major_Error_Handler(shutdown_handle_t* sd_handle_t, Error_Types_e Error) {
+}
+
+
+/**
+ * @brief is used for registering a minor fault
+ * when called, the error type (see error_types.h) for the module that calls it 
+ * should be provided
+ */
+void Minor_Error_Handler(shutdown_handle_t* sd_handle_t, Error_Types_e Error) {
 }
