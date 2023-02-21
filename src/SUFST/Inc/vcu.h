@@ -61,6 +61,11 @@ typedef struct
     driver_ctrl_handle_t driver_ctrl;
 
     /**
+     * @brief Shutdown system state
+     */
+    shutdown_handle_t sd_state;
+
+    /**
      * @brief   Initialisation thread
      */
     TX_THREAD init_thread;
