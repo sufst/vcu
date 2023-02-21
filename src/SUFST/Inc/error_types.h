@@ -8,7 +8,7 @@
 #define ERROR_TYPES_DEF
 
 typedef enum {
-    APPS_Error, BPS_Error, SCS_Error, TS_Error, Shutdown_Error, TS_Error
+    APPS_Error, BPS_Error, SCS_Error, TS_Error, Shutdown_Error, Good
 } Error_Types_e;
 
 #endif
