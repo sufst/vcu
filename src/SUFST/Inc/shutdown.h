@@ -18,7 +18,7 @@ typedef struct {
      * @brief stores if the system is ready to drive or not, so the shutdown
      *        signal only takes affect when the car is RTD
      */
-    bool RTD;
+    bool shutdown_ISR_enable;
 
     /**
      * @brief stores minor errors
@@ -48,7 +48,8 @@ void major_Error_Handler(shutdown_handle_t* sd_handle_t,
 void minor_Error_Handler(shutdown_handle_t* sd_handle, 
                          Error_Types_e error_id);
 
-
 void shutdown_handler(shutdown_handle_t* sd_handle);
+
+void shutdown_post_RTD(shutdown_handle_t* sd_handle);
 
 #endif

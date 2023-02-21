@@ -19,7 +19,7 @@
   */
 void shutdown_fault_registerer(shutdown_handle_t* sd_handle)
 {
-    if(sd_handle->RTD) 
+    if (sd_handle->shutdown_ISR_enable)
         major_Error_Handler(sd_handle, Shutdown_Error);
 }
 
@@ -71,4 +71,14 @@ void shutdown_handler(shutdown_handle_t* sd_handle)
   // stop driver control thread
 
   // enable broadcasting of errors
+}
+
+
+/**
+ * @brief notifies the shutdown system of RTD (enables shutdown interrupt)
+ * 
+ */
+void shutdown_post_RTD(shutdown_handle_t* sd_handle)
+{
+  sd_handle->shutdown_ISR_enable = true;
 }

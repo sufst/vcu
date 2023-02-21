@@ -194,6 +194,9 @@ static void init_thread_entry(ULONG input)
     rtd_wait();
     init_post_rtd();
 
+    // enable shutdown interrupt
+    (void) shutdown_post_RTD(&vcu_h->sd_state);
+
     // start application threads
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
