@@ -118,4 +118,7 @@ ts_ctrl_status_t ts_ctrl_start(ts_ctrl_handle_t* ts_ctrl_h);
 ts_ctrl_status_t ts_ctrl_input_send(ts_ctrl_handle_t* ts_ctrl_h,
                                     ts_ctrl_input_t* input_ptr);
 
+
+ts_ctrl_status_t ts_ctrl_shutdown(ts_ctrl_handle_t* ts_ctrl_h);                                    
+
 #endif

@@ -243,3 +243,14 @@ static ts_ctrl_status_t create_status(ts_ctrl_handle_t* ts_ctrl_h)
 {
     return (no_errors(ts_ctrl_h)) ? TS_CTRL_OK : TS_CTRL_ERROR;
 }
+
+
+
+/**
+ * @brief shuts down the TS by dissabling the main thread (used in the event of 
+ * a shutdown )
+ */
+ts_ctrl_status_t ts_ctrl_shutdown(ts_ctrl_handle_t* ts_ctrl_h)
+{
+    tx_thread_terminate(ts_ctrl_h->thread);
+}
