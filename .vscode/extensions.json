@@ -1,8 +1,9 @@
 {
   "recommendations": [
     "ms-vscode.cpptools-extension-pack",
-    "marus25.cortex-debug",
     "ms-vscode.makefile-tools",
+    "ms-vscode.vscode-embedded-tools",
+    "marus25.cortex-debug",
     "cschlosser.doxdocgen",
     "dan-c-underwood.arm"
   ]
