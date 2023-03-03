@@ -35,6 +35,16 @@
       "args": ["flash", "-s", "-j $(nproc)"],
       "group": "build"
     },
+    // generate compile commands
+    {
+      "label": "ccdgen",
+      "type": "shell",
+      "command": "python",
+      "osx": {
+        "command": "python3"
+      },
+      "args": ["-m", "ccdgen", "--extensions", ".c", "--", "make", "-j"]
+    },
     // open STM32CubeMX
     {
       "label": "STM32CubeMX",
