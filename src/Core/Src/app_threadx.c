@@ -109,8 +109,8 @@ void MX_ThreadX_Init(void)
 /* USER CODE BEGIN 1 */
 
 /*
- * these callbacks post to the RTCAN service semaphores to allow a new message
- * to be transmitted on the corresponding bus
+ * These callbacks are put here so that all "global" effects are contained
+ * within this file, allowing all the SUFST code to be modular.
  */
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* can_h)
 {
@@ -126,4 +126,20 @@ void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
 {
     (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_rx_it(&vcu, can_h, 0);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_rx_it(&vcu, can_h, 1);
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_err(&vcu, can_h);
+}
+
 /* USER CODE END 1 */

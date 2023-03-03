@@ -92,4 +92,10 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
 vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
                                                 CAN_HandleTypeDef* can_h);
 
+vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
+                                  CAN_HandleTypeDef* can_h,
+                                  uint32_t rx_fifo);
+
+vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h);
+
 #endif
