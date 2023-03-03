@@ -18,14 +18,6 @@
         "armToolchainPath": "/Applications/ARM/bin",
         "serverpath": "st-util"
       },
-      "linux": {
-        "name": "debug (stutil)",
-        "executable": "build/VCU.elf",
-        "request": "launch",
-        "type": "cortex-debug",
-        "armToolchainPath": "?",
-        "serverpath": "?"
-      },
       "windows": {
         "name": "debug (stutil)",
         "executable": "build/VCU.elf",
@@ -35,6 +27,7 @@
         "serverpath": "st-util"
       }
     },
+
     // debug with openocd
     {
       "cwd": "${workspaceFolder}",
@@ -46,12 +39,12 @@
       "servertype": "openocd",
       "configFiles": ["interface/stlink.cfg", "target/stm32h7x.cfg"],
       "osx": {
+        "name": "debug (openocd)",
+        "executable": "build/VCU.elf",
+        "request": "launch",
+        "type": "cortex-debug",
         "armToolchainPath": "/Applications/ARM/bin",
         "serverpath": "openocd"
-      },
-      "linux": {
-        "armToolchainPath": "?",
-        "serverpath": "?"
       }
     }
   ]
