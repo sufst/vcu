@@ -393,7 +393,7 @@ vpath %.s $(sort $(dir $(ASM_SOURCES)))
 
 # default build all
 all: 
-	make $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin \
+	$(MAKE) $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin
 
 # pre build
 .PHONY: prebuild
