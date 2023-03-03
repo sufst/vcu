@@ -52,7 +52,7 @@
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100  // times per second
-#define CANBC_BROADCAST_PERIOD              100000 // milliseconds
+#define CANBC_BROADCAST_PERIOD              100 // milliseconds
 
 /***************************************************************************
  * CAN / inverter
@@ -60,7 +60,6 @@
 
 #define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_DEFAULT
 
-#define INVERTER_DISABLE_TORQUE_REQUESTS        1       // prevent torque requests from actually being sent
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
@@ -81,8 +80,8 @@
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
-#define APPS_1_ADC_MIN                      1240    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      1240    // ^                                ^ channel 2
+#define APPS_1_ADC_MIN                      1540    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      1540    // ^                                ^ channel 2
 #define APPS_1_ADC_MAX                      2780    //  maximum raw ADC reading for APPS  channel 1
 #define APPS_2_ADC_MAX                      2780    // ^                                ^ channel 2
 
@@ -112,6 +111,6 @@
 #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
-#define APPS_TESTBENCH_LAPS 	            2		// 1 for standing start only, 2+ to add flying laps
+#define APPS_TESTBENCH_LAPS 	            1		// 1 for standing start only, 2+ to add flying laps
 
 #endif
