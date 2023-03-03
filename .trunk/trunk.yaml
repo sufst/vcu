@@ -12,11 +12,11 @@ actions:
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
 cli:
-  version: 0.18.0-beta
+  version: 1.5.1
 plugins:
   sources:
     - id: trunk
-      ref: v0.0.4
+      ref: v0.0.11
       uri: https://github.com/trunk-io/plugins
 lint:
   definitions:
@@ -43,18 +43,21 @@ lint:
   enabled:
     - cppcheck@SYSTEM
     - clang-format@14.0.0
-    - gitleaks@8.13.0
-    - markdownlint@0.32.2
-    - prettier@2.7.1
+    - gitleaks@8.16.0
+    - markdownlint@0.33.0
+    - prettier@2.8.4
   disabled:
     - cppcheck-misra@SYSTEM
     - git-diff-check@SYSTEM
+    - black@23.1.0
+    - flake8@6.0.0
+    - isort@5.12.0
   ignore:
     - linters: [clang-format, gitleaks, cppcheck, cppcheck-misra]
       paths:
         - src/AZURE_RTOS/**
         - src/Core/**
         - src/Drivers/**
-        - src/Middlewares/**
+        - src/Middlewares/ST
         - src/SUFST/Inc/config.h
         - scripts/*
