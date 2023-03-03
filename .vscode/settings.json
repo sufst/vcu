@@ -26,7 +26,6 @@
     "config.h": "c",
     "can_parser.h": "c",
     "can_device_state.h": "c",
-    "pm100.h": "c",
     "adc.h": "c",
     "can_tx_thread.h": "c",
     "init.h": "c",
@@ -36,7 +35,12 @@
     "fault.h": "c",
     "stdint.h": "c",
     "apps.h": "c",
-    "limits": "c"
+    "limits": "c",
+    "ready_to_drive.h": "c",
+    "vcu.h": "c",
+    "stm32f7xx_hal_def.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": true
+  "cortex-debug.variableUseNaturalFormat": false,
+  "C_Cpp.errorSquiggles": "Enabled",
+  "mcu-debug.rtos-views.showRTOS": false
 }

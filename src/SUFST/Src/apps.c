@@ -11,7 +11,6 @@
 
 #include "config.h"
 
-#include "fault.h"
 #include "trace.h"
 
 #include "adc.h"
@@ -25,7 +24,7 @@ scs_t apps_signals[2];
 /*
  * function prototypes
  */
-bool apps_inputs_agree(uint32_t inputs[2]);
+bool apps_inputs_agree(const uint32_t inputs[2]);
 
 /**
  * @brief   Initialises APPS inputs
@@ -69,7 +68,8 @@ uint32_t apps_read()
 #if !APPS_DISABLE_SCS_CHECK
         if (!scs_validate(&apps_signals[i]))
         {
-            critical_fault(CRITICAL_FAULT_SCS_OUTSIDE_BOUNDS);
+            // TODO: create internal fault handler
+            Error_Handler();
             inputs[i] = 0;
         }
 #endif
@@ -80,7 +80,8 @@ uint32_t apps_read()
 #if !APPS_DISABLE_DIFF_CHECK
     if (!apps_inputs_agree(inputs))
     {
-        critical_fault(CRITICAL_FAULT_APPS_INPUT_DISCREPANCY);
+        // TODO: create internal error handler
+        Error_Handler();
     }
 #endif
 
@@ -95,7 +96,7 @@ uint32_t apps_read()
  * @return      true    The inputs agree
  * @return      false   The inputs differ significantly
  */
-bool apps_inputs_agree(uint32_t inputs[2])
+bool apps_inputs_agree(const uint32_t inputs[2])
 {
     uint32_t diff = (inputs[1] > inputs[0]) ? inputs[1] - inputs[0]
                                             : inputs[0] - inputs[1];

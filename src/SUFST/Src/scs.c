@@ -9,8 +9,6 @@
 
 #include "config.h"
 
-#include "fault.h"
-
 /*
  * function prototypes
  */
@@ -77,7 +75,8 @@ uint32_t scs_read(scs_t* scs_ptr)
         scs_ptr->adc_reading = scs_ptr->adc_min;
         scs_ptr->mapped_reading = scs_ptr->min;
 
-        critical_fault(CRITICAL_FAULT_HAL);
+        // TODO: use internal fault handling system
+        Error_Handler();
 
         return scs_ptr->mapped_reading;
     }

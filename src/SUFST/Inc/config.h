@@ -27,7 +27,7 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        1		// set to 0 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_OVERRIDE		        1		// set to 1 to use the 'USER' button as the ready-to-drive signal
 #define READY_TO_DRIVE_IGNORE_BPS           1
 #define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
 
@@ -41,28 +41,31 @@
  * RTOS
  ***************************************************************************/
 
-#define SENSOR_THREAD_PRIORITY		        3
-#define CONTROL_THREAD_PRIORITY		        3
-#define CAN_TX_THREAD_PRIORITY			    2
-#define CAN_RX_THREAD_PRIORITY              4
-#define WATCHDOG_THREAD_PRIORITY	        4
-#define WATCHDOG_THREAD_PRIORITY_ELEVATED   0       // elevated for critical fault handling
+#define RTCAN_S_PRIORITY                    3   
+#define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
+#define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
+#define TS_CTRL_THREAD_PRIORITY		        2
+#define DRIVER_CTRL_THREAD_PRIORITY		    2
 #define INIT_THREAD_PRIORITY                0
 
-#define TRACEX_ENABLE                       1
+#define TRACEX_ENABLE                       0
        // enable TraceX logging
+
+#define DRIVER_CTRL_TICK_RATE               100  // times per second
+#define CANBC_BROADCAST_PERIOD              100 // milliseconds
 
 /***************************************************************************
  * CAN / inverter
  ***************************************************************************/
 
-#define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_MOTOR_TESTING
+#define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_DEFAULT
 
-#define INVERTER_DISABLE_TORQUE_REQUESTS        1       // prevent torque requests from actually being sent
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 #define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
 #define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
+
+#define CANBC_DRIVER_INPUTS_ID                  0x100   // CAN broadcast address for driver inputs
 
 /***************************************************************************
  * sensors
@@ -77,10 +80,10 @@
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
-#define APPS_1_ADC_MIN                      5000    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      5000    // ^                                ^ channel 2
-#define APPS_1_ADC_MAX                      50000   //  maximum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MAX                      50000   // ^                                ^ channel 2
+#define APPS_1_ADC_MIN                      1540    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      1540    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      2780    //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      2780    // ^                                ^ channel 2
 
 /***************************************************************************
  * BPS - brake pressure sensor
@@ -108,6 +111,6 @@
 #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
 // testbench parameters
-#define APPS_TESTBENCH_LAPS 	            4		// 1 for standing start only, 2+ to add flying laps
+#define APPS_TESTBENCH_LAPS 	            1		// 1 for standing start only, 2+ to add flying laps
 
 #endif

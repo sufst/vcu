@@ -1,254 +1,238 @@
-/***************************************************************************
- * @file   pm100.c
- * @author Chua Shen Yik (syc2e18@soton.ac.uk)
- * @date   2022-01-09
- * @brief  Inverter CAN communication implementation
- ***************************************************************************/
+/******************************************************************************
+ * @file    pm100.c
+ * @author  Tim Brewis (@t-bre)
+ * @details Implementation based on information in the "Cascadia Motion CAN
+ *          Protocol" v5.9 document
+ *****************************************************************************/
 
 #include "pm100.h"
 
-#include "config.h"
-#include "tx_api.h"
+#define PM100_MAX_TORQUE_REQUEST           0x7FFF
+#define PM100_DIRECTION_FORWARD            0x1
+#define PM100_DIRECTION_REVERSE            0x0
 
-#include "can_device_state.h"
-#include "can_message.h"
+#define PM100_LOCKOUT_DISABLED             0x0
+#define PM100_LOCKOUT_ENABLED              0x1
+#define PM100_CAN_MODE                     0x0
+#define PM100_VSM_MODE                     0x1
+#define PM100_DIRECTION_REVERSE            0x0
+#define PM100_DIRECTION_FORWARD            0x1
+#define PM100_INVERTER_OFF                 0x0
+#define PM100_INVERTER_ON                  0x1
+#define PM100_TORQUE_MODE                  0x0
+#define PM100_SPEED_MODE                   0x1
+#define PM100_SPEED_MODE_DISABLE           0x0
+#define PM100_SPEED_MODE_ENABLE            0x1
 
-#define PM100_FDCAN_HANDLE      hfdcan1
+#define PM100_VSM_START_STATE              0x0
+#define PM100_VSM_PRECHARGE_INIT_STATE     0x1
+#define PM100_VSM_PRECHARGE_ACTIVE_STATE   0x2
+#define PM100_VSM_PRECHARGE_COMPLETE_STATE 0x3
+#define PM100_VSM_WAIT_STATE               0x4
+#define PM100_VSM_READY_STATE              0x5
+#define PM100_VSM_MOTOR_RUNNING_STATE      0x6
+#define PM100_VSM_BLINK_FAULT_CODE_STATE   0x7
 
-#define PM100_TIMEOUT_ADDR      172
-
-#define PM100_DIRECTION_COMMAND 1 // 0: reverse, 1: forward
-#define PM100_TIMEOUT                \
-    (INVERTER_TORQUE_REQUEST_TIMEOUT \
-     / 3) // divide ms timeout in config by three
-
-#define PM100_STATE_MUTEX_NAME "PM100 State Mutex"
-
-/**
- * @brief PM100 state
- */
-static uint32_t pm100_state[PM100_NUM_STATES];
-
-/**
- * @brief State mutex
- */
-static TX_MUTEX pm100_state_mutex;
-
-/**
- * @brief PM100 command message
- */
-static can_msg_t pm100_command_msg = {.tx_header = {PM100_CAN_ID_OFFSET + 0x020,
-                                                    FDCAN_STANDARD_ID,
-                                                    FDCAN_DATA_FRAME,
-                                                    FDCAN_DLC_BYTES_8,
-                                                    FDCAN_ESI_ACTIVE,
-                                                    FDCAN_BRS_OFF,
-                                                    FDCAN_CLASSIC_CAN,
-                                                    FDCAN_NO_TX_EVENTS,
-                                                    0},
-                                      .data = {0, 0, 0, 0, 0, 0, 0, 0}};
-
-/**
- * @brief PM100 parameter write message
- */
-static can_msg_t pm100_parameter_write_msg = {
-    .tx_header = {PM100_CAN_ID_OFFSET + 0x021,
-                  FDCAN_STANDARD_ID,
-                  FDCAN_DATA_FRAME,
-                  FDCAN_DLC_BYTES_8,
-                  FDCAN_ESI_ACTIVE,
-                  FDCAN_BRS_OFF,
-                  FDCAN_CLASSIC_CAN,
-                  FDCAN_NO_TX_EVENTS,
-                  0},
-    .data = {0, 0, 1, 0, 0, 0, 0, 0} // byte 3 set to 1 for write
-};
-
-/**
- * @brief PM100 parameter read message
- */
-static can_msg_t pm100_parameter_read_msg
-    = {.tx_header = {PM100_CAN_ID_OFFSET + 0x021,
-                     FDCAN_STANDARD_ID,
-                     FDCAN_DATA_FRAME,
-                     FDCAN_DLC_BYTES_8,
-                     FDCAN_ESI_ACTIVE,
-                     FDCAN_BRS_OFF,
-                     FDCAN_CLASSIC_CAN,
-                     FDCAN_NO_TX_EVENTS,
-                     0},
-       .data = {0, 0, 0, 0, 0, 0, 0, 0}};
-
-/**
- * @brief Initialise PM100
- */
-pm100_status_t pm100_init()
-{
-    UNUSED(pm100_parameter_read_msg);
-    UNUSED(pm100_parameter_write_msg);
-
-    // create state mutex
-    pm100_status_t status = PM100_OK;
-    if (tx_mutex_create(&pm100_state_mutex,
-                        PM100_STATE_MUTEX_NAME,
-                        TX_NO_INHERIT)
-        != TX_SUCCESS)
-    {
-        status = PM100_ERROR;
+#define ADD_ERROR_IF(cond, error, inst) \
+    if (cond)                           \
+    {                                   \
+        inst->err |= error;             \
     }
 
-    // reset state
-    memset(pm100_state, 0x0000, sizeof(pm100_state));
+static bool no_errors(pm100_handle_t* pm100_h);
+static status_t create_status(pm100_handle_t* pm100_h);
 
-    return status;
+/*
+ * types
+ */
+
+/**
+ * @brief       Initialises the inverter context
+ *
+ * @param[in]   pm100_h     PM100 handle
+ * @param[in]   rtcan_h     RTCAN handle for inverter communications
+ */
+status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
+{
+    pm100_h->rtcan_h = rtcan_h;
+    pm100_h->err = PM100_ERROR_NONE;
+
+    pm100_h->state.pm100_inverter_enable_lockout = PM100_LOCKOUT_ENABLED;
+
+    // setup RTCAN subscriptions
+    if (no_errors(pm100_h))
+    {
+        UINT status = tx_queue_create(&pm100_h->can_rx_queue,
+                                      "PM100 CAN Receive Queue",
+                                      TX_1_ULONG,
+                                      pm100_h->can_rx_queue_mem,
+                                      sizeof(pm100_h->can_rx_queue_mem));
+
+        ADD_ERROR_IF(status != STATUS_OK, PM100_ERROR_INIT, pm100_h);
+    }
+
+    if (no_errors(pm100_h))
+    {
+        rtcan_status_t status
+            = rtcan_subscribe(pm100_h->rtcan_h,
+                              CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID,
+                              &pm100_h->can_rx_queue);
+
+        ADD_ERROR_IF(status != RTCAN_OK, PM100_ERROR_INIT, pm100_h);
+    }
+
+    return create_status(pm100_h);
 }
 
 /**
- * @brief 		Transmit a command to the inverter
+ * @brief       Enables the inverter, suspending the calling thread until
+ *              the process is complete
  *
- * @param[in]	command_data  PM100 command data struct
+ * @details     The inverter initialises in the "lockout" state. To enable it,
+ *              a disable command must first be sent.
+ *
+ * @see         "Cascadia Motion CAN Protocol" v5.9 p.35
+ *
+ * @param[in]   pm100_h     PM100 handle
  */
-pm100_status_t pm100_command_tx(pm100_command_t* command_data)
+status_t pm100_enable(pm100_handle_t* pm100_h)
 {
-    // construct message
-    pm100_command_msg.data[0] = (command_data->torque_command & 0x00FF);
-    pm100_command_msg.data[1] = ((command_data->torque_command & 0xFF00) >> 8);
-    pm100_command_msg.data[2] = (command_data->speed_command & 0x00FF);
-    pm100_command_msg.data[3] = ((command_data->speed_command & 0xFF00) >> 8);
-    pm100_command_msg.data[4] = command_data->direction;
-    pm100_command_msg.data[5] = command_data->inverter_enable;
-    pm100_command_msg.data[5] |= command_data->inverter_discharge << 1;
-    pm100_command_msg.data[5] |= command_data->speed_mode_enable << 2;
-    pm100_command_msg.data[6] = (command_data->commanded_torque_limit & 0x00FF);
-    pm100_command_msg.data[7]
-        = ((command_data->commanded_torque_limit & 0xFF00) >> 8);
+    // // disable inverter
+    // status_t status = pm100_disable(pm100_h);
 
-    // send message
-    if (HAL_FDCAN_AddMessageToTxFifoQ(&PM100_FDCAN_HANDLE,
-                                      &pm100_command_msg.tx_header,
-                                      pm100_command_msg.data)
-        != HAL_OK)
-    {
-        return PM100_ERROR;
-    }
+    // // wait for lockout
+    // if (status == STATUS_OK)
+    // {
+    //     pm100_h->waiting_on_lockout = true;
 
-    return PM100_OK;
+    //     status = (tx_semaphore_get(&pm100_h->lockout_sem, TX_WAIT_FOREVER)
+    //               == TX_SUCCESS)
+    //                  ? STATUS_OK
+    //                  : STATUS_ERROR;
+
+    //     pm100_h->waiting_on_lockout = false;
+    // }
+
+    // // send a zero torque request
+    // if (status == STATUS_OK)
+    // {
+    //     status = pm100_request_torque(pm100_h, 0);
+    // }
+
+    return STATUS_OK;
 }
 
 /**
- * @brief 		Transmit torque request to inverter
+ * @brief       Disables the inverter
  *
- * @details		Will disable lockout if lockout is enabled by sending an empty
- * message
+ * @details     Disable command consists of all zeros in data field.
  *
- * @param[in]	torque	The torque request to send [Nm * 10]
+ * @see         "Cascadia Motion CAN Protocol" v5.9 p.35
+ *
+ * @param[in]   pm100_h     PM100 handle
  */
-pm100_status_t pm100_torque_request(uint32_t torque)
+status_t pm100_disable(pm100_handle_t* pm100_h)
 {
-    // initialise command data to 0
-    pm100_status_t status;
+    rtcan_msg_t msg
+        = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
+           .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+           .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-    // handle lockout
-    uint32_t lockout;
-    pm100_read_state(PM100_INVERTER_ENABLE_LOCKOUT, &lockout);
+    rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
 
-    if (lockout == 1)
+    return (status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
+}
+
+/**
+ * @brief       Sends a torque request to the inverter
+ *
+ * @see         "Cascadia Motion CAN Protocol" v5.9 p.31
+ *
+ * @param[in]   pm100_h     PM100 handle
+ * @param[in]   torque      Requested torque in range 0 to 32767
+ */
+status_t pm100_request_torque(pm100_handle_t* pm100_h, uint32_t torque)
+{
+    if (pm100_h->state.pm100_inverter_enable_lockout == PM100_LOCKOUT_DISABLED)
     {
-        status = pm100_disable();
+        torque = (torque > PM100_MAX_TORQUE_REQUEST) ? PM100_MAX_TORQUE_REQUEST
+                                                     : torque;
+
+        rtcan_msg_t msg
+            = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
+               .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+               .data = {0, 0, 0, 0, 0, 0, 0, 0}};
+
+        struct can_database_pm100_command_message_t cmd
+            = {.pm100_torque_command = torque,
+               .pm100_direction_command = PM100_DIRECTION_FORWARD,
+               .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
+               .pm100_inverter_enable = PM100_INVERTER_ON};
+
+        can_database_pm100_command_message_pack(msg.data, &cmd, msg.length);
+
+        rtcan_transmit(pm100_h->rtcan_h, &msg);
     }
-    // transmit torque request
     else
     {
-        pm100_command_t pm100_cmd = {0};
-        pm100_cmd.direction = PM100_DIRECTION_COMMAND;
-        pm100_cmd.torque_command = (uint16_t) torque;
-        pm100_cmd.inverter_enable = 1;
-        status = pm100_command_tx(&pm100_cmd);
+        // have to send lockout disable, can't send torque request
+        pm100_disable(pm100_h);
     }
-    return status;
+
+    return create_status(pm100_h);
 }
 
 /**
- * @brief 		Transmit speed request to inverter
+ * @brief       Processes all incoming broadcast messages from the PM100
  *
- * @details		Will disable lockout if lockout is enabled by sending an empty
- * message
- *
- * @param[in]	speed	Speed request to send [RPM]
+ * @param[in]   pm100_h     PM100 handle
  */
-pm100_status_t pm100_speed_request(uint16_t speed)
+status_t pm100_process_broadcast_msgs(pm100_handle_t* pm100_h)
 {
-    // initialise command data to 0
-    pm100_command_t pm100_cmd = {0};
-    pm100_status_t status;
+    rtcan_msg_t* msg_ptr = NULL;
 
-    // handle lockout
-    uint32_t lockout;
-    pm100_read_state(PM100_INVERTER_ENABLE_LOCKOUT, &lockout);
-
-    if (lockout == 1)
+    while (
+        tx_queue_receive(&pm100_h->can_rx_queue, (void*) &msg_ptr, TX_NO_WAIT)
+        == TX_SUCCESS)
     {
-        pm100_cmd.speed_mode_enable = 1;
-        status = pm100_command_tx(&pm100_cmd);
-    }
-    // transmit speed request
-    else
-    {
-        pm100_cmd.direction = PM100_DIRECTION_COMMAND;
-        pm100_cmd.speed_command = speed;
-        pm100_cmd.inverter_enable = 1;
-        pm100_cmd.speed_mode_enable = 1;
-        status = pm100_command_tx(&pm100_cmd);
-    }
-    return status;
-}
-
-/**
- * @brief Send
- *
- * @return PM100_OK     Success
- * @return PM100_ERROR  Failure
- */
-pm100_status_t pm100_disable()
-{
-    pm100_command_t pm100_cmd = {0};
-    return pm100_command_tx(&pm100_cmd);
-}
-
-/**
- * @brief       Thread-safe PM100 state read
- *
- * @param[in]   index       Index of state variable to read
- * @param[out]  value_ptr   Pointer to location to store fetched data
- */
-pm100_status_t pm100_read_state(uint32_t index, uint32_t* value_ptr)
-{
-    pm100_status_t status = (index < PM100_NUM_STATES) ? PM100_OK : PM100_ERROR;
-
-    if (status == PM100_OK && value_ptr != NULL)
-    {
-        tx_mutex_get(&pm100_state_mutex, TX_WAIT_FOREVER);
-        *value_ptr = pm100_state[index];
-        tx_mutex_put(&pm100_state_mutex);
-    }
-
-    return status;
-}
-
-/**
- * @brief       Thread-safe PM100 state update
- *
- * @param[in]   index   Index of state variable to write to
- * @param[in]   value   Value to write to state
- */
-void pm100_update_state(uint32_t index, uint32_t value)
-{
-    if (index < PM100_NUM_STATES)
-    {
-        if (tx_mutex_get(&pm100_state_mutex, TX_WAIT_FOREVER) == TX_SUCCESS)
+        switch (msg_ptr->identifier)
         {
-            pm100_state[index] = value;
-            tx_mutex_put(&pm100_state_mutex);
+        case CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID:
+            can_database_pm100_internal_states_unpack(
+                &pm100_h->state,
+                msg_ptr->data,
+                CAN_DATABASE_PM100_INTERNAL_STATES_LENGTH);
+            __ASM("NOP");
+            break;
+
+        default:
+            break;
         }
+
+        rtcan_msg_consumed(pm100_h->rtcan_h, msg_ptr);
     }
+
+    // TODO: are any errors possible here?
+    return STATUS_OK;
+}
+
+/**
+ * @brief       Returns true if the PM100 instance has encountered an
+ *              error
+ *
+ * @param[in]   pm100_h     PM100 handle
+ */
+static bool no_errors(pm100_handle_t* pm100_h)
+{
+    return (pm100_h->err == PM100_ERROR_NONE);
+}
+
+/**
+ * @brief       Create a status code based on the current error state
+ *
+ * @param[in]   pm100_h   PM100 handle
+ */
+static status_t create_status(pm100_handle_t* pm100_h)
+{
+    return (no_errors(pm100_h)) ? STATUS_OK : STATUS_ERROR;
 }

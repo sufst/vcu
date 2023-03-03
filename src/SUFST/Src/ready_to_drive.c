@@ -15,8 +15,6 @@
 #include "bps.h"
 #include "gpio.h"
 
-#include "pm100.h"
-
 /*
  * function prototypes
  */
@@ -45,7 +43,6 @@ void rtd_wait()
         ;
 #endif
 
-    pm100_disable();
     HAL_GPIO_WritePin(RTD_OUT_GPIO_Port,
                       RTD_OUT_Pin,
                       GPIO_PIN_RESET); // active low

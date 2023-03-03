@@ -1,3 +1,4 @@
+
 /* USER CODE BEGIN Header */
 /**
   ******************************************************************************
@@ -7,7 +8,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2020-2021 STMicroelectronics.
+  * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -39,7 +40,7 @@ extern "C" {
 
 /* Exported constants --------------------------------------------------------*/
 /* define the size of static threadX byte memory pools */
-#define TX_APP_MEM_POOL_SIZE                     10000
+#define TX_APP_MEM_POOL_SIZE                     10240
 
 /* USER CODE BEGIN EC */
 

@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2020-2021 STMicroelectronics.
+  * Copyright (c) 2021 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -23,9 +23,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
 #include "init.h"
-
+#include "vcu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -45,6 +44,11 @@
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN PV */
+
+/**
+ * @brief   VCU instance
+ */
+static vcu_handle_t vcu;
 
 /* USER CODE END PV */
 
@@ -68,7 +72,16 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
 
   /* USER CODE BEGIN App_ThreadX_Init */
 
-  init_threads(byte_pool);
+  // initialise system
+  if (ret == TX_SUCCESS)
+  {
+    vcu_status_t status = vcu_init(&vcu, &hcan1, &hcan2, byte_pool);
+
+    if (status != VCU_OK)
+    {
+        ret = TX_START_ERROR;
+    }
+  }
 
   /* USER CODE END App_ThreadX_Init */
 
@@ -94,5 +107,39 @@ void MX_ThreadX_Init(void)
 }
 
 /* USER CODE BEGIN 1 */
+
+/*
+ * These callbacks are put here so that all "global" effects are contained
+ * within this file, allowing all the SUFST code to be modular.
+ */
+void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_rx_it(&vcu, can_h, 0);
+}
+
+void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_rx_it(&vcu, can_h, 1);
+}
+
+void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* can_h)
+{
+    (void) vcu_handle_can_err(&vcu, can_h);
+}
 
 /* USER CODE END 1 */
