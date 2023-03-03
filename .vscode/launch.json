@@ -10,6 +10,7 @@
       "showDevDebugOutput": "none",
       "servertype": "stutil",
       "svdFile": "debug/STM32F7x6.svd",
+      "preLaunchTask": "build (DEBUG)",
       "osx": {
         "name": "debug (stutil)",
         "executable": "build/VCU.elf",
@@ -37,7 +38,8 @@
       "type": "cortex-debug",
       "showDevDebugOutput": "none",
       "servertype": "openocd",
-      "configFiles": ["interface/stlink.cfg", "target/stm32h7x.cfg"],
+      "preLaunchTask": "build (DEBUG)",
+      "configFiles": ["interface/stlink.cfg", "target/stm32f7x.cfg"],
       "osx": {
         "name": "debug (openocd)",
         "executable": "build/VCU.elf",
