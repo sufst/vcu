@@ -91,16 +91,16 @@ src/SUFST/Src/vcu.c \
 src/SUFST/Src/init.c \
 src/SUFST/Src/config_rules.c \
 src/SUFST/Src/ready_to_drive.c \
-src/SUFST/Src/apps.c \
-src/SUFST/Src/scs.c \
-src/SUFST/Src/bps.c \
 src/SUFST/Src/shutdown.c \
-src/SUFST/Src/ts_control.c \
-src/SUFST/Src/driver_control.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
+src/SUFST/Src/Sensors/apps.c \
+src/SUFST/Src/Sensors/scs.c \
+src/SUFST/Src/Sensors/bps.c \
+src/SUFST/Src/Tasks/ts_control.c \
+src/SUFST/Src/Tasks/driver_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
@@ -331,6 +331,8 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc \
 -Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Profiles \
+-Isrc/SUFST/Inc/Sensors \
+-Isrc/SUFST/Inc/Tasks \
 -Isrc/SUFST/Inc/Test \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
@@ -398,24 +400,24 @@ all:
 # pre build
 .PHONY: prebuild
 prebuild:
-	tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
 
 # C
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
-	echo "$<"
+	@echo "$<"
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 # ASM
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
-	echo "$<"
+	@echo "$<"
 	$(AS) -c $(CFLAGS) $< -o $@
 
 # .elf 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
+	@tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
-	tput setaf 2;  echo "$@"; echo; tput sgr0
+	@tput setaf 2;  echo "$@"; echo; tput sgr0
 
 # .hex
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
@@ -423,9 +425,9 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
 
 # .bin
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
 	$(BIN) $< $@	
-	tput setaf 2;  echo "$@"; echo; tput sgr0
+	@tput setaf 2;  echo "$@"; echo; tput sgr0
 	
 # create build directory
 $(BUILD_DIR):
@@ -433,13 +435,13 @@ $(BUILD_DIR):
 
 # clean
 clean:
-	tput setaf 5; tput bold; echo "Cleaning build directory..."
+	@tput setaf 5; tput bold; echo "Cleaning build directory..."; tput sgr0
 	-rm -fR $(BUILD_DIR)
-	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
+	@tput setaf 2; echo "Done"; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
-	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
 	st-flash write $< 0x08000000
   
 ###############################################################################

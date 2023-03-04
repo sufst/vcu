@@ -1,8 +1,7 @@
 /***************************************************************************
  * @file   bps.h
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-07-02
- * @brief  BPS input implementation
+ * @brief  Brake pressure sensor
  ***************************************************************************/
 
 #include "bps.h"

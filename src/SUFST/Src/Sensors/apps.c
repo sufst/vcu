@@ -1,8 +1,7 @@
 /***************************************************************************
  * @file   apps.c
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-06-29
- * @brief  APPS input implementation
+ * @brief  Accelerator pedal position sensor
  ***************************************************************************/
 
 #include "apps.h"
