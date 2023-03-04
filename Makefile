@@ -92,8 +92,6 @@ src/SUFST/Src/init.c \
 src/SUFST/Src/config_rules.c \
 src/SUFST/Src/ready_to_drive.c \
 src/SUFST/Src/shutdown.c \
-src/SUFST/Src/ts_control.c \
-src/SUFST/Src/driver_control.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
@@ -101,6 +99,8 @@ src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Sensors/apps.c \
 src/SUFST/Src/Sensors/scs.c \
 src/SUFST/Src/Sensors/bps.c \
+src/SUFST/Src/Tasks/ts_control.c \
+src/SUFST/Src/Tasks/driver_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
@@ -332,6 +332,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Profiles \
 -Isrc/SUFST/Inc/Sensors \
+-Isrc/SUFST/Inc/Tasks \
 -Isrc/SUFST/Inc/Test \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
