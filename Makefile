@@ -400,24 +400,24 @@ all:
 # pre build
 .PHONY: prebuild
 prebuild:
-	tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Compiling..."; tput sgr0
 
 # C
 $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
-	echo "$<"
+	@echo "$<"
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 # ASM
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
-	echo "$<"
+	@echo "$<"
 	$(AS) -c $(CFLAGS) $< -o $@
 
 # .elf 
 $(BUILD_DIR)/$(TARGET).elf: $(OBJECTS) Makefile
-	tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
+	@tput setaf 5; tput bold; echo; echo "Linking..."; tput sgr0
 	$(CC) $(OBJECTS) $(LDFLAGS) -o $@
 	$(SZ) $@
-	tput setaf 2;  echo "$@"; echo; tput sgr0
+	@tput setaf 2;  echo "$@"; echo; tput sgr0
 
 # .hex
 $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
@@ -425,9 +425,9 @@ $(BUILD_DIR)/%.hex: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
 
 # .bin
 $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
-	tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
 	$(BIN) $< $@	
-	tput setaf 2;  echo "$@"; echo; tput sgr0
+	@tput setaf 2;  echo "$@"; echo; tput sgr0
 	
 # create build directory
 $(BUILD_DIR):
@@ -435,13 +435,13 @@ $(BUILD_DIR):
 
 # clean
 clean:
-	tput setaf 5; tput bold; echo "Cleaning build directory..."
+	@tput setaf 5; tput bold; echo "Cleaning build directory..."; tput sgr0
 	-rm -fR $(BUILD_DIR)
-	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
+	@tput setaf 2; echo "Done"; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
-	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
+	@tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
 	st-flash write $< 0x08000000
   
 ###############################################################################
