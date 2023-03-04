@@ -23,7 +23,6 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "init.h"
 #include "vcu.h"
 /* USER CODE END Includes */
 
