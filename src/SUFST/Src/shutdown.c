@@ -14,13 +14,13 @@
 
 #include <inttypes.h>
 
-// ISR for all EXTI pin change interupts
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)
-{
-    if (GPIO_pin == SHUTDOWN_IN_Pin)
-    {
-        __ASM("NOP");
-    }
+// // ISR for all EXTI pin change interupts
+// void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)
+// {
+//     if (GPIO_pin == SHUTDOWN_IN_Pin)
+//     {
+//         __ASM("NOP");
+//     }
 
-    // start shutdown thread
-}
+//     // start shutdown thread
+// }

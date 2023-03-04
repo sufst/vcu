@@ -27,9 +27,9 @@
  * ready-to-drive
  ***************************************************************************/
 
-#define READY_TO_DRIVE_OVERRIDE		        1		// set to 1 to use the 'USER' button as the ready-to-drive signal
-#define READY_TO_DRIVE_IGNORE_BPS           1
-#define READY_TO_DRIVE_BUZZER_TIME	        2500	// in ms
+#define READY_TO_DRIVE_BUTTON_ENABLE		1		// set to 1 to use the 'USER' button as the ready-to-drive signal
+#define READY_TO_DRIVE_CHECK_BPS            0
+#define READY_TO_DRIVE_SPEAKER_TIME	        2500	// in ms
 
 /***************************************************************************
  * fault state

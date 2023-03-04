@@ -10,14 +10,13 @@
 
 #include <stdint.h>
 
-#include "tx_api.h"
-
-#include "rtcan.h"
-
-#include "can.h"
 #include "canbc.h"
 #include "driver_control.h"
+#include "ready_to_drive.h"
 #include "ts_control.h"
+#include <can.h>
+#include <rtcan.h>
+#include <tx_api.h>
 
 /*
  * error codes
@@ -48,6 +47,13 @@ typedef struct
      * @details Broadcasts to the sensors CAN bus using the RTCAN service
      */
     canbc_handle_t canbc;
+
+    /**
+     * @brief   Ready to drive state
+     *
+     * @details This also controls the speaker
+     */
+    rtd_context_t rtd;
 
     /**
      * @brief   Tractive system controller
@@ -97,5 +103,7 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
                                   uint32_t rx_fifo);
 
 vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h);
+
+vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin);
 
 #endif

@@ -15,66 +15,138 @@
 #include "bps.h"
 #include "gpio.h"
 
-/*
- * function prototypes
- */
-static bool rtd_input_active();
-static void sound_buzzer();
+static void start_speaker_sound(rtd_context_t* rtd_ptr);
+static void spkr_timer_expiry_callback(ULONG input);
 
 /**
- * @brief Wait for ready-to-drive signal to become active
+ * @brief   Initialises RTD context
+ *
+ * @param[in]   rtd_ptr             RTD instance
+ * @param[in]   spkr_gpio_port      GPIO port for speaker
+ * @param[in]   spkr_gpio_pin       GPIO pin for speaker
+ * @param[in]   spkr_on_time        Time in ticks for which speaker should sound
+ * @param[in]   enable_bps_check    Only proceed to RTD if BPS fully pressed
  */
-void rtd_wait()
+void rtd_init(rtd_context_t* rtd_ptr,
+              GPIO_TypeDef* spkr_gpio_port,
+              uint32_t spkr_gpio_pin,
+              uint32_t spkr_on_time,
+              bool enable_bps_check)
 {
-    HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_SET);
+    rtd_ptr->spkr_gpio_port = spkr_gpio_port;
+    rtd_ptr->spkr_gpio_pin = spkr_gpio_pin;
 
-#if !READY_TO_DRIVE_IGNORE_BPS
-    while (!(rtd_input_active() && bps_fully_pressed()))
-        ;
-#else
-    while (!rtd_input_active())
-        ;
-#endif
+    // semaphore
+    UINT tx_status;
 
-        // if ready to drive overridden ('USER' button input)
-        // wait for button to be released
-#if (READY_TO_DRIVE_OVERRIDE)
-    while (rtd_input_active())
-        ;
-#endif
+    tx_status = tx_semaphore_create(&rtd_ptr->sem, "RTD Semaphore", 0);
 
-    HAL_GPIO_WritePin(RTD_OUT_GPIO_Port,
-                      RTD_OUT_Pin,
-                      GPIO_PIN_RESET); // active low
-    sound_buzzer();
-    HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
+    // speaker timer
+    if (tx_status == TX_SUCCESS)
+    {
+        tx_status = tx_timer_create(&rtd_ptr->speaker_timer,
+                                    "RTD Speaker Timer",
+                                    spkr_timer_expiry_callback,
+                                    (ULONG) rtd_ptr,
+                                    spkr_on_time,
+                                    0,
+                                    TX_NO_ACTIVATE);
+    }
+
+    (void) tx_status;
 }
 
 /**
- * @brief  	Check ready-to-drive signal
+ * @brief       Suspends the calling thread until RTD signal received
  *
- * @details If READY_TO_DRIVE_OVERRIDE is set, the 'USER' push button acts as
- * 			the ready-to-drive signal. Otherwise the actual signal is used.
- *
- * @retval 	true:	ready-to-drive signal active
- * 			false:	ready-to-drive signal inactive otherwise
+ * @param[in]   rtd_ptr     RTD context
  */
-bool rtd_input_active()
+void rtd_wait(rtd_context_t* rtd_ptr)
 {
-#if (READY_TO_DRIVE_OVERRIDE)
-    return HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin)
-           == GPIO_PIN_SET;
-#else
-    return HAL_GPIO_ReadPin(RTD_IN_GPIO_Port, RTD_IN_Pin) == GPIO_PIN_SET;
-#endif
+    tx_semaphore_get(&rtd_ptr->sem, TX_WAIT_FOREVER);
 }
 
 /**
- * @brief Output a high signal to the pin connected to the ready-to-drive buzzer
+ * @brief       Handles interrupt
+ *
+ * @param[in]   rtd_ptr
  */
-void sound_buzzer()
+void rtd_handle_int(rtd_context_t* rtd_ptr)
 {
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
-    tx_thread_sleep(READY_TO_DRIVE_BUZZER_TIME);
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+    bool is_rtd = false;
+
+    if (!rtd_ptr->enable_bps_check)
+    {
+        is_rtd = true;
+    }
+    else
+    {
+        is_rtd = bps_fully_pressed();
+    }
+
+    if (is_rtd)
+    {
+        start_speaker_sound(rtd_ptr);
+    }
+}
+
+/**
+ * @brief       Turns on the RTD speaker and starts the timer
+ *
+ * @param[in]   rtd_ptr     RTD context
+ */
+static void start_speaker_sound(rtd_context_t* rtd_ptr)
+{
+    HAL_GPIO_WritePin(rtd_ptr->spkr_gpio_port,
+                      rtd_ptr->spkr_gpio_pin,
+                      GPIO_PIN_SET);
+
+    UINT tx_status = tx_timer_activate(&rtd_ptr->speaker_timer);
+
+    if (tx_status != TX_SUCCESS)
+    {
+        // just in case - don't want the speaker to stay on for ever!
+        HAL_GPIO_WritePin(rtd_ptr->spkr_gpio_port,
+                          rtd_ptr->spkr_gpio_pin,
+                          GPIO_PIN_RESET);
+    }
+}
+
+/**
+ * @brief       Called on expiry of the speaker timer
+ *
+ * @details     All threads which have called rtd_wait() will be resumed
+ *
+ * @param[in]   input   RTD context
+ */
+static void spkr_timer_expiry_callback(ULONG input)
+{
+    rtd_context_t* rtd_ptr = (rtd_context_t*) input;
+
+    HAL_GPIO_WritePin(rtd_ptr->spkr_gpio_port,
+                      rtd_ptr->spkr_gpio_pin,
+                      GPIO_PIN_RESET);
+
+    // notify ALL suspended threads
+    ULONG sem_suspended_count;
+
+    UINT tx_status = tx_semaphore_info_get(&rtd_ptr->sem,
+                                           NULL,
+                                           NULL,
+                                           NULL,
+                                           &sem_suspended_count,
+                                           NULL);
+
+    if (tx_status == TX_SUCCESS)
+    {
+        for (uint32_t i = 0; i < sem_suspended_count; i++)
+        {
+            tx_status = tx_semaphore_put(&rtd_ptr->sem);
+
+            if (tx_status != TX_SUCCESS)
+            {
+                break;
+            }
+        }
+    }
 }

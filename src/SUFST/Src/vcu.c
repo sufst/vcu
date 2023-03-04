@@ -146,6 +146,19 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // ready to drive
+    if (no_errors(vcu_h))
+    {
+        const uint32_t speaker_ticks
+            = (READY_TO_DRIVE_SPEAKER_TIME * TX_TIMER_TICKS_PER_SECOND) / 1000;
+
+        rtd_init(&vcu_h->rtd,
+                 SPKR_GPIO_Port,
+                 SPKR_Pin,
+                 speaker_ticks,
+                 READY_TO_DRIVE_CHECK_BPS);
+    }
+
     return create_status(vcu_h);
 }
 
@@ -234,6 +247,16 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
     return create_status(vcu_h);
 }
 
+vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
+{
+    if (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE)
+    {
+        rtd_handle_int(&vcu_h->rtd);
+    }
+
+    return VCU_OK;
+}
+
 /**
  * @brief       Initialisation thread entry function
  *
@@ -259,7 +282,7 @@ static void init_thread_entry(ULONG input)
     bps_init();
     apps_init();
 
-    rtd_wait();
+    rtd_wait(&vcu_h->rtd);
 
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
