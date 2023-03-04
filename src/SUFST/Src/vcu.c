@@ -8,11 +8,9 @@
 
 #include <stdbool.h>
 
-#include "config.h"
-
 #include "apps.h"
 #include "bps.h"
-
+#include "config.h"
 #include "ready_to_drive.h"
 
 /*

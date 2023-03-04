@@ -8,15 +8,15 @@
 #ifndef VCU_H
 #define VCU_H
 
+#include <can.h>
+#include <rtcan.h>
 #include <stdint.h>
+#include <tx_api.h>
 
 #include "canbc.h"
 #include "driver_control.h"
 #include "ready_to_drive.h"
 #include "ts_control.h"
-#include <can.h>
-#include <rtcan.h>
-#include <tx_api.h>
 
 /*
  * error codes

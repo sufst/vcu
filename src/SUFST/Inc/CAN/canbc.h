@@ -8,9 +8,8 @@
 #ifndef CANBC_H
 #define CANBC_H
 
-#include "tx_api.h"
-
 #include "rtcan.h"
+#include "tx_api.h"
 
 /*
  * channel and segment constants
