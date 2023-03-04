@@ -91,9 +91,7 @@ control.
 # Contributing
 
 Before contributing to this project, make sure to familiarise yourself with the
-[project-specific contributing guidelines](.github/CONTRIBUTING_EXTRA.md). Until
-the STAG 9 codebase is stable, all branches should be created from and merged
-back into `develop`.
+[project-specific contributing guidelines](.github/CONTRIBUTING_EXTRA.md).
 
 # Useful Resources
 
