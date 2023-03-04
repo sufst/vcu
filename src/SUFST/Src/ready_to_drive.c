@@ -9,11 +9,10 @@
 
 #include <stdbool.h>
 
-#include "config.h"
-#include "tx_api.h"
-
 #include "bps.h"
+#include "config.h"
 #include "gpio.h"
+#include "tx_api.h"
 
 static void start_speaker_sound(rtd_context_t* rtd_ptr);
 static void spkr_timer_expiry_callback(ULONG input);

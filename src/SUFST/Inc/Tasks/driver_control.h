@@ -9,10 +9,9 @@
 
 #include <stdint.h>
 
-#include "tx_api.h"
-
 #include "canbc.h"
 #include "ts_control.h"
+#include "tx_api.h"
 
 /*
  * error codes

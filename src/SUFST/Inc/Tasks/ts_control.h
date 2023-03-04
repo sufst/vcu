@@ -9,11 +9,9 @@
 
 #include <stdint.h>
 
-#include "tx_api.h"
-
-#include "rtcan.h"
-
 #include "pm100.h"
+#include "rtcan.h"
+#include "tx_api.h"
 
 /*
  * error codes

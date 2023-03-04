@@ -11,7 +11,6 @@
 
 #if RUN_FAULT_STATE_TESTBENCH
 #include "fault.h"
-
 #include "gpio.h"
 #endif
 

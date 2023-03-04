@@ -10,9 +10,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "rtcan.h"
-
 #include "can_database.h"
+#include "rtcan.h"
 #include "status.h"
 
 #define PM100_ERROR_NONE          0x00000000U // no error

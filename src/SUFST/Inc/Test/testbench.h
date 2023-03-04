@@ -8,9 +8,8 @@
 #ifndef TESTBENCH_H
 #define TESTBENCH_H
 
-#include "tx_api.h"
-
 #include "../config.h"
+#include "tx_api.h"
 
 /***************************************************************************
  * APPS input testbench

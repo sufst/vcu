@@ -8,12 +8,10 @@
 
 #include <stdbool.h>
 
-#include "config.h"
-
-#include "trace.h"
-
 #include "adc.h"
+#include "config.h"
 #include "scs.h"
+#include "trace.h"
 
 /**
  * @brief Safety critical signal instances for APPS

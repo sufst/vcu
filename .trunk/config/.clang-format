@@ -62,19 +62,15 @@ BraceWrapping:
 IncludeBlocks: Regroup
 SortIncludes: CaseSensitive
 IncludeCategories:
-    -   Regex: '^<(std)([A-Za-z0-9.\/-_])+>'
+    # -   Regex: '^<(std)([A-Za-z0-9.\/-_])+>'
+    #     Priority: 2
+    #     SortPriority: 2
+    #     CaseSensitive: true
+    -   Regex: '^<([A-Za-z0-9.\/-_])+>'
         Priority: 1
         SortPriority: 1
         CaseSensitive: true
-    -   Regex: '^"(tx_api|config)([A-Za-z0-9.\/-_])+"'
+    -   Regex: '^"([A-Za-z0-9.\/-_])+"'
         Priority: 2
         SortPriority: 2
-        CaseSensitive: true
-    -   Regex: '^"(testbench|trace|fault)([A-Za-z0-9.\/-_])+"'
-        Priority: 3
-        SortPriority: 3
-        CaseSensitive: true
-    -   Regex: '^"(adc|dac|fdcan|gpio|rtc|scs|apps|rtd|bps)([A-Za-z0-9.\/-_])+"'
-        Priority: 4
-        SortPriority: 4
         CaseSensitive: true

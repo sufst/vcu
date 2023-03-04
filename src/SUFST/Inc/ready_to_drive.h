@@ -7,13 +7,12 @@
 #ifndef READY_TO_DRIVE_H
 #define READY_TO_DRIVE_H
 
+#include <gpio.h>
 #include <stdatomic.h>
 #include <stdint.h>
+#include <tx_api.h>
 
 #include "bps.h"
-
-#include <gpio.h>
-#include <tx_api.h>
 
 /**
  * @brief   Ready to drive context

@@ -6,13 +6,11 @@
 
 #include "shutdown.h"
 
+#include <inttypes.h>
 #include <stdint.h>
 
-#include "tx_api.h"
-
 #include "gpio.h"
-
-#include <inttypes.h>
+#include "tx_api.h"
 
 // // ISR for all EXTI pin change interupts
 // void HAL_GPIO_EXTI_Callback(uint16_t GPIO_pin)

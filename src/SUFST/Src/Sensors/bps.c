@@ -7,7 +7,6 @@
 #include "bps.h"
 
 #include "config.h"
-
 #include "scs.h"
 
 /**
