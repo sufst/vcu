@@ -1,8 +1,7 @@
 /***************************************************************************
  * @file   scs.h
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @date   2022-07-02
- * @brief  Safety critical signal interface typedef and function prototypes
+ * @brief  System critical signals
  ***************************************************************************/
 
 #ifndef SCS_H
@@ -14,7 +13,7 @@
 #include "adc.h"
 
 /**
- * @brief Analogue safety critical signal
+ * @brief Analogue system critical signal
  */
 typedef struct
 {
