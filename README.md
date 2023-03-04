@@ -114,3 +114,5 @@ CAN / inverter:
 
 - [VCU GUI](https://github.com/sufst/vcu-gui)
 - [VCU PCB](https://github.com/sufst/pcb)
+- [RTCAN](https://github.com/sufst/rtcan)
+- [CAN Bus Definitions](https://github.com/sufst/can-defs)
