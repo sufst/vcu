@@ -59,13 +59,15 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
+#define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
 #define SHUTDOWN_IN_Pin GPIO_PIN_1
 #define SHUTDOWN_IN_GPIO_Port GPIOF
 #define SHUTDOWN_IN_EXTI_IRQn EXTI1_IRQn
-#define BUZZER_Pin GPIO_PIN_2
-#define BUZZER_GPIO_Port GPIOF
+#define SPKR_Pin GPIO_PIN_2
+#define SPKR_GPIO_Port GPIOF
 #define RTD_IN_Pin GPIO_PIN_10
 #define RTD_IN_GPIO_Port GPIOF
+#define RTD_IN_EXTI_IRQn EXTI15_10_IRQn
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define BPS_ADC_Pin GPIO_PIN_0
