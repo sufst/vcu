@@ -88,6 +88,12 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // shudown init
+    if (no_errors(vcu_h))
+    {
+        shutdown_init(&vcu_h->sd_state, vcu_shutdown, (ULONG) vcu_h);
+    }
+
     // initialisation thread
     if (no_errors(vcu_h))
     {

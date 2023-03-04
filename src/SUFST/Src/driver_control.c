@@ -248,3 +248,11 @@ static driver_ctrl_status_t create_status(driver_ctrl_handle_t* driver_ctrl_h)
 {
     return (no_errors(driver_ctrl_h)) ? DRIVER_CTRL_OK : DRIVER_CTRL_ERROR;
 }
+
+
+driver_ctrl_status_t driver_ctrl_shutdown(driver_ctrl_handle_t* driver_ctrl_h)
+{
+    tx_thread_terminate(driver_ctrl_h->thread);
+
+    return DRIVER_CTRL_OK;
+}

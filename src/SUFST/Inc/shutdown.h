@@ -9,11 +9,16 @@
 #include "error_types.h"
 #include <stdbool.h>
 #include <stdint.h>
+#include <tx_api.h>
 
-#define MAX_MINOR_ERRORS 5
+#define SHUTDOWN_MAX_MINOR_ERRORS 5
 
 
 typedef struct { 
+    
+    void (*callback)(ULONG);
+    ULONG callback_arg;
+
     /**
      * @brief stores if the system is ready to drive or not, so the shutdown
      *        signal only takes affect when the car is RTD
@@ -30,7 +35,6 @@ typedef struct {
      */
     uint32_t minor_error_count;
 
-
     /**
      * @brief stores the critical error that cause the system to shut down
      */
@@ -39,6 +43,9 @@ typedef struct {
 } shutdown_handle_t;
 
 
+void shutdown_init(shutdown_handle_t* sd_handle,
+                    void (*callback)(ULONG),
+                     ULONG callback_arg);
 
 void shutdown_fault_registerer(shutdown_handle_t* sd_handle);
 

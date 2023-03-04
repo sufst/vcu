@@ -83,4 +83,7 @@ driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
 
 driver_ctrl_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h);
 
+driver_ctrl_status_t driver_ctrl_shutdown(driver_ctrl_handle_t* driver_ctrl_h);
+
+
 #endif

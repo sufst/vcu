@@ -14,13 +14,31 @@
 
 #include <inttypes.h>
 
+
+
+void shutdown_init(shutdown_handle_t* sd_handle,
+                    void (*callback)(ULONG),
+                    ULONG callback_arg)
+{
+    sd_handle->shutdown_ISR_enable = false;
+    sd_handle->minor_error_count = 0;
+
+    sd_handle->callback = callback;
+    sd_handle->callback_arg = callback_arg;
+
+}
+
+
+
  /**
   * @brief checks RTD status before registering a critical error
   */
 void shutdown_fault_registerer(shutdown_handle_t* sd_handle)
 {
     if (sd_handle->shutdown_ISR_enable)
+    {
         major_Error_Handler(sd_handle, Shutdown_Error);
+    }
 }
 
 
@@ -66,11 +84,10 @@ void minor_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
  */
 void shutdown_handler(shutdown_handle_t* sd_handle)
 {
-  // stop TS control thread
-
-  // stop driver control thread
-
-  // enable broadcasting of errors
+    if(sd_handle->callback != NULL)
+    {
+        sd_handle->callback(sd_handle->callback_arg);
+    }
 }
 
 

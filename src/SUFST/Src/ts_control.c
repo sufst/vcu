@@ -253,4 +253,6 @@ static ts_ctrl_status_t create_status(ts_ctrl_handle_t* ts_ctrl_h)
 ts_ctrl_status_t ts_ctrl_shutdown(ts_ctrl_handle_t* ts_ctrl_h)
 {
     tx_thread_terminate(ts_ctrl_h->thread);
+
+    return TS_CTRL_OK;
 }
