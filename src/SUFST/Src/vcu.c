@@ -10,7 +10,9 @@
 
 #include "config.h"
 
-#include "init.h"
+#include "apps.h"
+#include "bps.h"
+
 #include "ready_to_drive.h"
 
 /*
@@ -254,17 +256,15 @@ static void init_thread_entry(ULONG input)
 {
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
 
-    // RTD procedure
-    init_pre_rtd();
-    rtd_wait();
-    init_post_rtd();
+    bps_init();
+    apps_init();
 
-    // start application threads
+    rtd_wait();
+
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
     (void) driver_ctrl_start(&vcu_h->driver_ctrl);
 
-    // terminate this thread
     (void) tx_thread_terminate(&vcu_h->init_thread);
 }
 
