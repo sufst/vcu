@@ -6,6 +6,7 @@
  ***************************************************************************/
 
 #include "config.h"
+#include "tx_user.h"
 
 /***************************************************************************
  * define rules / limits on parameters
@@ -50,6 +51,10 @@
  ***************************************************************************/
 
 #if COMPETITION_MODE
+
+#ifndef TX_SAFETY_CRITICAL
+#error "TX_SAFETY_CRITICAL not enabled"
+#endif
 
 // testbenches must be disabled
 #if TESTBENCHES_RUNNING
