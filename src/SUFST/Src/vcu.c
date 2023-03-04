@@ -249,7 +249,8 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
 
 vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 {
-    if (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE)
+    if ((pin == RTD_IN_Pin)
+        || (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE))
     {
         rtd_handle_int(&vcu_h->rtd);
     }

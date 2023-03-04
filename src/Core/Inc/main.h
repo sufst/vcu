@@ -67,6 +67,7 @@ void Error_Handler(void);
 #define SPKR_GPIO_Port GPIOF
 #define RTD_IN_Pin GPIO_PIN_10
 #define RTD_IN_GPIO_Port GPIOF
+#define RTD_IN_EXTI_IRQn EXTI15_10_IRQn
 #define MCO_Pin GPIO_PIN_0
 #define MCO_GPIO_Port GPIOH
 #define BPS_ADC_Pin GPIO_PIN_0
