@@ -64,7 +64,7 @@ void major_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
  */
 void minor_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
 {
-    if(sd_handle->minor_error_count < MAX_MINOR_ERRORS)
+    if (sd_handle->minor_error_count < SHUTDOWN_MAX_MINOR_ERRORS)
     {
         sd_handle->minor_errors[sd_handle->minor_error_count] = Error;
         sd_handle->minor_error_count++;
