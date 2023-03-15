@@ -6,12 +6,14 @@
 
 #include "apps.h"
 
+#include <adc.h>
 #include <stdbool.h>
 
-#include "adc.h"
 #include "config.h"
 #include "scs.h"
 #include "trace.h"
+
+#define APPS_SCALED_MAX 1000 // maximum scaled value
 
 /**
  * @brief Safety critical signal instances for APPS
@@ -28,21 +30,19 @@ bool apps_inputs_agree(const uint32_t inputs[2]);
  */
 void apps_init()
 {
-    uint32_t apps_signal_max = (1 << APPS_SCALED_RESOLUTION) - 1;
-
     scs_create(&apps_signals[0],
                &hadc1,
                APPS_1_ADC_MIN,
                APPS_1_ADC_MAX,
                0,
-               apps_signal_max);
+               APPS_SCALED_MAX);
 
     scs_create(&apps_signals[1],
                &hadc2,
                APPS_2_ADC_MIN,
                APPS_2_ADC_MAX,
                0,
-               apps_signal_max);
+               APPS_SCALED_MAX);
 }
 
 /**
@@ -97,8 +97,7 @@ bool apps_inputs_agree(const uint32_t inputs[2])
 {
     uint32_t diff = (inputs[1] > inputs[0]) ? inputs[1] - inputs[0]
                                             : inputs[0] - inputs[1];
-    static const uint32_t max_diff
-        = APPS_MAX_DIFF_FRACTION * ((1 << APPS_SCALED_RESOLUTION) - 1);
+    static const uint32_t max_diff = APPS_MAX_DIFF_FRACTION * APPS_SCALED_MAX;
 
     return diff < max_diff;
 }

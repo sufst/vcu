@@ -63,7 +63,7 @@ typedef struct
     /**
      * @brief   Driver control input service
      */
-    driver_ctrl_handle_t driver_ctrl;
+    dc_handle_t driver_ctrl;
 
     /**
      * @brief   Initialisation thread

@@ -189,6 +189,9 @@ static void ts_ctrl_thread_entry(ULONG input)
     }
 
     // loop forever
+    // const uint32_t heartbeat_timeout = 5 * TX_TIMER_TICKS_PER_SECOND /
+    // (DRIVER_CTRL_TICK_RATE);
+
     while (1)
     {
         // wait for a message to enter the control input queue
@@ -219,6 +222,11 @@ static void ts_ctrl_thread_entry(ULONG input)
                 Error_Handler();
             }
         }
+        // else
+        // {
+        //     pm100_disable(&ts_ctrl_h->pm100);
+        //     pm100_process_broadcast_msgs(&ts_ctrl_h->pm100);
+        // }
     }
 }
 

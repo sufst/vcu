@@ -24,6 +24,7 @@
  * internal function prototypes
  */
 static void init_thread_entry(ULONG input);
+static void update_canbc_states(vcu_handle_t* vcu_h);
 static bool no_errors(vcu_handle_t* vcu_h);
 static vcu_status_t create_status(vcu_handle_t* vcu_h);
 
@@ -71,21 +72,11 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // CAN broadcast service
     if (no_errors(vcu_h))
     {
-        canbc_status_t status = canbc_init(&vcu_h->canbc,
-                                           &vcu_h->rtcan_s,
-                                           CANBC_PRIORITY,
-                                           CANBC_BROADCAST_PERIOD,
-                                           app_mem_pool);
-
-        if (status == CANBC_OK)
-        {
-            status = canbc_start(&vcu_h->canbc);
-        }
-
-        if (status != CANBC_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
+        canbc_init(&vcu_h->canbc,
+                   &vcu_h->rtcan_c,
+                   CANBC_BROADCAST_PERIOD,
+                   CANBC_PRIORITY,
+                   app_mem_pool);
     }
 
     // initialisation thread
@@ -280,14 +271,38 @@ static void init_thread_entry(ULONG input)
 
     bps_init();
     apps_init();
+    update_canbc_states(vcu_h);
 
     rtd_wait(&vcu_h->rtd);
+    update_canbc_states(vcu_h);
 
     // TODO: handle errors
-    (void) ts_ctrl_start(&vcu_h->ts_ctrl);
-    (void) driver_ctrl_start(&vcu_h->driver_ctrl);
+    driver_ctrl_start(&vcu_h->driver_ctrl);
+    ts_ctrl_start(&vcu_h->ts_ctrl);
 
-    (void) tx_thread_terminate(&vcu_h->init_thread);
+    tx_thread_terminate(&vcu_h->init_thread);
+}
+
+/**
+ * @brief       Updates CAN broadcaster states
+ *
+ * @param[in]   vcu_h     VCU handle
+ */
+static void update_canbc_states(vcu_handle_t* vcu_h)
+{
+    canbc_handle_t* canbc_h = &vcu_h->canbc;
+    canbc_states_t* state_ptr = canbc_lock_state(canbc_h, TX_WAIT_FOREVER);
+
+    if (state_ptr != NULL)
+    {
+        state_ptr->vcu_state.r2d
+            = rtd_is_ready(&vcu_h->rtd); // bool -> 0 or 1 in bitfield
+        canbc_unlock_state(canbc_h);
+    }
+    else
+    {
+        Error_Handler();
+    }
 }
 
 /**

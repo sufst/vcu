@@ -57,7 +57,6 @@ typedef struct
  * function prototypes
  */
 status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h);
-status_t pm100_enable(pm100_handle_t* pm100_h);
 status_t pm100_disable(pm100_handle_t* pm100_h);
 status_t pm100_request_torque(pm100_handle_t* pm100_h, uint32_t torque);
 status_t pm100_process_broadcast_msgs(pm100_handle_t* pm100_h);
