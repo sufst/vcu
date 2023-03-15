@@ -85,44 +85,6 @@ status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
 }
 
 /**
- * @brief       Enables the inverter, suspending the calling thread until
- *              the process is complete
- *
- * @details     The inverter initialises in the "lockout" state. To enable it,
- *              a disable command must first be sent.
- *
- * @see         "Cascadia Motion CAN Protocol" v5.9 p.35
- *
- * @param[in]   pm100_h     PM100 handle
- */
-status_t pm100_enable(pm100_handle_t* pm100_h)
-{
-    // // disable inverter
-    // status_t status = pm100_disable(pm100_h);
-
-    // // wait for lockout
-    // if (status == STATUS_OK)
-    // {
-    //     pm100_h->waiting_on_lockout = true;
-
-    //     status = (tx_semaphore_get(&pm100_h->lockout_sem, TX_WAIT_FOREVER)
-    //               == TX_SUCCESS)
-    //                  ? STATUS_OK
-    //                  : STATUS_ERROR;
-
-    //     pm100_h->waiting_on_lockout = false;
-    // }
-
-    // // send a zero torque request
-    // if (status == STATUS_OK)
-    // {
-    //     status = pm100_request_torque(pm100_h, 0);
-    // }
-
-    return STATUS_OK;
-}
-
-/**
  * @brief       Disables the inverter
  *
  * @details     Disable command consists of all zeros in data field.
@@ -145,6 +107,9 @@ status_t pm100_disable(pm100_handle_t* pm100_h)
 
 /**
  * @brief       Sends a torque request to the inverter
+ *
+ * @details     If the inverter is in the lockout state, a disable command will
+ *              be sent instead to get it out of lockout.
  *
  * @see         "Cascadia Motion CAN Protocol" v5.9 p.31
  *
