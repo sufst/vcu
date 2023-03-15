@@ -8,10 +8,10 @@
 #define DRIVER_CONTROL_H
 
 #include <stdint.h>
+#include <tx_api.h>
 
 #include "canbc.h"
 #include "ts_control.h"
-#include "tx_api.h"
 
 /*
  * error codes
@@ -57,11 +57,16 @@ typedef struct
     ts_ctrl_input_t ts_inputs;
 
     /**
+     * @brief   CAN broadcaster instance
+     */
+    canbc_handle_t* canbc_h;
+
+    /**
      * @brief   Current error code
      */
     uint32_t err;
 
-} driver_ctrl_handle_t;
+} dc_handle_t;
 
 /**
  * @brief   Driver controls status
@@ -75,11 +80,11 @@ typedef enum
 /*
  * function prototypes
  */
-driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
+driver_ctrl_status_t driver_ctrl_init(dc_handle_t* dc_h,
                                       ts_ctrl_handle_t* ts_ctrl_h,
                                       canbc_handle_t* canbc_h,
                                       TX_BYTE_POOL* stack_pool_ptr);
 
-driver_ctrl_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h);
+driver_ctrl_status_t driver_ctrl_start(dc_handle_t* dc_h);
 
 #endif

@@ -71,21 +71,11 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // CAN broadcast service
     if (no_errors(vcu_h))
     {
-        canbc_status_t status = canbc_init(&vcu_h->canbc,
-                                           &vcu_h->rtcan_s,
-                                           CANBC_PRIORITY,
-                                           CANBC_BROADCAST_PERIOD,
-                                           app_mem_pool);
-
-        if (status == CANBC_OK)
-        {
-            status = canbc_start(&vcu_h->canbc);
-        }
-
-        if (status != CANBC_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
+        canbc_init(&vcu_h->canbc,
+                   &vcu_h->rtcan_c,
+                   CANBC_BROADCAST_PERIOD,
+                   CANBC_PRIORITY,
+                   app_mem_pool);
     }
 
     // initialisation thread
@@ -284,8 +274,10 @@ static void init_thread_entry(ULONG input)
     rtd_wait(&vcu_h->rtd);
 
     // TODO: handle errors
-    (void) ts_ctrl_start(&vcu_h->ts_ctrl);
     (void) driver_ctrl_start(&vcu_h->driver_ctrl);
+    (void) ts_ctrl_start(
+        &vcu_h
+             ->ts_ctrl); // start this immediately to avoid inverter CAN timeout
 
     (void) tx_thread_terminate(&vcu_h->init_thread);
 }

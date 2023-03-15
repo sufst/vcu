@@ -10,7 +10,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "tx_api.h"
+#include <tx_api.h>
 
 /***************************************************************************
  * competition mode 
@@ -51,7 +51,7 @@
 #define TRACEX_ENABLE                       0
        // enable TraceX logging
 
-#define DRIVER_CTRL_TICK_RATE               100  // times per second
+#define DRIVER_CTRL_TICK_RATE               100 // times per second
 #define CANBC_BROADCAST_PERIOD              100 // milliseconds
 
 /***************************************************************************
@@ -62,10 +62,6 @@
 
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
-#define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
-#define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
-
-#define CANBC_DRIVER_INPUTS_ID                  0x100   // CAN broadcast address for driver inputs
 
 /***************************************************************************
  * sensors
@@ -80,10 +76,10 @@
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
-#define APPS_1_ADC_MIN                      1540    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      1540    // ^                                ^ channel 2
-#define APPS_1_ADC_MAX                      2780    //  maximum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MAX                      2780    // ^                                ^ channel 2
+#define APPS_1_ADC_MIN                      0x600    //  minimum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MIN                      0x600    // ^                                ^ channel 2
+#define APPS_1_ADC_MAX                      0x900    //  maximum raw ADC reading for APPS  channel 1
+#define APPS_2_ADC_MAX                      0x900    // ^                                ^ channel 2
 
 /***************************************************************************
  * BPS - brake pressure sensor

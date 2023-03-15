@@ -49,8 +49,9 @@ void scs_create(scs_t* scs_ptr,
     uint32_t mapped_range = max - min;
 
     scs_ptr->scale_up = (adc_range < mapped_range);
-    scs_ptr->scale_factor = scs_ptr->scale_up ? mapped_range / adc_range
-                                              : adc_range / mapped_range;
+    scs_ptr->scale_factor = scs_ptr->scale_up
+                                ? ((float) mapped_range / adc_range)
+                                : ((float) adc_range / mapped_range);
     scs_ptr->max_bounds_diff = adc_range * SCS_OUTSIDE_BOUNDS_FRACTION;
 }
 

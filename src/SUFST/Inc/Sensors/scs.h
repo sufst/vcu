@@ -45,7 +45,7 @@ typedef struct
     /**
      * @brief Cached scale factor for mapping
      */
-    uint32_t scale_factor;
+    float scale_factor;
 
     /**
      * @brief Cached max bounds difference for validation

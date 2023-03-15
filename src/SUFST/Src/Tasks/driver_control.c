@@ -26,26 +26,30 @@
  */
 static void driver_ctrl_thread_entry(ULONG input);
 static void driver_ctrl_tick_callback(ULONG input);
-static bool no_errors(driver_ctrl_handle_t* driver_ctrl_h);
-static driver_ctrl_status_t create_status(driver_ctrl_handle_t* driver_ctrl_h);
+static void update_canbc_states(dc_handle_t* dc_h);
+static bool no_errors(dc_handle_t* dc_h);
+static driver_ctrl_status_t create_status(dc_handle_t* dc_h);
 
 /**
  * @brief       Initialises driver controls
  *
- * @param[in]   driver_ctrl_h   Driver control handle
+ * @param[in]   dc_h   Driver control handle
  * @param[in]   ts_ctrl_h       TS controller handle
  * @param[in]   canbc_h         CANBC service handle
  * @param[in]   stack_pool_ptr  Memory pool to allocate stack memory from
  */
-driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
+driver_ctrl_status_t driver_ctrl_init(dc_handle_t* dc_h,
                                       ts_ctrl_handle_t* ts_ctrl_h,
                                       canbc_handle_t* canbc_h,
                                       TX_BYTE_POOL* stack_pool_ptr)
 {
-    driver_ctrl_h->ts_ctrl_h = ts_ctrl_h;
+    dc_h->ts_ctrl_h = ts_ctrl_h;
+    dc_h->canbc_h = canbc_h;
 
-    driver_ctrl_h->ts_inputs.accel_pressure = 0;
-    driver_ctrl_h->ts_inputs.brake_pressure = 0;
+    dc_h->ts_inputs.accel_pressure = 0;
+    dc_h->ts_inputs.brake_pressure = 0;
+
+    update_canbc_states(dc_h);
 
     // thread
     {
@@ -58,10 +62,10 @@ driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
 
         if (status == TX_SUCCESS)
         {
-            status = tx_thread_create(&driver_ctrl_h->thread,
+            status = tx_thread_create(&dc_h->thread,
                                       DRIVER_CTRL_THREAD_NAME,
                                       driver_ctrl_thread_entry,
-                                      (ULONG) driver_ctrl_h,
+                                      (ULONG) dc_h,
                                       stack_ptr,
                                       DRIVER_CTRL_THREAD_STACK_SIZE,
                                       DRIVER_CTRL_THREAD_PRIORITY,
@@ -72,80 +76,41 @@ driver_ctrl_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
 
         if (status != TX_SUCCESS)
         {
-            driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INIT;
+            dc_h->err |= DRIVER_CTRL_ERROR_INIT;
         }
     }
 
     // can broadcast service
-    if (no_errors(driver_ctrl_h))
+    if (no_errors(dc_h))
     {
-        UINT status = tx_mutex_create(&driver_ctrl_h->state_mutex,
+        UINT status = tx_mutex_create(&dc_h->state_mutex,
                                       DRIVER_CTRL_STATE_MUTEX_NAME,
                                       TX_INHERIT);
 
         if (status != TX_SUCCESS)
         {
-            driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INIT;
+            dc_h->err |= DRIVER_CTRL_ERROR_INIT;
         }
     }
 
-    if (no_errors(driver_ctrl_h))
-    {
-        canbc_segment_t* segment_ptr;
-        canbc_status_t status
-            = canbc_create_segment(canbc_h,
-                                   &segment_ptr,
-                                   CANBC_DRIVER_INPUTS_ID,
-                                   &driver_ctrl_h->state_mutex);
-
-        if (status == CANBC_OK)
-        {
-            // TODO: channel_ptr unused, change CANBC to ignore parameter if
-            //       NULL
-            canbc_channel_t* channel_ptr;
-            status = canbc_create_channel(
-                canbc_h,
-                &channel_ptr,
-                segment_ptr,
-                (uint8_t*) &driver_ctrl_h->ts_inputs.accel_pressure,
-                sizeof(driver_ctrl_h->ts_inputs.accel_pressure));
-        }
-
-        if (status == CANBC_OK)
-        {
-            canbc_channel_t* channel_ptr;
-            status = canbc_create_channel(
-                canbc_h,
-                &channel_ptr,
-                segment_ptr,
-                (uint8_t*) &driver_ctrl_h->ts_inputs.brake_pressure,
-                sizeof(driver_ctrl_h->ts_inputs.brake_pressure));
-        }
-
-        if (status != CANBC_OK)
-        {
-            driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INIT;
-        }
-    }
-
-    return create_status(driver_ctrl_h);
+    return create_status(dc_h);
 }
 
 /**
  * @brief       Start reading driver controls
  *
- * @param[in]   driver_ctrl_h   Driver control handle
+ * @param[in]   dc_h   Driver control handle
  */
-driver_ctrl_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h)
+driver_ctrl_status_t driver_ctrl_start(dc_handle_t* dc_h)
 {
-    UINT status = tx_thread_resume(&driver_ctrl_h->thread);
+    UINT status = tx_thread_resume(&dc_h->thread);
 
     if (status != TX_SUCCESS)
     {
-        driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
+        dc_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
     }
 
-    return create_status(driver_ctrl_h);
+    return create_status(dc_h);
 }
 
 /**
@@ -155,13 +120,13 @@ driver_ctrl_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h)
  */
 static void driver_ctrl_tick_callback(ULONG input)
 {
-    driver_ctrl_handle_t* driver_ctrl_h = (driver_ctrl_handle_t*) input;
+    dc_handle_t* dc_h = (dc_handle_t*) input;
 
-    UINT status = tx_thread_resume(&driver_ctrl_h->thread);
+    UINT status = tx_thread_resume(&dc_h->thread);
 
     if (status != TX_SUCCESS)
     {
-        driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
+        dc_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
     }
 }
 
@@ -172,15 +137,15 @@ static void driver_ctrl_tick_callback(ULONG input)
  */
 static void driver_ctrl_thread_entry(ULONG input)
 {
-    driver_ctrl_handle_t* driver_ctrl_h = (driver_ctrl_handle_t*) input;
+    dc_handle_t* dc_h = (dc_handle_t*) input;
 
     // create tick timer
     const ULONG ticks = TX_TIMER_TICKS_PER_SECOND / DRIVER_CTRL_TICK_RATE;
 
-    UINT status = tx_timer_create(&driver_ctrl_h->tick_timer,
+    UINT status = tx_timer_create(&dc_h->tick_timer,
                                   DRIVER_CTRL_TIMER_NAME,
                                   driver_ctrl_tick_callback,
-                                  (ULONG) driver_ctrl_h,
+                                  (ULONG) dc_h,
                                   ticks,
                                   ticks,
                                   TX_NO_ACTIVATE);
@@ -191,38 +156,54 @@ static void driver_ctrl_thread_entry(ULONG input)
         while (1)
         {
             // read inputs
-            // TODO: handle error return
-            tx_mutex_get(&driver_ctrl_h->state_mutex, TX_WAIT_FOREVER);
-
 #if RUN_APPS_TESTBENCH
-            driver_ctrl_h->ts_inputs.accel_pressure = testbench_apps_input();
+            dc_h->ts_inputs.accel_pressure = testbench_apps_input();
 #else
-            driver_ctrl_h->ts_inputs.accel_pressure = (ULONG) apps_read();
+            dc_h->ts_inputs.accel_pressure = (ULONG) apps_read();
 #endif
 
-            driver_ctrl_h->ts_inputs.brake_pressure = bps_read();
+            dc_h->ts_inputs.brake_pressure = bps_read();
 
             // send inputs to TS controller
-            if (ts_ctrl_input_send(driver_ctrl_h->ts_ctrl_h,
-                                   &driver_ctrl_h->ts_inputs)
+            if (ts_ctrl_input_send(dc_h->ts_ctrl_h, &dc_h->ts_inputs)
                 != TS_CTRL_OK)
             {
                 // TODO: handle error?
             }
 
-            tx_mutex_put(&driver_ctrl_h->state_mutex);
+            // update states all at the same time
+            update_canbc_states(dc_h);
 
             // sleep thread to allow other threads to run
             // TODO: should the timer activation happen in the timer callback??
             //       that would give potentially more stable ticks
-            tx_timer_activate(&driver_ctrl_h->tick_timer);
-            tx_thread_suspend(&driver_ctrl_h->thread);
+            tx_timer_activate(&dc_h->tick_timer);
+            tx_thread_suspend(&dc_h->thread);
         }
     }
     else
     {
-        driver_ctrl_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
-        // TODO: handle fault
+        dc_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
+        Error_Handler();
+    }
+}
+
+/**
+ * @brief       Update CANBC states
+ *
+ * @param[in]   dc_h   Driver control handle
+ */
+static void update_canbc_states(dc_handle_t* dc_h)
+{
+    canbc_handle_t* canbc_h = dc_h->canbc_h;
+    canbc_states_t* state_ptr = canbc_lock_state(canbc_h, TX_NO_WAIT);
+
+    if (state_ptr != NULL)
+    {
+        state_ptr->apps_reading = dc_h->ts_inputs.accel_pressure;
+        state_ptr->bps_reading = dc_h->ts_inputs.brake_pressure;
+
+        canbc_unlock_state(canbc_h);
     }
 }
 
@@ -230,19 +211,19 @@ static void driver_ctrl_thread_entry(ULONG input)
  * @brief       Returns true if the driver control instance has encountered an
  *              error
  *
- * @param[in]   driver_ctrl_h   Driver control handle
+ * @param[in]   dc_h   Driver control handle
  */
-static bool no_errors(driver_ctrl_handle_t* driver_ctrl_h)
+static bool no_errors(dc_handle_t* dc_h)
 {
-    return (driver_ctrl_h->err == DRIVER_CTRL_ERROR_NONE);
+    return (dc_h->err == DRIVER_CTRL_ERROR_NONE);
 }
 
 /**
  * @brief       Create a status code based on the current error state
  *
- * @param[in]   driver_ctrl_h   Driver control handle
+ * @param[in]   dc_h   Driver control handle
  */
-static driver_ctrl_status_t create_status(driver_ctrl_handle_t* driver_ctrl_h)
+static driver_ctrl_status_t create_status(dc_handle_t* dc_h)
 {
-    return (no_errors(driver_ctrl_h)) ? DRIVER_CTRL_OK : DRIVER_CTRL_ERROR;
+    return (no_errors(dc_h)) ? DRIVER_CTRL_OK : DRIVER_CTRL_ERROR;
 }
