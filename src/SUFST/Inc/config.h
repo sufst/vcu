@@ -71,8 +71,6 @@
 #define APPS_DISABLE_SCS_CHECK              1       // disable check for APPS ADC reading out of bounds
 
 #define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
-#define APPS_SCALED_RESOLUTION              10      // scaled (truncated) APPS 
-
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 

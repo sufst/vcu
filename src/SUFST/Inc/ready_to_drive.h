@@ -13,6 +13,7 @@
 #include <tx_api.h>
 
 #include "bps.h"
+#include "canbc.h"
 
 /**
  * @brief   Ready to drive context
@@ -22,6 +23,8 @@ typedef struct
     GPIO_TypeDef* spkr_gpio_port;
     uint32_t spkr_gpio_pin;
     bool enable_bps_check;
+
+    atomic_bool ready;
 
     TX_SEMAPHORE sem;
     TX_TIMER speaker_timer;
@@ -40,5 +43,7 @@ void rtd_init(rtd_context_t* rtd_ptr,
 void rtd_wait(rtd_context_t* rtd_ptr);
 
 void rtd_handle_int(rtd_context_t* rtd_ptr);
+
+bool rtd_is_ready(rtd_context_t* rtd_ptr);
 
 #endif

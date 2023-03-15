@@ -23,10 +23,19 @@
  */
 typedef struct
 {
+    // driver inputs
     uint16_t apps_reading;
     uint16_t bps_reading;
     uint32_t torque_request;
-    uint32_t rolling_counter;
+
+    // VCU internal states
+    struct
+    {
+        uint8_t r2d : 1;
+        uint8_t shutdown : 1;
+        uint8_t UNUSED1 : 6;
+    } vcu_state;
+
 } canbc_states_t;
 
 /**
@@ -42,6 +51,7 @@ typedef struct
     uint32_t bc_period;
 
     canbc_states_t states;
+    uint16_t rolling_counter;
 
 } canbc_handle_t;
 

@@ -13,9 +13,6 @@
 #define CANBC_STATE_MUTEX_NAME   "CANBC State Mutex"
 #define CANBC_DEFAULT_SLEEP_TIME (TX_TIMER_TICKS_PER_SECOND / 2)
 
-// temporary definitions until messages added to DBC
-#define CANBC_DRIVER_INPUTS_ID 0x100
-
 /*
  * function prototypes
  */
@@ -41,6 +38,7 @@ void canbc_init(canbc_handle_t* canbc_h,
 {
     canbc_h->rtcan_h = rtcan_h;
     canbc_h->bc_period = period;
+    canbc_h->rolling_counter = 0;
 
     // create service thread
     void* stack_ptr = NULL;
@@ -99,6 +97,10 @@ static void canbc_thread_entry(ULONG input)
 /**
  * @brief       Sends broadcast messages via RTCAN
  *
+ * @note        This approach doesn't scale particularly well, but at the
+ *              moment there are a limited number of broadcast states so this
+ *              implementation is the simplest.
+ *
  * @param[in]   canbc_h     CANBC handle
  */
 static void send_bc_messages(canbc_handle_t* canbc_h)
@@ -107,25 +109,44 @@ static void send_bc_messages(canbc_handle_t* canbc_h)
 
     if (tx_status == TX_SUCCESS)
     {
-        // driver inputs
-        rtcan_msg_t message
-            = {.identifier = CAN_DATABASE_VCU_DRIVER_INPUTS_FRAME_ID,
-               .length = CAN_DATABASE_VCU_DRIVER_INPUTS_LENGTH};
+        // driver inputs, units are x10
+        {
+            rtcan_msg_t message
+                = {.identifier = CAN_DATABASE_VCU_DRIVER_INPUTS_FRAME_ID,
+                   .length = CAN_DATABASE_VCU_DRIVER_INPUTS_LENGTH};
 
-        struct can_database_vcu_driver_inputs_t driver_inputs = {
-            .vcu_apps = canbc_h->states.apps_reading,
-            .vcu_bps = canbc_h->states.bps_reading,
-        };
+            struct can_database_vcu_driver_inputs_t driver_inputs = {
+                .vcu_apps = 10 * canbc_h->states.apps_reading,
+                .vcu_bps = 10 * canbc_h->states.bps_reading,
+            };
 
-        can_database_vcu_driver_inputs_pack(
-            message.data,
-            &driver_inputs,
-            CAN_DATABASE_VCU_DRIVER_INPUTS_LENGTH);
+            can_database_vcu_driver_inputs_pack(message.data,
+                                                &driver_inputs,
+                                                message.length);
 
-        rtcan_transmit(canbc_h->rtcan_h, &message);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
 
-        // TODO: VCU internal states
+        // VCU internal states and rolling counter
+        {
+            rtcan_msg_t message = {
+                .identifier = CAN_DATABASE_VCU_INTERNAL_STATES_FRAME_ID,
+                .length = CAN_DATABASE_VCU_INTERNAL_STATES_LENGTH,
+            };
 
+            struct can_database_vcu_internal_states_t internal_states
+                = {.vcu_ready_to_drive = canbc_h->states.vcu_state.r2d,
+                   .vcu_shutdown = canbc_h->states.vcu_state.shutdown,
+                   .vcu_rolling_counter = canbc_h->rolling_counter};
+
+            can_database_vcu_internal_states_pack(message.data,
+                                                  &internal_states,
+                                                  message.length);
+
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
+
+        canbc_h->rolling_counter++;
         tx_mutex_put(&canbc_h->state_mutex);
     }
 }

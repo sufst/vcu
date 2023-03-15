@@ -35,6 +35,8 @@ void rtd_init(rtd_context_t* rtd_ptr,
     rtd_ptr->spkr_gpio_port = spkr_gpio_port;
     rtd_ptr->spkr_gpio_pin = spkr_gpio_pin;
 
+    atomic_store(&rtd_ptr->ready, false);
+
     // semaphore
     UINT tx_status;
 
@@ -66,6 +68,16 @@ void rtd_wait(rtd_context_t* rtd_ptr)
 }
 
 /**
+ * @brief       Checks if ready to drive is complete
+ *
+ * @param[in]   rtd_ptr     RTD context
+ */
+bool rtd_is_ready(rtd_context_t* rtd_ptr)
+{
+    return atomic_load(&rtd_ptr->ready);
+}
+
+/**
  * @brief       Handles interrupt
  *
  * @param[in]   rtd_ptr
@@ -83,14 +95,20 @@ void rtd_handle_int(rtd_context_t* rtd_ptr)
         is_rtd = bps_fully_pressed();
     }
 
-    if (is_rtd)
+    if (is_rtd && !rtd_is_ready(rtd_ptr)) // debounce
     {
+        atomic_store(&rtd_ptr->ready, true);
         start_speaker_sound(rtd_ptr);
     }
 }
 
 /**
  * @brief       Turns on the RTD speaker and starts the timer
+ *
+ * @note        If this is called twice (e.g. due to RTD input debouncing
+ *              issue), there will be a `TX_ACTIVATE_ERROR` and the speaker
+ * sound will NOT be started. `TX_TIMER_ERROR` should never happen, so it is
+ * checked.
  *
  * @param[in]   rtd_ptr     RTD context
  */
@@ -102,12 +120,14 @@ static void start_speaker_sound(rtd_context_t* rtd_ptr)
 
     UINT tx_status = tx_timer_activate(&rtd_ptr->speaker_timer);
 
-    if (tx_status != TX_SUCCESS)
+    if (tx_status == TX_TIMER_ERROR)
     {
         // just in case - don't want the speaker to stay on for ever!
         HAL_GPIO_WritePin(rtd_ptr->spkr_gpio_port,
                           rtd_ptr->spkr_gpio_pin,
                           GPIO_PIN_RESET);
+
+        Error_Handler();
     }
 }
 

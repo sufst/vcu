@@ -169,6 +169,7 @@ static void driver_ctrl_thread_entry(ULONG input)
                 != TS_CTRL_OK)
             {
                 // TODO: handle error?
+                Error_Handler();
             }
 
             // update states all at the same time
