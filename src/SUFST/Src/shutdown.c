@@ -15,7 +15,6 @@
 #include <inttypes.h>
 
 
-
 void shutdown_init(shutdown_handle_t* sd_handle,
                     void (*callback)(ULONG),
                     ULONG callback_arg)
@@ -37,7 +36,7 @@ void shutdown_fault_registerer(shutdown_handle_t* sd_handle)
 {
     if (sd_handle->shutdown_ISR_enable)
     {
-        major_Error_Handler(sd_handle, Shutdown_Error);
+        major_Error_Handler(sd_handle, SD_Shutdown_ERROR);
     }
 }
 
@@ -45,7 +44,7 @@ void shutdown_fault_registerer(shutdown_handle_t* sd_handle)
 /**
  * @brief is used for registering a major fault
  */
-void major_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
+void major_Error_Handler(shutdown_handle_t* sd_handle, SD_Error_Types Error)
 {
   // don't overide previous major errors
   if (!(sd_handle->major_error)) 
@@ -62,7 +61,7 @@ void major_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
  * when called, the error type (see error_types.h) for the module that calls it 
  * should be provided
  */
-void minor_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
+void minor_Error_Handler(shutdown_handle_t* sd_handle, SD_Error_Types Error)
 {
     if (sd_handle->minor_error_count < SHUTDOWN_MAX_MINOR_ERRORS)
     {
@@ -78,6 +77,7 @@ void minor_Error_Handler(shutdown_handle_t* sd_handle, Error_Types_e Error)
 
 /**
  * @brief called if the system needs to shutdown:
+ * gets the vcu to:
  * dissables sending messages to TS
  * dissabled recieving from driver inputs
  * starts broadcasting error state
