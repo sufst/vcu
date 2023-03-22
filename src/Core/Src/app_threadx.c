@@ -113,32 +113,47 @@ void MX_ThreadX_Init(void)
  */
 void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 
 void HAL_CAN_TxMailbox1CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 
 void HAL_CAN_TxMailbox2CompleteCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_TxMailbox0AbortCallback(CAN_HandleTypeDef* can_h)
+{
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_TxMailbox1AbortCallback(CAN_HandleTypeDef* can_h)
+{
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
+}
+
+void HAL_CAN_TxMailbox2AbortCallback(CAN_HandleTypeDef* can_h)
+{
+    vcu_handle_can_tx_mailbox_callback(&vcu, can_h);
 }
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_rx_it(&vcu, can_h, 0);
+    vcu_handle_can_rx_it(&vcu, can_h, 0);
 }
 
 void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_rx_it(&vcu, can_h, 1);
+    vcu_handle_can_rx_it(&vcu, can_h, 1);
 }
 
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* can_h)
 {
-    (void) vcu_handle_can_err(&vcu, can_h);
+    vcu_handle_can_err(&vcu, can_h);
 }
 
 void HAL_GPIO_EXTI_Callback(uint16_t pin)
