@@ -277,6 +277,8 @@ static void init_thread_entry(ULONG input)
     apps_init();
     update_canbc_states(vcu_h);
 
+    tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
+
     rtd_wait(&vcu_h->rtd);
     update_canbc_states(vcu_h);
 
