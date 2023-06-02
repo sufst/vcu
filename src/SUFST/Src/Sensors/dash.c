@@ -71,18 +71,32 @@ void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks)
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_RESET);
 }
 
+/**
+ * @brief       Sets the state of the R2D LED
+ *
+ * @param[in]   state   GPIO state
+ */
 void dash_set_r2d_led_state(GPIO_PinState state)
 {
+    HAL_GPIO_WritePin(R2D_LED_GPIO_Port, R2D_LED_Pin, state);
 }
 
+/**
+ * @brief       Sets the state of the TS ON LED
+ *
+ * @param[in]   state   GPIO state
+ */
 void dash_set_ts_on_led_state(GPIO_PinState state)
 {
+    HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, state);
 }
 
-void dash_set_vc_leds_state(GPIO_PinState state)
-{
-}
-
+/**
+ * @brief       Sets the state of the DRS LED
+ *
+ * @param[in]   state   GPIO state
+ */
 void dash_set_drs_led_state(GPIO_PinState state)
 {
+    HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, state);
 }
