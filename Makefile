@@ -88,6 +88,7 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 
 C_SOURCES =  \
 src/SUFST/Src/vcu.c \
+src/SUFST/Src/config.c \
 src/SUFST/Src/config_rules.c \
 src/SUFST/Src/ready_to_drive.c \
 src/SUFST/Src/shutdown.c \

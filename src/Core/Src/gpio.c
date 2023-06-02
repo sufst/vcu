@@ -55,7 +55,7 @@ void MX_GPIO_Init(void)
   __HAL_RCC_GPIOG_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOE, VC_LEDS_Pin|DRS_LED_Pin|TS_ON_LED_Pin|R2D_LED_Pin
+  HAL_GPIO_WritePin(GPIOE, R2D_LED_Pin|DRS_LED_Pin|TS_ON_LED_Pin|VC_LEDS_Pin
                           |STATUS_Pin|BRAKE_PRESSED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
@@ -69,7 +69,7 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pins : PEPin PEPin PEPin PEPin
                            PEPin PEPin */
-  GPIO_InitStruct.Pin = VC_LEDS_Pin|DRS_LED_Pin|TS_ON_LED_Pin|R2D_LED_Pin
+  GPIO_InitStruct.Pin = R2D_LED_Pin|DRS_LED_Pin|TS_ON_LED_Pin|VC_LEDS_Pin
                           |STATUS_Pin|BRAKE_PRESSED_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;

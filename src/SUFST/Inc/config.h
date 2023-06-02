@@ -1,7 +1,6 @@
 /***************************************************************************
  * @file   config.h
  * @author Tim Brewis (tab1g19@soton.ac.uk)
- * @date   2022-02-08
  * @brief  System configuration
  *
  * @note   See config_rules.c which checks these parameters are valid
@@ -11,6 +10,25 @@
 #define CONFIG_H
 
 #include <tx_api.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+/**
+ * @note    WIP new definition of config, migration in progress
+ */
+typedef struct {
+
+    struct {
+        bool run_visual_check;                  // whether or not the visual check should run
+        uint32_t visual_check_ticks;            // number of ticks for which the visual check should last
+        bool visual_check_all_leds;             // whether or not the visual check turns on all LEDs, or just the VC LEDs
+        uint32_t visual_check_stagger_ticks;    // ticks between turning on each LED (set to zero to turn all on at once)
+    } dash;
+
+} config_t;
+
+
+const config_t* config_get();
 
 /***************************************************************************
  * competition mode 

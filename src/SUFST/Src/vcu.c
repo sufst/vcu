@@ -276,8 +276,13 @@ vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 static void init_thread_entry(ULONG input)
 {
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
+    const config_t* config_ptr = config_get();
 
-    dash_init(TX_TIMER_TICKS_PER_SECOND * 2);
+    dash_init(config_ptr->dash.run_visual_check,
+              config_ptr->dash.visual_check_ticks,
+              config_ptr->dash.visual_check_all_leds,
+              config_ptr->dash.visual_check_stagger_ticks);
+
     bps_init();
     apps_init();
     update_canbc_states(vcu_h);
