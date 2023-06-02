@@ -192,6 +192,9 @@ static void ts_ctrl_thread_entry(ULONG input)
     // const uint32_t heartbeat_timeout = 5 * TX_TIMER_TICKS_PER_SECOND /
     // (DRIVER_CTRL_TICK_RATE);
 
+    HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin, GPIO_PIN_RESET);
+
     while (1)
     {
         // wait for a message to enter the control input queue
@@ -221,6 +224,10 @@ static void ts_ctrl_thread_entry(ULONG input)
                 // TODO: proper error handler!
                 Error_Handler();
             }
+
+            // TODO: debug
+            HAL_GPIO_TogglePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin);
+            HAL_GPIO_TogglePin(BLUE_LED_GPIO_Port, BLUE_LED_Pin);
         }
         // else
         // {

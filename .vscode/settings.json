@@ -39,9 +39,15 @@
     "ready_to_drive.h": "c",
     "vcu.h": "c",
     "stm32f7xx_hal_def.h": "c",
-    "bps.h": "c"
+    "bps.h": "c",
+    "tx_api.h": "c",
+    "stdbool.h": "c",
+    "canbc.h": "c",
+    "driver_control.h": "c",
+    "gpio.h": "c",
+    "can_database.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": false,
+  "cortex-debug.variableUseNaturalFormat": true,
   "C_Cpp.errorSquiggles": "Enabled",
   "mcu-debug.rtos-views.showRTOS": false
 }

@@ -20,6 +20,9 @@
  */
 scs_t apps_signals[2];
 
+#define NUM_PREV_INPUTS 50
+static uint32_t last_inputs[NUM_PREV_INPUTS];
+
 /*
  * function prototypes
  */
@@ -82,7 +85,23 @@ uint32_t apps_read()
     }
 #endif
 
-    return accumulator / num_inputs;
+    uint32_t new_input = accumulator / num_inputs;
+
+    for (uint32_t i = 1; i < NUM_PREV_INPUTS; i++)
+    {
+        last_inputs[i - 1] = last_inputs[i];
+    }
+    last_inputs[NUM_PREV_INPUTS - 1] = new_input;
+
+    // result
+    uint32_t result = 0;
+    for (uint32_t i = 0; i < NUM_PREV_INPUTS; i++)
+    {
+        result += last_inputs[i];
+    }
+    result /= NUM_PREV_INPUTS;
+
+    return result;
 }
 
 /**

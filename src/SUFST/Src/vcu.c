@@ -167,6 +167,7 @@ vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     status = rtcan_handle_tx_mailbox_callback(&vcu_h->rtcan_s, can_h);
@@ -174,6 +175,7 @@ vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     return create_status(vcu_h);
@@ -204,6 +206,7 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        // Error_Handler();
     }
 
     return create_status(vcu_h);
@@ -231,6 +234,7 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     return create_status(vcu_h);
@@ -272,6 +276,8 @@ static void init_thread_entry(ULONG input)
     bps_init();
     apps_init();
     update_canbc_states(vcu_h);
+
+    tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
 
     rtd_wait(&vcu_h->rtd);
     update_canbc_states(vcu_h);
