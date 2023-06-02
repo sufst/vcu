@@ -26,6 +26,7 @@
  */
 static void driver_ctrl_thread_entry(ULONG input);
 static void driver_ctrl_tick_callback(ULONG input);
+static void do_activation_logic(dc_handle_t* dc_h);
 static void update_canbc_states(dc_handle_t* dc_h);
 static bool no_errors(dc_handle_t* dc_h);
 static driver_ctrl_status_t create_status(dc_handle_t* dc_h);
@@ -187,6 +188,24 @@ static void driver_ctrl_thread_entry(ULONG input)
         dc_h->err |= DRIVER_CTRL_ERROR_INTERNAL;
         Error_Handler();
     }
+}
+
+/**
+ * @brief       Completes the TS activation procedure
+ *
+ * @param[in]   dc_h    Driver control handle
+ */
+void do_activation_logic(dc_handle_t* dc_h)
+{
+    // TODO: visible check
+    // TODO: wait for TS ON
+    // TODO: activate TS ON output and LED
+    // TODO: wait for TS ready
+    // TODO: illuminate R2D LED
+    // TODO: wait for R2D
+    // TODO: optional reading from BPS
+    // TODO: update broadcast states
+    // TODO: ? deactivation logic
 }
 
 /**

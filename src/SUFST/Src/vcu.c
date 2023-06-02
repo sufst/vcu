@@ -11,6 +11,7 @@
 #include "apps.h"
 #include "bps.h"
 #include "config.h"
+#include "dash.h"
 #include "ready_to_drive.h"
 
 /*
@@ -138,14 +139,16 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // ready to drive
     if (no_errors(vcu_h))
     {
-        const uint32_t speaker_ticks
-            = (READY_TO_DRIVE_SPEAKER_TIME * TX_TIMER_TICKS_PER_SECOND) / 1000;
+        // TODO: remove old activation logic
+        // const uint32_t speaker_ticks
+        //     = (READY_TO_DRIVE_SPEAKER_TIME * TX_TIMER_TICKS_PER_SECOND) /
+        //     1000;
 
-        rtd_init(&vcu_h->rtd,
-                 SPKR_GPIO_Port,
-                 SPKR_Pin,
-                 speaker_ticks,
-                 READY_TO_DRIVE_CHECK_BPS);
+        // rtd_init(&vcu_h->rtd,
+        //          SPKR_GPIO_Port,
+        //          SPKR_Pin,
+        //          speaker_ticks,
+        //          READY_TO_DRIVE_CHECK_BPS);
     }
 
     return create_status(vcu_h);
@@ -242,11 +245,12 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
 
 vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 {
-    if ((pin == RTD_IN_Pin)
-        || (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE))
-    {
-        rtd_handle_int(&vcu_h->rtd);
-    }
+    // TODO: remove?
+    // if ((pin == RTD_IN_Pin)
+    //     || (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE))
+    // {
+    //     rtd_handle_int(&vcu_h->rtd);
+    // }
 
     return VCU_OK;
 }
@@ -272,6 +276,12 @@ vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 static void init_thread_entry(ULONG input)
 {
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
+    const config_t* config_ptr = config_get();
+
+    dash_init(config_ptr->dash.run_visual_check,
+              config_ptr->dash.visual_check_ticks,
+              config_ptr->dash.visual_check_all_leds,
+              config_ptr->dash.visual_check_stagger_ticks);
 
     bps_init();
     apps_init();
@@ -279,8 +289,9 @@ static void init_thread_entry(ULONG input)
 
     tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
 
-    rtd_wait(&vcu_h->rtd);
-    update_canbc_states(vcu_h);
+    // TODO: remove old ready to drive code
+    // rtd_wait(&vcu_h->rtd);
+    // update_canbc_states(vcu_h);
 
     // TODO: handle errors
     driver_ctrl_start(&vcu_h->driver_ctrl);
