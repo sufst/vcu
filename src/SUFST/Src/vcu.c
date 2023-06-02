@@ -279,8 +279,9 @@ static void init_thread_entry(ULONG input)
 
     tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
 
-    rtd_wait(&vcu_h->rtd);
-    update_canbc_states(vcu_h);
+    // TODO: remove old ready to drive code
+    // rtd_wait(&vcu_h->rtd);
+    // update_canbc_states(vcu_h);
 
     // TODO: handle errors
     driver_ctrl_start(&vcu_h->driver_ctrl);
