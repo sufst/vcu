@@ -96,6 +96,7 @@ src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Sensors/apps.c \
+src/SUFST/Src/Sensors/dash.c \
 src/SUFST/Src/Sensors/scs.c \
 src/SUFST/Src/Sensors/bps.c \
 src/SUFST/Src/Tasks/ts_control.c \
