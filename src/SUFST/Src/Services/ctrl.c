@@ -74,6 +74,7 @@ void ctrl_thread_entry(ULONG input)
     {
         ctrl_state_machine_tick(ctrl_ptr);
         ctrl_update_canbc_states(ctrl_ptr);
+        // TODO: thread sleep??
     }
 }
 
@@ -98,11 +99,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_OFF):
     {
         dash_wait_for_ts_on(dash_ptr);
-
-        dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
-
-        trc_set_ts_on(GPIO_PIN_SET);
-
         next_state = CTRL_STATE_TS_READY_WAIT;
 
         break;
@@ -111,19 +107,15 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // wait for TS ready from TSAC relay controller
     case (CTRL_STATE_TS_READY_WAIT):
     {
-        // TODO: wait for TRC instead of sleep
+        dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
+        trc_set_ts_on(GPIO_PIN_SET);
+
         status_t result
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
                                  config_ptr->ts_ready_timeout_ticks);
 
-        if (result == STATUS_OK)
-        {
-            next_state = CTRL_STATE_PRECHARGE_WAIT;
-        }
-        else
-        {
-            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-        }
+        next_state = (result == STATUS_OK) ? CTRL_STATE_PRECHARGE_WAIT
+                                           : CTRL_STATE_TS_ACTIVATION_FAILURE;
 
         break;
     }
@@ -144,6 +136,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         dash_wait_for_r2d(dash_ptr);
         dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+
         // TODO: enable inverter
 
         next_state = CTRL_STATE_TS_ON;
@@ -153,6 +146,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // the TS is on
     case (CTRL_STATE_TS_ON):
     {
+        // TODO: read APPS
+        // TODO: send torque request to PM100
         break;
     }
 
@@ -160,8 +155,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // LED blinks (should be set faster in config)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     {
-        dash_blink_ts_on_led(dash_ptr,
-                             ctrl_ptr->config_ptr->error_led_toggle_ticks);
+        trc_set_ts_on(GPIO_PIN_RESET);
+        dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
+
+        // TODO: update broadcast states before suspending
+        tx_thread_suspend(&ctrl_ptr->thread);
         break;
     }
 

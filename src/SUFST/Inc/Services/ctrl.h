@@ -16,12 +16,14 @@
 #include "dash.h"
 #include "status.h"
 
-// /*
-//  * error codes
-//  */
-// #define DRIVER_CTRL_ERROR_NONE     0x00000000U // no error
-// #define DRIVER_CTRL_ERROR_INIT     0x00000001U // failed to start service
-// #define DRIVER_CTRL_ERROR_INTERNAL 0x80000000U // internal error
+/*
+ * error codes
+ */
+#define CTRL_ERROR_NONE              0x00000000U // no error
+#define CTRL_ERROR_INIT              0x00000001U // failed to start service
+#define CTRL_ERROR_TS_READY_TIMEOUT  0x00000002U // TS ready timed out
+#define CTRL_ERROR_PRECHARGE_TIMEOUT 0x00000004U // precharge timed out
+#define CTRL_ERROR_
 
 /**
  * @brief   Control state
@@ -33,7 +35,7 @@ typedef enum
     CTRL_STATE_PRECHARGE_WAIT,
     CTRL_STATE_R2D_WAIT,
     CTRL_STATE_TS_ON,
-    CTRL_STATE_TS_ACTIVATION_FAILURE
+    CTRL_STATE_TS_ACTIVATION_FAILURE,
 } ctrl_state_t;
 
 /**
