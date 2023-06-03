@@ -8,6 +8,8 @@
 
 #include <stdbool.h>
 
+#include "trc.h"
+
 /*
  * internal function prototypes
  */
@@ -21,39 +23,40 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
  * @param[in]   ctrl_ptr            Control context
  * @param[in]   dash_ptr            Dash context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
- * @param[in]   thread_config_ptr   Thread configuration
- * @param[in]   ts_activation_config_ptr    TS activation configuration
+ * @param[in]   config_ptr          Configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_thread_t* thread_config_ptr,
-                   const config_ts_activation_t* ts_activation_config_ptr)
+                   const config_ctrl_t* config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
-    ctrl_ptr->ts_activation_config_ptr = ts_activation_config_ptr;
+    ctrl_ptr->config_ptr = config_ptr;
 
     // create the thread
     void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
-                                      thread_config_ptr->stack_size,
+                                      config_ptr->thread.stack_size,
                                       TX_NO_WAIT);
 
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&ctrl_ptr->thread,
-                                     (CHAR*) thread_config_ptr->name,
+                                     (CHAR*) config_ptr->thread.name,
                                      ctrl_thread_entry,
                                      (ULONG) ctrl_ptr,
                                      stack_ptr,
-                                     thread_config_ptr->stack_size,
-                                     thread_config_ptr->priority,
-                                     thread_config_ptr->priority,
+                                     config_ptr->thread.stack_size,
+                                     config_ptr->thread.priority,
+                                     config_ptr->thread.priority,
                                      TX_NO_TIME_SLICE,
                                      TX_AUTO_START);
     }
+
+    // make sure TS is disabled
+    trc_set_ts_on(GPIO_PIN_RESET);
 
     return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 }
@@ -81,19 +84,24 @@ void ctrl_thread_entry(ULONG input)
  */
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 {
-    ctrl_state_t next_state = ctrl_ptr->state;
+    // reduce typing...
     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+
+    ctrl_state_t next_state = ctrl_ptr->state;
 
     switch (ctrl_ptr->state)
     {
     // wait for TS button to be held and released
+    // then begin activating the TS
+    // LED flashes until activation is complete
     case (CTRL_STATE_TS_OFF):
     {
         dash_wait_for_ts_on(dash_ptr);
 
-        dash_blink_ts_on_led(
-            dash_ptr,
-            ctrl_ptr->ts_activation_config_ptr->ready_wait_led_toggle_ticks);
+        dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
+
+        trc_set_ts_on(GPIO_PIN_SET);
 
         next_state = CTRL_STATE_TS_READY_WAIT;
 
@@ -104,17 +112,29 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_READY_WAIT):
     {
         // TODO: wait for TRC instead of sleep
-        tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
+        status_t result
+            = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
+                                 config_ptr->ts_ready_timeout_ticks);
 
-        dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
-        next_state = CTRL_STATE_PRECHARGE_WAIT;
+        if (result == STATUS_OK)
+        {
+            next_state = CTRL_STATE_PRECHARGE_WAIT;
+        }
+        else
+        {
+            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+        }
+
         break;
     }
 
     // TS is ready, can initiate pre-charge sequence
+    // TS on LED turns solid
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
         // TODO: wait for pre-charge from PM100
+
+        dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
         next_state = CTRL_STATE_R2D_WAIT;
         break;
     }
@@ -137,12 +157,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     }
 
     // activation failure
+    // LED blinks (should be set faster in config)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     {
-        dash_blink_ts_on_led(
-            dash_ptr,
-            ctrl_ptr->ts_activation_config_ptr->error_led_toggle_ticks);
-
+        dash_blink_ts_on_led(dash_ptr,
+                             ctrl_ptr->config_ptr->error_led_toggle_ticks);
         break;
     }
 

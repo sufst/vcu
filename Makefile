@@ -99,6 +99,7 @@ src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/bps.c \
+src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/ts_control.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \

@@ -34,7 +34,6 @@ typedef struct
  */
 status_t dash_init(dash_context_t* dash_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_thread_t* thread_config_ptr,
                    const config_dash_t* config_ptr);
 
 status_t dash_blink_ts_on_led(dash_context_t* dash_ptr, uint32_t ticks);

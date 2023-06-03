@@ -34,10 +34,10 @@ typedef enum
  */
 typedef struct
 {
-    ctrl_state_t state;       // control state machine state
-    TX_THREAD thread;         // service thread
-    dash_context_t* dash_ptr; // dash service
-    const config_ts_activation_t* ts_activation_config_ptr; // activation config
+    ctrl_state_t state;              // state machine state
+    TX_THREAD thread;                // service thread
+    dash_context_t* dash_ptr;        // dash service
+    const config_ctrl_t* config_ptr; // config
 
 } ctrl_context_t;
 
@@ -47,8 +47,7 @@ typedef struct
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_thread_t* thread_config_ptr,
-                   const config_ts_activation_t* ts_activation_config_ptr);
+                   const config_ctrl_t* config_ptr);
 
 // /*
 //  * error codes

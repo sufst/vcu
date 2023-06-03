@@ -28,12 +28,10 @@ static status_t input_wait(input_context_t* input_ptr);
  *
  * @param[in]   dash_ptr            Dash context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
- * @param[in]   thread_config_ptr   Thread configuration
  * @param[in]   config_ptr          Dash configuration
  */
 status_t dash_init(dash_context_t* dash_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_thread_t* thread_config_ptr,
                    const config_dash_t* config_ptr)
 {
     status_t status = STATUS_OK;
@@ -44,19 +42,19 @@ status_t dash_init(dash_context_t* dash_ptr,
     void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
-                                      thread_config_ptr->stack_size,
+                                      config_ptr->thread.stack_size,
                                       TX_NO_WAIT);
 
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&dash_ptr->thread,
-                                     (CHAR*) thread_config_ptr->name,
+                                     (CHAR*) config_ptr->thread.name,
                                      dash_thread_entry,
                                      (ULONG) dash_ptr,
                                      stack_ptr,
-                                     thread_config_ptr->stack_size,
-                                     thread_config_ptr->priority,
-                                     thread_config_ptr->priority,
+                                     config_ptr->thread.stack_size,
+                                     config_ptr->thread.priority,
+                                     config_ptr->thread.priority,
                                      TX_NO_TIME_SLICE,
                                      TX_AUTO_START);
     }
@@ -151,8 +149,13 @@ void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks)
  */
 status_t dash_blink_ts_on_led(dash_context_t* dash_ptr, uint32_t ticks)
 {
-    UINT tx_status
-        = tx_timer_change(&dash_ptr->ts_on_toggle_timer, ticks, ticks);
+    UINT tx_status = tx_timer_deactivate(&dash_ptr->ts_on_toggle_timer);
+
+    if (tx_status == TX_SUCCESS)
+    {
+        tx_status
+            = tx_timer_change(&dash_ptr->ts_on_toggle_timer, ticks, ticks);
+    }
 
     if (tx_status == TX_SUCCESS)
     {

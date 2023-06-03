@@ -23,21 +23,24 @@ typedef struct {
 } config_thread_t;
 
 /**
- * @brief   TS activation
+ * @brief   COntrol
  */
 typedef struct {
+    config_thread_t thread;                 // control thread config
     bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
     uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
+    uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
     uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
     uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
     uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
     uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
-} config_ts_activation_t;
+} config_ctrl_t;
 
 /**
  * @brief   Dash
  */
 typedef struct {
+    config_thread_t thread;                 // dash thread config
     uint32_t btn_active_ticks;              // ticks for which a button must be pressed for it to be considered 'activated'
     uint32_t btn_sample_ticks;              // ticks between sampling buttons
     bool vc_run_check;                      // whether or not the visual check should run
@@ -57,12 +60,7 @@ typedef struct {
 typedef struct {
 
     config_dash_t dash;
-    config_ts_activation_t ts_activation;
-
-    struct {
-        config_thread_t dash;
-        config_thread_t ctrl;
-    } threads;
+    config_ctrl_t ctrl;
 
 } config_t;
 

@@ -79,10 +79,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // dash
     if (status == STATUS_OK)
     {
-        status = dash_init(&vcu_h->dash,
-                           app_mem_pool,
-                           &vcu_h->config_ptr->threads.dash,
-                           &vcu_h->config_ptr->dash);
+        status
+            = dash_init(&vcu_h->dash, app_mem_pool, &vcu_h->config_ptr->dash);
     }
 
     // control
@@ -91,8 +89,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         status = ctrl_init(&vcu_h->ctrl,
                            &vcu_h->dash,
                            app_mem_pool,
-                           &vcu_h->config_ptr->threads.ctrl,
-                           &vcu_h->config_ptr->ts_activation);
+                           &vcu_h->config_ptr->ctrl);
     }
 
     UNUSED(status);

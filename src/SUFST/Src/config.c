@@ -20,19 +20,12 @@
  *          otherwise the value will default to zero
  */
 static const config_t config_instance = {
-    .threads = {
-        .dash = {
+    .dash = {
+        .thread = {
             .name = "Dash",
             .priority = 4,
             .stack_size = 1024
         },
-        .ctrl = {
-            .name = "Control",
-            .priority = 2,
-            .stack_size = 1024
-        }
-    },
-    .dash = {
         .btn_active_ticks = SECONDS_TO_TICKS(1),
         .btn_sample_ticks = SECONDS_TO_TICKS(0.1),
         .vc_run_check = true,     
@@ -40,8 +33,14 @@ static const config_t config_instance = {
         .vc_led_on_ticks = SECONDS_TO_TICKS(2),
         .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
     },
-    .ts_activation = {
+    .ctrl = {
+        .thread = {
+            .name = "Control",
+            .priority = 2,
+            .stack_size = 1024
+        },
         .r2d_requires_brake = false,
+        .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
         .rtds_sound_ticks = SECONDS_TO_TICKS(2.5),
