@@ -33,7 +33,7 @@ typedef struct
 {
     rtcan_handle_t rtcan_s; // RTCAN service for sensors CAN bus
     rtcan_handle_t rtcan_c; // RTCAN service for critical systems CAN bus
-    canbc_handle_t canbc;   // CAN broadcasting service instance
+    canbc_context_t canbc;  // CAN broadcasting service instance
 
     dash_context_t dash; // dash service
     ctrl_context_t ctrl; // control service

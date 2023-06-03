@@ -1,78 +1,59 @@
-/***************************************************************************
- * @file    canbc.h
- * @author  Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
- * @brief   CAN broadcast implementation
- ***************************************************************************/
-
 #include "canbc.h"
 
 #include "can_database.h"
 
-#define CANBC_THREAD_STACK_SIZE  1024
-#define CANBC_THREAD_NAME        "CANBC Thread"
-#define CANBC_STATE_MUTEX_NAME   "CANBC State Mutex"
-#define CANBC_DEFAULT_SLEEP_TIME (TX_TIMER_TICKS_PER_SECOND / 2)
-
 /*
- * function prototypes
+ * internal function prototypes
  */
-
 static void canbc_thread_entry(ULONG input);
-static void sleep_till_next_bc(canbc_handle_t* canbc_h, uint32_t start_time);
-static void send_bc_messages(canbc_handle_t* canbc_h);
+static void sleep_till_next_bc(canbc_context_t* canbc_h, uint32_t start_time);
+static void send_bc_messages(canbc_context_t* canbc_h);
 
 /**
  * @brief       Initialise CANBC service
  *
  * @param[in]   canbc_h         CANBC handle
  * @param[in]   rtcan_h         RTCAN handle
- * @param[in]   period          Broadcast period in ticks
- * @param[in]   priority        CANBC service thread priority
  * @param[in]   stack_pool_ptr  Application memory pool
+ * @param[in]   config_ptr      Configuration
  */
-void canbc_init(canbc_handle_t* canbc_h,
-                rtcan_handle_t* rtcan_h,
-                uint32_t period,
-                uint32_t priority,
-                TX_BYTE_POOL* stack_pool_ptr)
+status_t canbc_init(canbc_context_t* canbc_h,
+                    rtcan_handle_t* rtcan_h,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    const config_canbc_t* config_ptr)
 {
     canbc_h->rtcan_h = rtcan_h;
-    canbc_h->bc_period = period;
+    canbc_h->config_ptr = config_ptr;
     canbc_h->rolling_counter = 0;
 
     // create service thread
     void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
-                                      CANBC_THREAD_STACK_SIZE,
+                                      config_ptr->thread.stack_size,
                                       TX_NO_WAIT);
 
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&canbc_h->thread,
-                                     CANBC_THREAD_NAME,
+                                     (CHAR*) config_ptr->thread.name,
                                      canbc_thread_entry,
                                      (ULONG) canbc_h,
                                      stack_ptr,
-                                     CANBC_THREAD_STACK_SIZE,
-                                     priority,
-                                     priority,
+                                     config_ptr->thread.stack_size,
+                                     config_ptr->thread.priority,
+                                     config_ptr->thread.priority,
                                      TX_NO_TIME_SLICE,
-                                     TX_DONT_START);
+                                     TX_AUTO_START);
     }
 
     // create state mutex
     if (tx_status == TX_SUCCESS)
     {
-        tx_status
-            = tx_mutex_create(&canbc_h->state_mutex, CANBC_STATE_MUTEX_NAME, 0);
+        tx_status = tx_mutex_create(&canbc_h->state_mutex, NULL, 0);
     }
 
-    // start service
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_thread_resume(&canbc_h->thread);
-    }
+    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 }
 
 /**
@@ -84,7 +65,7 @@ void canbc_init(canbc_handle_t* canbc_h,
  */
 static void canbc_thread_entry(ULONG input)
 {
-    canbc_handle_t* canbc_h = (canbc_handle_t*) input;
+    canbc_context_t* canbc_h = (canbc_context_t*) input;
 
     while (1)
     {
@@ -103,7 +84,7 @@ static void canbc_thread_entry(ULONG input)
  *
  * @param[in]   canbc_h     CANBC handle
  */
-static void send_bc_messages(canbc_handle_t* canbc_h)
+static void send_bc_messages(canbc_context_t* canbc_h)
 {
     UINT tx_status = tx_mutex_get(&canbc_h->state_mutex, TX_WAIT_FOREVER);
 
@@ -135,9 +116,7 @@ static void send_bc_messages(canbc_handle_t* canbc_h)
             };
 
             struct can_database_vcu_internal_states_t internal_states
-                = {.vcu_ready_to_drive = canbc_h->states.vcu_state.r2d,
-                   .vcu_shutdown = canbc_h->states.vcu_state.shutdown,
-                   .vcu_rolling_counter = canbc_h->rolling_counter};
+                = {.vcu_rolling_counter = canbc_h->rolling_counter};
 
             can_database_vcu_internal_states_pack(message.data,
                                                   &internal_states,
@@ -157,15 +136,16 @@ static void send_bc_messages(canbc_handle_t* canbc_h)
  * @param[in]   canbc_h     CANBC handle
  * @param[in]   start_time  Timestamp at which last broadcast event started
  */
-static void sleep_till_next_bc(canbc_handle_t* canbc_h, uint32_t start_time)
+static void sleep_till_next_bc(canbc_context_t* canbc_h, uint32_t start_time)
 {
-    uint32_t run_time = tx_time_get() - start_time;
-    uint32_t sleep_time = canbc_h->bc_period - run_time;
+    const uint32_t period = canbc_h->config_ptr->broadcast_period_ticks;
+    const uint32_t run_time = tx_time_get() - start_time;
+    uint32_t sleep_time = period - run_time;
 
     // check for overflow or zero, just in case
-    if (run_time >= canbc_h->bc_period)
+    if (run_time >= period)
     {
-        sleep_time = CANBC_DEFAULT_SLEEP_TIME;
+        sleep_time = (TX_TIMER_TICKS_PER_SECOND * 0.5);
     }
 
     tx_thread_sleep(sleep_time);
@@ -184,7 +164,7 @@ static void sleep_till_next_bc(canbc_handle_t* canbc_h, uint32_t start_time)
  * @param[in]   canbc_h     CANBC handle
  * @param[in]   timeout     Timeout in ticks to acquire lock
  */
-canbc_states_t* canbc_lock_state(canbc_handle_t* canbc_h, uint32_t timeout)
+canbc_states_t* canbc_lock_state(canbc_context_t* canbc_h, uint32_t timeout)
 {
     UINT tx_status = tx_mutex_get(&canbc_h->state_mutex, timeout);
     canbc_states_t* ret = NULL;
@@ -202,7 +182,7 @@ canbc_states_t* canbc_lock_state(canbc_handle_t* canbc_h, uint32_t timeout)
  *
  * @param[in]   canbc_h     CANBC handle
  */
-void canbc_unlock_state(canbc_handle_t* canbc_h)
+void canbc_unlock_state(canbc_context_t* canbc_h)
 {
     tx_mutex_put(&canbc_h->state_mutex);
 }

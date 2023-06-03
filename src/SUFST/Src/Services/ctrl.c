@@ -22,17 +22,21 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
  *
  * @param[in]   ctrl_ptr            Control context
  * @param[in]   dash_ptr            Dash context
+ * @param[in]   canbc_ptr           CANBC context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
  * @param[in]   config_ptr          Configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
+                   canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
+    ctrl_ptr->canbc_ptr = canbc_ptr;
     ctrl_ptr->config_ptr = config_ptr;
+    ctrl_ptr->error = CTRL_ERROR_NONE;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -57,6 +61,9 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 
     // make sure TS is disabled
     trc_set_ts_on(GPIO_PIN_RESET);
+
+    // send initial state update
+    ctrl_update_canbc_states(ctrl_ptr);
 
     return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 }
@@ -114,8 +121,15 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
                                  config_ptr->ts_ready_timeout_ticks);
 
-        next_state = (result == STATUS_OK) ? CTRL_STATE_PRECHARGE_WAIT
-                                           : CTRL_STATE_TS_ACTIVATION_FAILURE;
+        if (result == STATUS_OK)
+        {
+            next_state = CTRL_STATE_PRECHARGE_WAIT;
+        }
+        else
+        {
+            ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
+            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+        }
 
         break;
     }
@@ -157,8 +171,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         trc_set_ts_on(GPIO_PIN_RESET);
         dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
-
-        // TODO: update broadcast states before suspending
+        ctrl_update_canbc_states(ctrl_ptr);
         tx_thread_suspend(&ctrl_ptr->thread);
         break;
     }
@@ -177,5 +190,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
  */
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 {
-    // TODO: implement
+    canbc_states_t* states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
+
+    if (states != NULL)
+    {
+        states->ctrl_state = (uint16_t) ctrl_ptr->state;
+        states->ctrl_error = ctrl_ptr->error;
+        canbc_unlock_state(ctrl_ptr->canbc_ptr);
+    }
 }

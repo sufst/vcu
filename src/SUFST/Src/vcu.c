@@ -71,9 +71,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         canbc_init(&vcu_h->canbc,
                    &vcu_h->rtcan_c,
-                   CANBC_BROADCAST_PERIOD,
-                   CANBC_PRIORITY,
-                   app_mem_pool);
+                   app_mem_pool,
+                   &vcu_h->config_ptr->canbc);
     }
 
     // dash
@@ -93,34 +92,6 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     }
 
     UNUSED(status);
-
-    // // tractive system controller
-    // if (no_errors(vcu_h))
-    // {
-    //     ts_ctrl_status_t ts_status
-    //         = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
-
-    //     if (ts_status != TS_CTRL_OK)
-    //     {
-    //         vcu_h->err |= VCU_ERROR_INIT;
-    //     }
-    // }
-
-    // // driver control input service
-    // if (no_errors(vcu_h))
-    // {
-    //     driver_ctrl_status_t dc_status
-    //         = driver_ctrl_init(&vcu_h->driver_ctrl,
-    //                            &vcu_h->ts_ctrl,
-    //                            &vcu_h->canbc,
-    //                            app_mem_pool,
-    //                            &vcu_h->config_ptr->ts_activation);
-
-    //     if (dc_status != DRIVER_CTRL_OK)
-    //     {
-    //         vcu_h->err |= VCU_ERROR_INIT;
-    //     }
-    // }
 
     return VCU_OK; // TODO: return status_T
 }
