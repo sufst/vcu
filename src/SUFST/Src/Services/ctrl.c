@@ -4,8 +4,6 @@
  * @brief  Driver control
  ****************************************************************************/
 
-#include "driver_control.h"
-
 #include <stdbool.h>
 
 #include "Test/testbench.h"
@@ -13,6 +11,7 @@
 #include "bps.h"
 #include "config.h"
 #include "dash.h"
+#include "driver_control.h"
 
 /*
  * macro constants

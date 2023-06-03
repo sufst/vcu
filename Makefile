@@ -100,8 +100,8 @@ src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/bps.c \
 src/SUFST/Src/Services/ts_control.c \
+src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
-src/SUFST/Src/Services/driver_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
