@@ -16,6 +16,7 @@
 #include <tx_api.h>
 
 #include "config.h"
+#include "status.h"
 
 /**
  * @brief   Dash service context
@@ -30,10 +31,10 @@ typedef struct
 /*
  * public functions
  */
-void dash_init(dash_context_t* dash_ptr,
-               TX_BYTE_POOL* stack_pool_ptr,
-               const config_thread_t* thread_config_ptr,
-               const config_vc_t* vc_config_ptr);
+status_t dash_init(dash_context_t* dash_ptr,
+                   TX_BYTE_POOL* stack_pool_ptr,
+                   const config_thread_t* thread_config_ptr,
+                   const config_vc_t* vc_config_ptr);
 
 void dash_set_r2d_led_state(GPIO_PinState state);
 void dash_set_ts_on_led_state(GPIO_PinState state);

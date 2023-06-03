@@ -15,16 +15,8 @@
 #include "ready_to_drive.h"
 
 /*
- * macro constants
- */
-#define INIT_THREAD_STACK_SIZE           1024 // TODO: needs to be profiled
-#define INIT_THREAD_PREEMPTION_THRESHOLD INIT_THREAD_PRIORITY
-#define INIT_THREAD_NAME                 "Initialisation Thread"
-
-/*
  * internal function prototypes
  */
-static void init_thread_entry(ULONG input);
 static bool no_errors(vcu_handle_t* vcu_h);
 static vcu_status_t create_status(vcu_handle_t* vcu_h);
 
@@ -46,6 +38,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     vcu_h->err = VCU_ERROR_NONE;
     vcu_h->config_ptr = config_ptr;
 
+    status_t status = STATUS_OK;
+
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_h->rtcan_s, &vcu_h->rtcan_c};
     CAN_HandleTypeDef* can_handles[] = {can_s_h, can_c_h};
@@ -55,17 +49,17 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         if (no_errors(vcu_h))
         {
-            rtcan_status_t status = rtcan_init(rtcan_handles[i],
-                                               can_handles[i],
-                                               rtcan_priorities[i],
-                                               app_mem_pool);
+            rtcan_status_t rtcan_status = rtcan_init(rtcan_handles[i],
+                                                     can_handles[i],
+                                                     rtcan_priorities[i],
+                                                     app_mem_pool);
 
-            if (status == RTCAN_OK)
+            if (rtcan_status == RTCAN_OK)
             {
-                status = rtcan_start(rtcan_handles[i]);
+                rtcan_status = rtcan_start(rtcan_handles[i]);
             }
 
-            if (status != RTCAN_OK)
+            if (rtcan_status != RTCAN_OK)
             {
                 vcu_h->err |= VCU_ERROR_INIT;
             }
@@ -82,69 +76,44 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                    app_mem_pool);
     }
 
-    // initialisation thread
-    if (no_errors(vcu_h))
-    {
-        void* stack_ptr = NULL;
-
-        UINT status = tx_byte_allocate(app_mem_pool,
-                                       &stack_ptr,
-                                       INIT_THREAD_STACK_SIZE,
-                                       TX_NO_WAIT);
-
-        if (status == TX_SUCCESS)
-        {
-            status = tx_thread_create(&vcu_h->init_thread,
-                                      INIT_THREAD_NAME,
-                                      init_thread_entry,
-                                      (ULONG) vcu_h,
-                                      stack_ptr,
-                                      INIT_THREAD_STACK_SIZE,
-                                      INIT_THREAD_PRIORITY,
-                                      INIT_THREAD_PREEMPTION_THRESHOLD,
-                                      TX_NO_TIME_SLICE,
-                                      TX_AUTO_START); // !!! auto started
-        }
-
-        if (status != TX_SUCCESS)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
-    }
-
     // dash
-    dash_init(&vcu_h->dash,
-              app_mem_pool,
-              &vcu_h->config_ptr->threads.dash,
-              &vcu_h->config_ptr->visual_check);
-
-    // tractive system controller
-    if (no_errors(vcu_h))
+    if (status == STATUS_OK)
     {
-        ts_ctrl_status_t status
-            = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
-
-        if (status != TS_CTRL_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
+        status = dash_init(&vcu_h->dash,
+                           app_mem_pool,
+                           &vcu_h->config_ptr->threads.dash,
+                           &vcu_h->config_ptr->visual_check);
     }
 
-    // driver control input service
-    if (no_errors(vcu_h))
-    {
-        driver_ctrl_status_t status
-            = driver_ctrl_init(&vcu_h->driver_ctrl,
-                               &vcu_h->ts_ctrl,
-                               &vcu_h->canbc,
-                               app_mem_pool,
-                               &vcu_h->config_ptr->ts_activation);
+    UNUSED(status);
 
-        if (status != DRIVER_CTRL_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
-    }
+    // // tractive system controller
+    // if (no_errors(vcu_h))
+    // {
+    //     ts_ctrl_status_t ts_status
+    //         = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
+
+    //     if (ts_status != TS_CTRL_OK)
+    //     {
+    //         vcu_h->err |= VCU_ERROR_INIT;
+    //     }
+    // }
+
+    // // driver control input service
+    // if (no_errors(vcu_h))
+    // {
+    //     driver_ctrl_status_t dc_status
+    //         = driver_ctrl_init(&vcu_h->driver_ctrl,
+    //                            &vcu_h->ts_ctrl,
+    //                            &vcu_h->canbc,
+    //                            app_mem_pool,
+    //                            &vcu_h->config_ptr->ts_activation);
+
+    //     if (dc_status != DRIVER_CTRL_OK)
+    //     {
+    //         vcu_h->err |= VCU_ERROR_INIT;
+    //     }
+    // }
 
     return create_status(vcu_h);
 }
@@ -236,44 +205,6 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
     }
 
     return create_status(vcu_h);
-}
-
-/**
- * @brief       Initialisation thread entry function
- *
- * @details     This begins running as soon as the RTOS kernel is entered.
- *              The initialisation thread then has the following
- *              responsibilities:
- *
- *                  1. Complete the pre ready-to-drive initialisation.
- *                  2. Wait for the ready-to-drive state to be entered.
- *                  3. Complete the post ready-to-drive initialisation.
- *                  4. Terminate itself and launch all other threads.
- *
- *              Any service threads such as RTCAN and CANBC are started along
- *              with this thread. Application threads should not run until this
- *              thread is terminated.
- *
- * @param[in]   input   VCU handle
- */
-static void init_thread_entry(ULONG input)
-{
-    vcu_handle_t* vcu_h = (vcu_handle_t*) input;
-
-    bps_init();
-    apps_init();
-
-    tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
-
-    // TODO: remove old ready to drive code
-    // rtd_wait(&vcu_h->rtd);
-    // update_canbc_states(vcu_h);
-
-    // TODO: handle errors
-    driver_ctrl_start(&vcu_h->driver_ctrl);
-    ts_ctrl_start(&vcu_h->ts_ctrl);
-
-    tx_thread_terminate(&vcu_h->init_thread);
 }
 
 /**

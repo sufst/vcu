@@ -37,7 +37,6 @@ typedef struct
     ts_ctrl_handle_t ts_ctrl;   // tractive system control service
     dc_handle_t driver_ctrl;    // driver control service
     dash_context_t dash;        // dash service
-    TX_THREAD init_thread;      // initialisation thread
     uint32_t err;               // current error code
     const config_t* config_ptr; // pointer to global VCU configuration
 

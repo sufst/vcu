@@ -14,11 +14,13 @@ static void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger);
  * @param[in]   thread_config_ptr   Thread configuration
  * @param[in]   vc_config_ptr       Visual check configuration
  */
-void dash_init(dash_context_t* dash_ptr,
-               TX_BYTE_POOL* stack_pool_ptr,
-               const config_thread_t* thread_config_ptr,
-               const config_vc_t* vc_config_ptr)
+status_t dash_init(dash_context_t* dash_ptr,
+                   TX_BYTE_POOL* stack_pool_ptr,
+                   const config_thread_t* thread_config_ptr,
+                   const config_vc_t* vc_config_ptr)
 {
+    status_t status = STATUS_OK;
+
     dash_ptr->vc_config_ptr = vc_config_ptr;
 
     // create the thread
@@ -50,6 +52,13 @@ void dash_init(dash_context_t* dash_ptr,
     HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_RESET);
+
+    if (tx_status != TX_SUCCESS)
+    {
+        status = STATUS_ERROR;
+    }
+
+    return status;
 }
 
 /**
@@ -68,6 +77,8 @@ void dash_thread_entry(ULONG input)
                          dash_ptr->vc_config_ptr->all_leds_on,
                          dash_ptr->vc_config_ptr->stagger_ticks);
     }
+
+    // poll inputs
 
     UNUSED(dash_ptr);
 }
