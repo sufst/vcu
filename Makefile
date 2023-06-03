@@ -100,8 +100,8 @@ src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/dash.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/bps.c \
-src/SUFST/Src/Tasks/ts_control.c \
-src/SUFST/Src/Tasks/driver_control.c \
+src/SUFST/Src/Services/ts_control.c \
+src/SUFST/Src/Services/driver_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
@@ -333,7 +333,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Profiles \
 -Isrc/SUFST/Inc/Interfaces \
--Isrc/SUFST/Inc/Tasks \
+-Isrc/SUFST/Inc/Services \
 -Isrc/SUFST/Inc/Test \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
