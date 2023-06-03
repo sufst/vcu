@@ -36,13 +36,16 @@ static vcu_status_t create_status(vcu_handle_t* vcu_h);
  * @param[in]   can_c_h         Critical systems CAN bus handle
  * @param[in]   can_s_h         Sensor CAN bus handle
  * @param[in]   app_mem_pool    Pointer to RTOS application memory pool
+ * @param[in]   config_ptr      Pointer to VCU configuration instance
  */
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                       CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
-                      TX_BYTE_POOL* app_mem_pool)
+                      TX_BYTE_POOL* app_mem_pool,
+                      const config_t* config_ptr)
 {
     vcu_h->err = VCU_ERROR_NONE;
+    vcu_h->config_ptr = config_ptr;
 
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_h->rtcan_s, &vcu_h->rtcan_c};
@@ -125,10 +128,12 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     // driver control input service
     if (no_errors(vcu_h))
     {
-        driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
-                                                       &vcu_h->ts_ctrl,
-                                                       &vcu_h->canbc,
-                                                       app_mem_pool);
+        driver_ctrl_status_t status
+            = driver_ctrl_init(&vcu_h->driver_ctrl,
+                               &vcu_h->ts_ctrl,
+                               &vcu_h->canbc,
+                               app_mem_pool,
+                               &vcu_h->config_ptr->ts_activation);
 
         if (status != DRIVER_CTRL_OK)
         {
@@ -276,7 +281,7 @@ vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 static void init_thread_entry(ULONG input)
 {
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
-    const config_t* config_ptr = config_get();
+    const config_t* config_ptr = vcu_h->config_ptr;
 
     dash_init(&config_ptr->visual_check);
 

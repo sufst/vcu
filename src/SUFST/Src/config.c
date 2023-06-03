@@ -30,8 +30,10 @@ static const config_t config_instance = {
         .r2d_requires_brake = false,
         .input_active_ticks = SECONDS_TO_TICKS(1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
+        .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
         .rtds_sound_ticks = SECONDS_TO_TICKS(2.5),
-        .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5)
+        .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
+        .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1)
     }
 };
 

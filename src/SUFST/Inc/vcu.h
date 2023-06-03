@@ -14,6 +14,7 @@
 #include <tx_api.h>
 
 #include "canbc.h"
+#include "config.h"
 #include "driver_control.h"
 #include "ready_to_drive.h"
 #include "ts_control.h"
@@ -75,6 +76,11 @@ typedef struct
      */
     uint32_t err;
 
+    /**
+     * @brief   Pointer to configuration
+     */
+    const config_t* config_ptr;
+
 } vcu_handle_t;
 
 /**
@@ -93,7 +99,8 @@ typedef enum
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                       CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
-                      TX_BYTE_POOL* app_mem_pool);
+                      TX_BYTE_POOL* app_mem_pool,
+                      const config_t* config_ptr);
 
 vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
                                                 CAN_HandleTypeDef* can_h);

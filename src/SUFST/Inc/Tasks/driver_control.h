@@ -11,6 +11,7 @@
 #include <tx_api.h>
 
 #include "canbc.h"
+#include "config.h"
 #include "ts_control.h"
 
 /*
@@ -66,6 +67,11 @@ typedef struct
      */
     uint32_t err;
 
+    /**
+     * @brief   Configuration
+     */
+    const config_ts_activation_t* ts_activation_config_ptr;
+
 } dc_handle_t;
 
 /**
@@ -80,10 +86,12 @@ typedef enum
 /*
  * function prototypes
  */
-driver_ctrl_status_t driver_ctrl_init(dc_handle_t* dc_h,
-                                      ts_ctrl_handle_t* ts_ctrl_h,
-                                      canbc_handle_t* canbc_h,
-                                      TX_BYTE_POOL* stack_pool_ptr);
+driver_ctrl_status_t
+driver_ctrl_init(dc_handle_t* dc_h,
+                 ts_ctrl_handle_t* ts_ctrl_h,
+                 canbc_handle_t* canbc_h,
+                 TX_BYTE_POOL* stack_pool_ptr,
+                 const config_ts_activation_t* ts_activation_config);
 
 driver_ctrl_status_t driver_ctrl_start(dc_handle_t* dc_h);
 

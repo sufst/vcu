@@ -20,8 +20,10 @@ typedef struct {
     bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
     uint32_t input_active_ticks;            // ticks which a TS activation input must be active for before proceeding to next step
     uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
+    uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
     uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
     uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
+    uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
 } config_ts_activation_t;
 
 /**
