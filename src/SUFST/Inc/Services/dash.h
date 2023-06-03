@@ -23,8 +23,9 @@
  */
 typedef struct
 {
-    TX_THREAD thread;                 // dash service thread
-    const config_vc_t* vc_config_ptr; // visual check configuration
+    TX_THREAD thread;                // dash service thread
+    TX_TIMER ts_on_toggle_timer;     // timer for toggling TS on LED
+    const config_dash_t* config_ptr; // configuration
 
 } dash_context_t;
 
@@ -34,14 +35,19 @@ typedef struct
 status_t dash_init(dash_context_t* dash_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_thread_t* thread_config_ptr,
-                   const config_vc_t* vc_config_ptr);
+                   const config_dash_t* config_ptr);
 
-void dash_set_r2d_led_state(GPIO_PinState state);
-void dash_set_ts_on_led_state(GPIO_PinState state);
-void dash_set_drs_led_state(GPIO_PinState state);
-void dash_toggle_ts_on_led();
-bool dash_get_r2d_btn_state();
-bool dash_get_ts_on_btn_state();
-bool dash_get_drs_btn_state();
+status_t dash_blink_ts_on_led(dash_context_t* dash_ptr, uint32_t ticks);
+status_t dash_set_ts_on_led_state(dash_context_t* dash_ptr,
+                                  GPIO_PinState state);
+status_t dash_wait_for_ts_on(dash_context_t* dash_ptr);
+status_t dash_wait_for_r2d(dash_context_t* dash_ptr);
+status_t dash_set_r2d_led_state(dash_context_t* dash_ptr, GPIO_PinState state);
+
+// void dash_set_r2d_led_state(GPIO_PinState state);
+// void dash_set_drs_led_state(GPIO_PinState state);
+// bool dash_get_r2d_btn_state();
+// bool dash_get_ts_on_btn_state();
+// bool dash_get_drs_btn_state();
 
 #endif

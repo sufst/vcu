@@ -82,7 +82,17 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         status = dash_init(&vcu_h->dash,
                            app_mem_pool,
                            &vcu_h->config_ptr->threads.dash,
-                           &vcu_h->config_ptr->visual_check);
+                           &vcu_h->config_ptr->dash);
+    }
+
+    // control
+    if (status == STATUS_OK)
+    {
+        status = ctrl_init(&vcu_h->ctrl,
+                           &vcu_h->dash,
+                           app_mem_pool,
+                           &vcu_h->config_ptr->threads.ctrl,
+                           &vcu_h->config_ptr->ts_activation);
     }
 
     UNUSED(status);
@@ -115,7 +125,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     //     }
     // }
 
-    return create_status(vcu_h);
+    return VCU_OK; // TODO: return status_T
 }
 
 /**

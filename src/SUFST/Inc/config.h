@@ -27,7 +27,6 @@ typedef struct {
  */
 typedef struct {
     bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
-    uint32_t input_active_ticks;            // ticks which a TS activation input must be active for before proceeding to next step
     uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
     uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
     uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
@@ -36,14 +35,16 @@ typedef struct {
 } config_ts_activation_t;
 
 /**
- * @brief   Visual check
+ * @brief   Dash
  */
 typedef struct {
-    bool run_check;                         // whether or not the visual check should run
-    uint32_t led_on_ticks;                  // number of ticks for which the visual check should last
-    bool all_leds_on;                       // whether or not the visual check turns on all LEDs, or just the VC LEDs
-    uint32_t stagger_ticks;                 // ticks between turning on each LED (set to zero to turn all on at once)
-} config_vc_t;
+    uint32_t btn_active_ticks;              // ticks for which a button must be pressed for it to be considered 'activated'
+    uint32_t btn_sample_ticks;              // ticks between sampling buttons
+    bool vc_run_check;                      // whether or not the visual check should run
+    uint32_t vc_led_on_ticks;               // number of ticks for which the visual check should last
+    bool vc_all_leds_on;                    // whether or not the visual check turns on all LEDs, or just the VC LEDs
+    uint32_t vc_stagger_ticks;              // ticks between turning on each visible check LED (set to zero to turn all on at once)
+} config_dash_t;
 
 /**
  * @brief   VCU configuration
@@ -55,11 +56,14 @@ typedef struct {
  */
 typedef struct {
 
-    config_vc_t visual_check;
+    config_dash_t dash;
     config_ts_activation_t ts_activation;
+
     struct {
         config_thread_t dash;
+        config_thread_t ctrl;
     } threads;
+
 } config_t;
 
 const config_t* config_get();
@@ -111,8 +115,6 @@ const config_t* config_get();
 #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
 #define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
 #define TS_CTRL_THREAD_PRIORITY		        2
-#define DRIVER_CTRL_THREAD_PRIORITY		    2
-#define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging

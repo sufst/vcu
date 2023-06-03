@@ -15,8 +15,8 @@
 
 #include "canbc.h"
 #include "config.h"
+#include "ctrl.h"
 #include "dash.h"
-#include "driver_control.h"
 #include "ts_control.h"
 
 /*
@@ -31,12 +31,13 @@
  */
 typedef struct
 {
-    rtcan_handle_t rtcan_s;     // RTCAN service for sensors CAN bus
-    rtcan_handle_t rtcan_c;     // RTCAN service for critical systems CAN bus
-    canbc_handle_t canbc;       // CAN broadcasting service instance
-    ts_ctrl_handle_t ts_ctrl;   // tractive system control service
-    dc_handle_t driver_ctrl;    // driver control service
-    dash_context_t dash;        // dash service
+    rtcan_handle_t rtcan_s; // RTCAN service for sensors CAN bus
+    rtcan_handle_t rtcan_c; // RTCAN service for critical systems CAN bus
+    canbc_handle_t canbc;   // CAN broadcasting service instance
+
+    dash_context_t dash; // dash service
+    ctrl_context_t ctrl; // control service
+
     uint32_t err;               // current error code
     const config_t* config_ptr; // pointer to global VCU configuration
 

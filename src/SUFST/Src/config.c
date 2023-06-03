@@ -25,17 +25,23 @@ static const config_t config_instance = {
             .name = "Dash",
             .priority = 4,
             .stack_size = 1024
+        },
+        .ctrl = {
+            .name = "Control",
+            .priority = 2,
+            .stack_size = 1024
         }
     },
-    .visual_check = {
-        .run_check = true,     
-        .all_leds_on = true,
-        .led_on_ticks = SECONDS_TO_TICKS(2),
-        .stagger_ticks = SECONDS_TO_TICKS(0.25)
+    .dash = {
+        .btn_active_ticks = SECONDS_TO_TICKS(1),
+        .btn_sample_ticks = SECONDS_TO_TICKS(0.1),
+        .vc_run_check = true,     
+        .vc_all_leds_on = true,
+        .vc_led_on_ticks = SECONDS_TO_TICKS(2),
+        .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
     },
     .ts_activation = {
         .r2d_requires_brake = false,
-        .input_active_ticks = SECONDS_TO_TICKS(1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
         .rtds_sound_ticks = SECONDS_TO_TICKS(2.5),
