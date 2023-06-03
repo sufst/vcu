@@ -47,7 +47,7 @@
     "gpio.h": "c",
     "can_database.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": true,
+  "cortex-debug.variableUseNaturalFormat": false,
   "C_Cpp.errorSquiggles": "Enabled",
   "mcu-debug.rtos-views.showRTOS": false
 }
