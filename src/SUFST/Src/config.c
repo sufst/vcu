@@ -20,11 +20,11 @@
  *          otherwise the value will default to zero
  */
 static const config_t config_instance = {
-    .dash = {
-        .run_visual_check = true,     
-        .visual_check_all_leds = true,
-        .visual_check_ticks = SECONDS_TO_TICKS(2),
-        .visual_check_stagger_ticks = SECONDS_TO_TICKS(0.25)
+    .visual_check = {
+        .run_check = true,     
+        .all_leds_on = true,
+        .led_on_ticks = SECONDS_TO_TICKS(2),
+        .stagger_ticks = SECONDS_TO_TICKS(0.25)
     },
     .ts_activation = {
         .r2d_requires_brake = false,

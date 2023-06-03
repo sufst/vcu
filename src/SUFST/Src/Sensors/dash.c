@@ -10,16 +10,9 @@ run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks);
  *
  * @note        For the visual check to work, this must be called from a thread
  *
- * @param[in]   vc_enable           Enable visual check
- * @param[in]   vc_ticks            Number of ticks for which visual check
- * should last
- * @param[in]   vc_all_leds         Turn on ALL dash LEDs for visual check
- * @param[in]   vc_stagger_ticks    Ticks between turning on each LED
+ * @param[in]   vc_config   Visual check configuration
  */
-void dash_init(bool vc_enable,
-               uint32_t vc_ticks,
-               bool vc_all_leds,
-               uint32_t vc_stagger_ticks)
+void dash_init(const config_vc_t* vc_config_ptr)
 {
     // CubeMX will auto-generate code which sets initial pin states
     // however for ease of editing / readability it's done again here
@@ -29,9 +22,11 @@ void dash_init(bool vc_enable,
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_RESET);
 
     // see 'visible check' rule
-    if (vc_enable)
+    if (vc_config_ptr->run_check)
     {
-        run_visual_check(vc_ticks, vc_all_leds, vc_stagger_ticks);
+        run_visual_check(vc_config_ptr->led_on_ticks,
+                         vc_config_ptr->all_leds_on,
+                         vc_config_ptr->stagger_ticks);
     }
 }
 
@@ -82,13 +77,21 @@ void dash_set_r2d_led_state(GPIO_PinState state)
 }
 
 /**
- * @brief       Sets the state of the TS ON LED
+ * @brief       Sets the state of the TS on LED
  *
  * @param[in]   state   GPIO state
  */
 void dash_set_ts_on_led_state(GPIO_PinState state)
 {
     HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, state);
+}
+
+/**
+ * @brief   Toggles the TS on LED
+ */
+void dash_toggle_ts_on_led()
+{
+    HAL_GPIO_TogglePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin);
 }
 
 /**
@@ -99,4 +102,29 @@ void dash_set_ts_on_led_state(GPIO_PinState state)
 void dash_set_drs_led_state(GPIO_PinState state)
 {
     HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, state);
+}
+
+/**
+ * @brief   Returns the state of the R2D button
+ */
+bool dash_get_r2d_btn_state()
+{
+    return (HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin) == GPIO_PIN_SET);
+}
+
+/**
+ * @brief   Returns the state of the TS on button
+ */
+bool dash_get_ts_on_btn_state()
+{
+    return (HAL_GPIO_ReadPin(TS_ON_BTN_GPIO_Port, TS_ON_BTN_Pin)
+            == GPIO_PIN_SET);
+}
+
+/**
+ * @brief   Returns the state of the DRS button
+ */
+bool dash_get_drs_btn_state()
+{
+    return (HAL_GPIO_ReadPin(DRS_BTN_GPIO_Port, DRS_BTN_Pin) == GPIO_PIN_SET);
 }

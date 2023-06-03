@@ -1,9 +1,9 @@
 /***************************************************************************
- * @file   config.h
- * @author Tim Brewis (tab1g19@soton.ac.uk)
- * @brief  System configuration
- *
- * @note   See config_rules.c which checks these parameters are valid
+ * @file    config.h
+ * @author  Tim Brewis (tab1g19@soton.ac.uk)
+ * @brief   System configuration
+ * @details Related configuration parameters are grouped as a struct
+ * @note    The autoformatter is disabled for config.h and config.c
 ***************************************************************************/
 
 #ifndef CONFIG_H
@@ -14,7 +14,28 @@
 #include <stdbool.h>
 
 /**
- * @note    WIP new definition of config, migration in progress
+ * @brief   TS activation
+ */
+typedef struct {
+    bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
+    uint32_t input_active_ticks;            // ticks which a TS activation input must be active for before proceeding to next step
+    uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
+    uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
+    uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
+} config_ts_activation_t;
+
+/**
+ * @brief   Visual check
+ */
+typedef struct {
+    bool run_check;                         // whether or not the visual check should run
+    uint32_t led_on_ticks;                  // number of ticks for which the visual check should last
+    bool all_leds_on;                       // whether or not the visual check turns on all LEDs, or just the VC LEDs
+    uint32_t stagger_ticks;                 // ticks between turning on each LED (set to zero to turn all on at once)
+} config_vc_t;
+
+/**
+ * @brief   VCU configuration
  * 
  * @details The intended usage is that the main VCU module loads an instance of
  *          this struct and initialises all other modules based on its state. 
@@ -23,25 +44,26 @@
  */
 typedef struct {
 
-    struct {
-        bool run_visual_check;                  // whether or not the visual check should run
-        uint32_t visual_check_ticks;            // number of ticks for which the visual check should last
-        bool visual_check_all_leds;             // whether or not the visual check turns on all LEDs, or just the VC LEDs
-        uint32_t visual_check_stagger_ticks;    // ticks between turning on each LED (set to zero to turn all on at once)
-    } dash;
-
-    struct {
-        bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
-        uint32_t input_active_ticks;            // ticks which a TS activation input must be active for before proceeding to next step
-        uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
-        uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
-        uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
-    } ts_activation;
+    config_vc_t visual_check;
+    config_ts_activation_t ts_activation;
 
 } config_t;
 
-
 const config_t* config_get();
+
+
+
+
+
+
+
+
+
+/***************************************************************************
+ * 
+ * NOTE: MIGRATION OF OLD CONFIG SYSTEM BELOW IN PROGRESS!
+ * 
+ ***************************************************************************/
 
 /***************************************************************************
  * competition mode 

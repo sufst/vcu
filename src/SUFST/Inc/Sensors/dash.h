@@ -11,12 +11,16 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void dash_init(bool vc_enable,
-               uint32_t vc_ticks,
-               bool vc_all_leds,
-               uint32_t vc_stagger_ticks);
+#include "config.h"
+
+void dash_init(const config_vc_t* vc_config_ptr);
+
 void dash_set_r2d_led_state(GPIO_PinState state);
 void dash_set_ts_on_led_state(GPIO_PinState state);
 void dash_set_drs_led_state(GPIO_PinState state);
+void dash_toggle_ts_on_led();
+bool dash_get_r2d_btn_state();
+bool dash_get_ts_on_btn_state();
+bool dash_get_drs_btn_state();
 
 #endif

@@ -278,10 +278,7 @@ static void init_thread_entry(ULONG input)
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
     const config_t* config_ptr = config_get();
 
-    dash_init(config_ptr->dash.run_visual_check,
-              config_ptr->dash.visual_check_ticks,
-              config_ptr->dash.visual_check_all_leds,
-              config_ptr->dash.visual_check_stagger_ticks);
+    dash_init(&config_ptr->visual_check);
 
     bps_init();
     apps_init();
