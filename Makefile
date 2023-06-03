@@ -96,10 +96,10 @@ src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
-src/SUFST/Src/Sensors/apps.c \
-src/SUFST/Src/Sensors/dash.c \
-src/SUFST/Src/Sensors/scs.c \
-src/SUFST/Src/Sensors/bps.c \
+src/SUFST/Src/Interfaces/apps.c \
+src/SUFST/Src/Interfaces/dash.c \
+src/SUFST/Src/Interfaces/scs.c \
+src/SUFST/Src/Interfaces/bps.c \
 src/SUFST/Src/Tasks/ts_control.c \
 src/SUFST/Src/Tasks/driver_control.c \
 src/SUFST/Src/Test/testbench.c \
@@ -332,7 +332,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc \
 -Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Profiles \
--Isrc/SUFST/Inc/Sensors \
+-Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Tasks \
 -Isrc/SUFST/Inc/Test \
 -Isrc/SUFST/Inc/Threads \
