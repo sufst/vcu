@@ -1,9 +1,9 @@
 /***************************************************************************
- * @file   config.h
- * @author Tim Brewis (tab1g19@soton.ac.uk)
- * @brief  System configuration
- *
- * @note   See config_rules.c which checks these parameters are valid
+ * @file    config.h
+ * @author  Tim Brewis (tab1g19@soton.ac.uk)
+ * @brief   System configuration
+ * @details Related configuration parameters are grouped as a struct
+ * @note    The autoformatter is disabled for config.h and config.c
 ***************************************************************************/
 
 #ifndef CONFIG_H
@@ -14,21 +14,71 @@
 #include <stdbool.h>
 
 /**
- * @note    WIP new definition of config, migration in progress
+ * @brief  Generic configuration for threads
+ */
+typedef struct {
+    uint32_t priority;                      // thread priority
+    uint32_t stack_size;                    // stack size
+    const char* name;                       // name
+} config_thread_t;
+
+/**
+ * @brief   COntrol
+ */
+typedef struct {
+    config_thread_t thread;                 // control thread config
+    bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
+    uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
+    uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
+    uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
+    uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
+    uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
+    uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
+} config_ctrl_t;
+
+/**
+ * @brief   Dash
+ */
+typedef struct {
+    config_thread_t thread;                 // dash thread config
+    uint32_t btn_active_ticks;              // ticks for which a button must be pressed for it to be considered 'activated'
+    uint32_t btn_sample_ticks;              // ticks between sampling buttons
+    bool vc_run_check;                      // whether or not the visual check should run
+    uint32_t vc_led_on_ticks;               // number of ticks for which the visual check should last
+    bool vc_all_leds_on;                    // whether or not the visual check turns on all LEDs, or just the VC LEDs
+    uint32_t vc_stagger_ticks;              // ticks between turning on each visible check LED (set to zero to turn all on at once)
+} config_dash_t;
+
+/**
+ * @brief   VCU configuration
+ * 
+ * @details The intended usage is that the main VCU module loads an instance of
+ *          this struct and initialises all other modules based on its state. 
+ *          Theoretically all the individual modules could load the config, 
+ *          but that makes them less portable / decoupled.
  */
 typedef struct {
 
-    struct {
-        bool run_visual_check;                  // whether or not the visual check should run
-        uint32_t visual_check_ticks;            // number of ticks for which the visual check should last
-        bool visual_check_all_leds;             // whether or not the visual check turns on all LEDs, or just the VC LEDs
-        uint32_t visual_check_stagger_ticks;    // ticks between turning on each LED (set to zero to turn all on at once)
-    } dash;
+    config_dash_t dash;
+    config_ctrl_t ctrl;
 
 } config_t;
 
-
 const config_t* config_get();
+
+
+
+
+
+
+
+
+
+/***************************************************************************
+ * 
+ * NOTE: MIGRATION OF OLD CONFIG SYSTEM BELOW IN PROGRESS!
+ * 
+ ***************************************************************************/
 
 /***************************************************************************
  * competition mode 
@@ -63,8 +113,6 @@ const config_t* config_get();
 #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
 #define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
 #define TS_CTRL_THREAD_PRIORITY		        2
-#define DRIVER_CTRL_THREAD_PRIORITY		    2
-#define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging

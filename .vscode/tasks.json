@@ -8,7 +8,10 @@
       "command": "make",
       "args": ["-j$(nproc)", "-s", "DEBUG=1"],
       "problemMatcher": "$gcc",
-      "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     // make build task (RELEASE)
     {

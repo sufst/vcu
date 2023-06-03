@@ -14,8 +14,9 @@
 #include <tx_api.h>
 
 #include "canbc.h"
-#include "driver_control.h"
-#include "ready_to_drive.h"
+#include "config.h"
+#include "ctrl.h"
+#include "dash.h"
 #include "ts_control.h"
 
 /*
@@ -30,50 +31,15 @@
  */
 typedef struct
 {
+    rtcan_handle_t rtcan_s; // RTCAN service for sensors CAN bus
+    rtcan_handle_t rtcan_c; // RTCAN service for critical systems CAN bus
+    canbc_handle_t canbc;   // CAN broadcasting service instance
 
-    /**
-     * @brief   RTCAN service for the sensors CAN bus
-     */
-    rtcan_handle_t rtcan_s;
+    dash_context_t dash; // dash service
+    ctrl_context_t ctrl; // control service
 
-    /**
-     * @brief   RTCAN service for critical systems CAN bus
-     */
-    rtcan_handle_t rtcan_c;
-
-    /**
-     * @brief   CAN broadcasting service for VCU state
-     *
-     * @details Broadcasts to the sensors CAN bus using the RTCAN service
-     */
-    canbc_handle_t canbc;
-
-    /**
-     * @brief   Ready to drive state
-     *
-     * @details This also controls the speaker
-     */
-    rtd_context_t rtd;
-
-    /**
-     * @brief   Tractive system controller
-     */
-    ts_ctrl_handle_t ts_ctrl;
-
-    /**
-     * @brief   Driver control input service
-     */
-    dc_handle_t driver_ctrl;
-
-    /**
-     * @brief   Initialisation thread
-     */
-    TX_THREAD init_thread;
-
-    /**
-     * @brief   Current error code
-     */
-    uint32_t err;
+    uint32_t err;               // current error code
+    const config_t* config_ptr; // pointer to global VCU configuration
 
 } vcu_handle_t;
 
@@ -93,7 +59,8 @@ typedef enum
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                       CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
-                      TX_BYTE_POOL* app_mem_pool);
+                      TX_BYTE_POOL* app_mem_pool,
+                      const config_t* config_ptr);
 
 vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
                                                 CAN_HandleTypeDef* can_h);
@@ -103,7 +70,5 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
                                   uint32_t rx_fifo);
 
 vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h);
-
-vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin);
 
 #endif

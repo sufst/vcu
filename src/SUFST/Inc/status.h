@@ -1,7 +1,7 @@
 /******************************************************************************
  * @file    status.h
  * @author  Tim Brewis (@t-bre)
- * @brief   Global status code
+ * @brief   Generic status return code
  *****************************************************************************/
 
 #ifndef STATUS_H
