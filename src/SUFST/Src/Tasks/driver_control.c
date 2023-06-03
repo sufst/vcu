@@ -422,18 +422,6 @@ bool input_wait(bool state, input_context_t* input_ptr)
         }
     }
 
-    // // falling edge (inactive, previously active)
-    // if (state != input_ptr->active_state
-    //     && (input_ptr->last_state == input_ptr->active_state))
-    // {
-    //     uint32_t active_ticks = tx_time_get() - input_ptr->active_start;
-
-    //     if (active_ticks > input_ptr->required_ticks)
-    //     {
-    //         ret = true;
-    //     }
-    // }
-
     input_ptr->last_state = state;
     return ret;
 }
