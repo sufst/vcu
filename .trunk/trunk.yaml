@@ -59,5 +59,8 @@ lint:
         - src/Core/**
         - src/Drivers/**
         - src/Middlewares/ST
-        - src/SUFST/Inc/config.h
         - scripts/*
+    - linters: [clang-format]
+      paths:
+        - src/SUFST/Inc/config.h
+        - src/SUFST/Src/config.c
