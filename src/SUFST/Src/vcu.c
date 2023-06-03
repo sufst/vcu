@@ -25,7 +25,6 @@
  * internal function prototypes
  */
 static void init_thread_entry(ULONG input);
-static void update_canbc_states(vcu_handle_t* vcu_h);
 static bool no_errors(vcu_handle_t* vcu_h);
 static vcu_status_t create_status(vcu_handle_t* vcu_h);
 
@@ -113,6 +112,12 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // dash
+    dash_init(&vcu_h->dash,
+              app_mem_pool,
+              &vcu_h->config_ptr->threads.dash,
+              &vcu_h->config_ptr->visual_check);
+
     // tractive system controller
     if (no_errors(vcu_h))
     {
@@ -139,21 +144,6 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         {
             vcu_h->err |= VCU_ERROR_INIT;
         }
-    }
-
-    // ready to drive
-    if (no_errors(vcu_h))
-    {
-        // TODO: remove old activation logic
-        // const uint32_t speaker_ticks
-        //     = (READY_TO_DRIVE_SPEAKER_TIME * TX_TIMER_TICKS_PER_SECOND) /
-        //     1000;
-
-        // rtd_init(&vcu_h->rtd,
-        //          SPKR_GPIO_Port,
-        //          SPKR_Pin,
-        //          speaker_ticks,
-        //          READY_TO_DRIVE_CHECK_BPS);
     }
 
     return create_status(vcu_h);
@@ -248,18 +238,6 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
     return create_status(vcu_h);
 }
 
-vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
-{
-    // TODO: remove?
-    // if ((pin == RTD_IN_Pin)
-    //     || (pin == USER_BUTTON_Pin && READY_TO_DRIVE_BUTTON_ENABLE))
-    // {
-    //     rtd_handle_int(&vcu_h->rtd);
-    // }
-
-    return VCU_OK;
-}
-
 /**
  * @brief       Initialisation thread entry function
  *
@@ -281,13 +259,9 @@ vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin)
 static void init_thread_entry(ULONG input)
 {
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
-    const config_t* config_ptr = vcu_h->config_ptr;
-
-    dash_init(&config_ptr->visual_check);
 
     bps_init();
     apps_init();
-    update_canbc_states(vcu_h);
 
     tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND * 2);
 
@@ -300,28 +274,6 @@ static void init_thread_entry(ULONG input)
     ts_ctrl_start(&vcu_h->ts_ctrl);
 
     tx_thread_terminate(&vcu_h->init_thread);
-}
-
-/**
- * @brief       Updates CAN broadcaster states
- *
- * @param[in]   vcu_h     VCU handle
- */
-static void update_canbc_states(vcu_handle_t* vcu_h)
-{
-    canbc_handle_t* canbc_h = &vcu_h->canbc;
-    canbc_states_t* state_ptr = canbc_lock_state(canbc_h, TX_WAIT_FOREVER);
-
-    if (state_ptr != NULL)
-    {
-        state_ptr->vcu_state.r2d
-            = rtd_is_ready(&vcu_h->rtd); // bool -> 0 or 1 in bitfield
-        canbc_unlock_state(canbc_h);
-    }
-    else
-    {
-        Error_Handler();
-    }
 }
 
 /**

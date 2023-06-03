@@ -14,6 +14,15 @@
 #include <stdbool.h>
 
 /**
+ * @brief  Generic configuration for threads
+ */
+typedef struct {
+    uint32_t priority;                      // thread priority
+    uint32_t stack_size;                    // stack size
+    const char* name;                       // name
+} config_thread_t;
+
+/**
  * @brief   TS activation
  */
 typedef struct {
@@ -48,7 +57,9 @@ typedef struct {
 
     config_vc_t visual_check;
     config_ts_activation_t ts_activation;
-
+    struct {
+        config_thread_t dash;
+    } threads;
 } config_t;
 
 const config_t* config_get();

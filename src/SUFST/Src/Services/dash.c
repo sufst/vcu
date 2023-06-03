@@ -1,33 +1,75 @@
 #include "dash.h"
 
-#include <tx_api.h>
-
-static void
-run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks);
+/*
+ * internal functions
+ */
+static void dash_thread_entry(ULONG input);
+static void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger);
 
 /**
- * @brief       Initialises the dash and completes the visual check
+ * @brief       Initialises the dash service
  *
- * @note        For the visual check to work, this must be called from a thread
- *
- * @param[in]   vc_config   Visual check configuration
+ * @param[in]   dash_ptr            Dash context
+ * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
+ * @param[in]   thread_config_ptr   Thread configuration
+ * @param[in]   vc_config_ptr       Visual check configuration
  */
-void dash_init(const config_vc_t* vc_config_ptr)
+void dash_init(dash_context_t* dash_ptr,
+               TX_BYTE_POOL* stack_pool_ptr,
+               const config_thread_t* thread_config_ptr,
+               const config_vc_t* vc_config_ptr)
 {
+    dash_ptr->vc_config_ptr = vc_config_ptr;
+
+    // create the thread
+    void* stack_ptr = NULL;
+    UINT tx_status = tx_byte_allocate(stack_pool_ptr,
+                                      &stack_ptr,
+                                      thread_config_ptr->stack_size,
+                                      TX_NO_WAIT);
+
+    if (tx_status == TX_SUCCESS)
+    {
+        tx_status = tx_thread_create(&dash_ptr->thread,
+                                     (CHAR*) thread_config_ptr->name,
+                                     dash_thread_entry,
+                                     (ULONG) dash_ptr,
+                                     stack_ptr,
+                                     thread_config_ptr->stack_size,
+                                     thread_config_ptr->priority,
+                                     thread_config_ptr->priority,
+                                     TX_NO_TIME_SLICE,
+                                     TX_AUTO_START);
+    }
+
+    UNUSED(tx_status);
+
     // CubeMX will auto-generate code which sets initial pin states
     // however for ease of editing / readability it's done again here
     HAL_GPIO_WritePin(R2D_LED_GPIO_Port, R2D_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, GPIO_PIN_RESET);
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_RESET);
+}
+
+/**
+ * @brief       Dash service thread
+ *
+ * @param[in]   input   Pointer to dash instance
+ */
+void dash_thread_entry(ULONG input)
+{
+    dash_context_t* dash_ptr = (dash_context_t*) input;
 
     // see 'visible check' rule
-    if (vc_config_ptr->run_check)
+    if (dash_ptr->vc_config_ptr->run_check)
     {
-        run_visual_check(vc_config_ptr->led_on_ticks,
-                         vc_config_ptr->all_leds_on,
-                         vc_config_ptr->stagger_ticks);
+        run_visual_check(dash_ptr->vc_config_ptr->led_on_ticks,
+                         dash_ptr->vc_config_ptr->all_leds_on,
+                         dash_ptr->vc_config_ptr->stagger_ticks);
     }
+
+    UNUSED(dash_ptr);
 }
 
 /**

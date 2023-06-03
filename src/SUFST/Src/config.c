@@ -20,6 +20,13 @@
  *          otherwise the value will default to zero
  */
 static const config_t config_instance = {
+    .threads = {
+        .dash = {
+            .name = "Dash",
+            .priority = 4,
+            .stack_size = 1024
+        }
+    },
     .visual_check = {
         .run_check = true,     
         .all_leds_on = true,

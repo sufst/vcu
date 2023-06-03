@@ -15,8 +15,8 @@
 
 #include "canbc.h"
 #include "config.h"
+#include "dash.h"
 #include "driver_control.h"
-#include "ready_to_drive.h"
 #include "ts_control.h"
 
 /*
@@ -31,55 +31,15 @@
  */
 typedef struct
 {
-
-    /**
-     * @brief   RTCAN service for the sensors CAN bus
-     */
-    rtcan_handle_t rtcan_s;
-
-    /**
-     * @brief   RTCAN service for critical systems CAN bus
-     */
-    rtcan_handle_t rtcan_c;
-
-    /**
-     * @brief   CAN broadcasting service for VCU state
-     *
-     * @details Broadcasts to the sensors CAN bus using the RTCAN service
-     */
-    canbc_handle_t canbc;
-
-    /**
-     * @brief   Ready to drive state
-     *
-     * @details This also controls the speaker
-     */
-    rtd_context_t rtd;
-
-    /**
-     * @brief   Tractive system controller
-     */
-    ts_ctrl_handle_t ts_ctrl;
-
-    /**
-     * @brief   Driver control input service
-     */
-    dc_handle_t driver_ctrl;
-
-    /**
-     * @brief   Initialisation thread
-     */
-    TX_THREAD init_thread;
-
-    /**
-     * @brief   Current error code
-     */
-    uint32_t err;
-
-    /**
-     * @brief   Pointer to configuration
-     */
-    const config_t* config_ptr;
+    rtcan_handle_t rtcan_s;     // RTCAN service for sensors CAN bus
+    rtcan_handle_t rtcan_c;     // RTCAN service for critical systems CAN bus
+    canbc_handle_t canbc;       // CAN broadcasting service instance
+    ts_ctrl_handle_t ts_ctrl;   // tractive system control service
+    dc_handle_t driver_ctrl;    // driver control service
+    dash_context_t dash;        // dash service
+    TX_THREAD init_thread;      // initialisation thread
+    uint32_t err;               // current error code
+    const config_t* config_ptr; // pointer to global VCU configuration
 
 } vcu_handle_t;
 
@@ -110,7 +70,5 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
                                   uint32_t rx_fifo);
 
 vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h);
-
-vcu_status_t vcu_handle_exti_callback(vcu_handle_t* vcu_h, uint16_t pin);
 
 #endif
