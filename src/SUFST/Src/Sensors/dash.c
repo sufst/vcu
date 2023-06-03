@@ -43,7 +43,6 @@ void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks)
 {
     if (all_leds)
     {
-        tx_thread_sleep(stagger_ticks);
         HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, GPIO_PIN_SET);
         tx_thread_sleep(stagger_ticks);
         HAL_GPIO_WritePin(R2D_LED_GPIO_Port, R2D_LED_Pin, GPIO_PIN_SET);
