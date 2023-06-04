@@ -62,10 +62,19 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     // make sure TS is disabled
     trc_set_ts_on(GPIO_PIN_RESET);
 
+    // check all ok
+    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+
+    if (status != STATUS_OK)
+    {
+        tx_thread_terminate(&ctrl_ptr->thread);
+        ctrl_ptr->error |= CTRL_ERROR_INIT;
+    }
+
     // send initial state update
     ctrl_update_canbc_states(ctrl_ptr);
 
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    return status;
 }
 
 /**
@@ -194,6 +203,7 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 
     if (states != NULL)
     {
+        // TODO: add ready to drive state?
         states->ctrl_state = (uint16_t) ctrl_ptr->state;
         states->ctrl_error = ctrl_ptr->error;
         canbc_unlock_state(ctrl_ptr->canbc_ptr);

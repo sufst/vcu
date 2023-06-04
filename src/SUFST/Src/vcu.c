@@ -87,6 +87,7 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         status = ctrl_init(&vcu_h->ctrl,
                            &vcu_h->dash,
+                           &vcu_h->canbc,
                            app_mem_pool,
                            &vcu_h->config_ptr->ctrl);
     }
