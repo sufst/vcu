@@ -12,7 +12,6 @@
 #include "bps.h"
 #include "config.h"
 #include "dash.h"
-#include "ready_to_drive.h"
 
 /*
  * internal function prototypes
@@ -89,7 +88,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                            &vcu_h->dash,
                            &vcu_h->canbc,
                            app_mem_pool,
-                           &vcu_h->config_ptr->ctrl);
+                           &vcu_h->config_ptr->ctrl,
+                           &vcu_h->config_ptr->rtds);
     }
 
     UNUSED(status);
