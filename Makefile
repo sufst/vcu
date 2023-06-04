@@ -89,7 +89,6 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 C_SOURCES =  \
 src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
-src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
 src/SUFST/Src/Interfaces/apps.c \
@@ -328,7 +327,6 @@ src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 C_INCLUDES =  \
 -Isrc/Core/Inc \
 -Isrc/SUFST/Inc \
--Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
