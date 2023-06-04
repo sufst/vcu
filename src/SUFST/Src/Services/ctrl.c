@@ -201,15 +201,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         break;
     }
 
-    // activation failure
-    // LED blinks (should be set faster in config)
+    // activation or runtime failure
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
-    {
-        ctrl_handle_fault(ctrl_ptr);
-        break;
-    }
-
-    // runtime failure
     case (CTRL_STATE_TS_RUN_FAULT):
     {
         ctrl_handle_fault(ctrl_ptr);
