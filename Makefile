@@ -90,6 +90,7 @@ C_SOURCES =  \
 src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
 src/SUFST/Src/CAN/pm100.c \
+src/SUFST/Src/Functions/torque_map.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Interfaces/apps.c \
@@ -331,6 +332,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc \
 -Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Profiles \
+-Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
 -Isrc/SUFST/Inc/Test \

@@ -91,7 +91,8 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                            &vcu_h->config_ptr->ctrl,
                            &vcu_h->config_ptr->apps,
                            &vcu_h->config_ptr->bps,
-                           &vcu_h->config_ptr->rtds);
+                           &vcu_h->config_ptr->rtds,
+                           &vcu_h->config_ptr->torque_map);
     }
 
     UNUSED(status);
