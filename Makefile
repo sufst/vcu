@@ -311,7 +311,7 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_database.c
+src/Middlewares/SUFST/can-defs/out/can_c.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \

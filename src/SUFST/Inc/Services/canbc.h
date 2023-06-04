@@ -33,11 +33,19 @@ typedef struct
     uint16_t torque_request;
 
     // state
-    uint16_t ctrl_state;
+    uint8_t ctrl_state;
+    bool r2d;
+    bool drs_allowed;
+    bool drs_active;
+    uint16_t rolling_counter;
 
     // module errors
     uint8_t ctrl_error;
+    uint8_t pm100_error;
     uint8_t scs_error;
+    uint8_t rtcan1_error;
+    uint8_t rtcan2_error;
+    uint8_t canbc_error;
 
 } canbc_states_t;
 

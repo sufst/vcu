@@ -1,6 +1,6 @@
 #include "canbc.h"
 
-#include "can_database.h"
+#include <can_c.h>
 
 /*
  * internal function prototypes
@@ -90,42 +90,7 @@ static void send_bc_messages(canbc_context_t* canbc_h)
 
     if (tx_status == TX_SUCCESS)
     {
-        // driver inputs, units are x10
-        {
-            rtcan_msg_t message
-                = {.identifier = CAN_DATABASE_VCU_DRIVER_INPUTS_FRAME_ID,
-                   .length = CAN_DATABASE_VCU_DRIVER_INPUTS_LENGTH};
 
-            struct can_database_vcu_driver_inputs_t driver_inputs = {
-                .vcu_apps = 10 * canbc_h->states.apps_reading,
-                .vcu_bps = 10 * canbc_h->states.bps_reading,
-            };
-
-            can_database_vcu_driver_inputs_pack(message.data,
-                                                &driver_inputs,
-                                                message.length);
-
-            rtcan_transmit(canbc_h->rtcan_h, &message);
-        }
-
-        // VCU internal states and rolling counter
-        {
-            rtcan_msg_t message = {
-                .identifier = CAN_DATABASE_VCU_INTERNAL_STATES_FRAME_ID,
-                .length = CAN_DATABASE_VCU_INTERNAL_STATES_LENGTH,
-            };
-
-            struct can_database_vcu_internal_states_t internal_states
-                = {.vcu_rolling_counter = canbc_h->rolling_counter};
-
-            can_database_vcu_internal_states_pack(message.data,
-                                                  &internal_states,
-                                                  message.length);
-
-            rtcan_transmit(canbc_h->rtcan_h, &message);
-        }
-
-        canbc_h->rolling_counter++;
         tx_mutex_put(&canbc_h->state_mutex);
     }
 }

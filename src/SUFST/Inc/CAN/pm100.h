@@ -7,10 +7,10 @@
 #ifndef PM100_H
 #define PM100_H
 
+#include <can_c.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "can_database.h"
 #include "rtcan.h"
 #include "status.h"
 
@@ -34,7 +34,7 @@ typedef struct
     /**
      * @brief   Internal states from broadcast message
      */
-    struct can_database_pm100_internal_states_t state;
+    struct can_c_pm100_internal_states_t state;
 
     /**
      * @brief   RTCAN receive queue for PM100 messages
