@@ -41,4 +41,9 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     const config_pm100_t* config_ptr);
 
+status_t pm100_start_precharge(pm100_context_t* pm100_ptr);
+bool pm100_is_precharged(pm100_context_t* pm100_ptr);
+status_t pm100_disable(pm100_context_t* pm100_ptr);
+status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque);
+
 #endif

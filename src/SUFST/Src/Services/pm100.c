@@ -65,3 +65,48 @@ void pm100_thread_entry(ULONG input)
         tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND);
     }
 }
+
+/**
+ * @brief       Initiates the precharge sequence
+ *
+ * @param[in]   pm100_ptr   PM100 context
+ */
+status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
+{
+    // TODO: implement precharge activation
+    return STATUS_ERROR;
+}
+
+/**
+ * @brief       Checks if the PM100 is precharged
+ *
+ * @param[in]   pm100_ptr   PM100 context
+ */
+bool pm100_is_precharged(pm100_context_t* pm100_ptr)
+{
+    // TODO: check PM100 states to determine if precharge complete
+    return false;
+}
+
+/**
+ * @brief       Disables the inverter
+ *
+ * @param[in]   pm100_ptr
+ */
+status_t pm100_disable(pm100_context_t* pm100_ptr)
+{
+    // TODO: implement disabling of inverter
+    return STATUS_ERROR;
+}
+
+/**
+ * @brief       Sends a torque request to the PM100
+ *
+ * @param[in]   pm100_ptr   PM100 context
+ * @param[in]   torque      Desired torque
+ */
+status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
+{
+    // TODO: implement torque requests
+    return STATUS_ERROR;
+}
