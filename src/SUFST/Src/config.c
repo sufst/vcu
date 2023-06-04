@@ -70,7 +70,7 @@ static const config_t config_instance = {
             .priority = 2,
             .stack_size = 1024
         },
-        .r2d_requires_brake = true,
+        .r2d_requires_brake = false,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
@@ -81,6 +81,12 @@ static const config_t config_instance = {
         .active_ticks = SECONDS_TO_TICKS(2),
         .port = R2D_SIREN_GPIO_Port,
         .pin = R2D_SIREN_Pin
+    },
+    .torque_map = {
+        .function = TORQUE_MAP_LINEAR,
+        .input_max = 1000,
+        .output_max = 230,
+        .deadzone_fraction = 0.05f
     },
     .canbc = {
         .thread = {

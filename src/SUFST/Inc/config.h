@@ -15,6 +15,8 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "torque_map_funcs.h"
+
 /**
  * @brief  Threads
  */
@@ -89,6 +91,18 @@ typedef struct {
 } config_rtds_t;
 
 /**
+ * @brief   Torque map
+ * 
+ * @note    All torque is represented as Nm * 10
+ */
+typedef struct {
+    torque_map_func_e function;             // mapping function
+    uint16_t input_max;                     // maximum input value (range must be zero to max)
+    uint16_t output_max;                    // maximum output value (Nm * 10)
+    float deadzone_fraction;                // fraction of input range for deadzone
+} config_torque_map_t;
+
+/**
  * @brief   CAN broadcasting service
  */
 typedef struct {
@@ -110,6 +124,7 @@ typedef struct {
     config_bps_t bps;
     config_ctrl_t ctrl;
     config_rtds_t rtds;
+    config_torque_map_t torque_map;
     config_canbc_t canbc;
 } config_t;
 

@@ -22,14 +22,15 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
 /**
  * @brief       Initialises control service
  *
- * @param[in]   ctrl_ptr            Control context
- * @param[in]   dash_ptr            Dash context
- * @param[in]   canbc_ptr           CANBC context
- * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
- * @param[in]   config_ptr          Configuration
- * @param[in]   apps_config_ptr     APPS configuration
- * @param[in]   bps_config_ptr      BPS configuration
- * @param[in]   rtds_config_ptr     RTDS configuration
+ * @param[in]   ctrl_ptr                Control context
+ * @param[in]   dash_ptr                Dash context
+ * @param[in]   canbc_ptr               CANBC context
+ * @param[in]   stack_pool_ptr          Byte pool to allocate thread stack from
+ * @param[in]   config_ptr              Configuration
+ * @param[in]   apps_config_ptr         APPS configuration
+ * @param[in]   bps_config_ptr          BPS configuration
+ * @param[in]   rtds_config_ptr         RTDS configuration
+ * @param[in]   torque_map_config_ptr   Torque map configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
@@ -38,7 +39,8 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,
                    const config_bps_t* bps_config_ptr,
-                   const config_rtds_t* rtds_config_ptr)
+                   const config_rtds_t* rtds_config_ptr,
+                   const config_torque_map_t* torque_map_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
@@ -74,7 +76,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 
     status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 
-    // initialise the APPS and BPS
+    // initialise the APPS, BPS and torque map
     if (status == STATUS_OK)
     {
         status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
@@ -83,6 +85,11 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     if (status == STATUS_OK)
     {
         status = bps_init(&ctrl_ptr->bps, bps_config_ptr);
+    }
+
+    if (status == STATUS_OK)
+    {
+        status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
     }
 
     // make sure TS is disabled
@@ -228,7 +235,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (apps_status == STATUS_OK)
         {
+            uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
+                                                       ctrl_ptr->apps_reading);
             // TODO: send torque request to inverter
+            (void) torque_request;
+            __ASM("NOP");
         }
         else
         {
