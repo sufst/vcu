@@ -20,10 +20,12 @@
 /*
  * error codes
  */
-#define CTRL_ERROR_NONE              0x0
-#define CTRL_ERROR_INIT              0x1
-#define CTRL_ERROR_TS_READY_TIMEOUT  0x2
-#define CTRL_ERROR_PRECHARGE_TIMEOUT 0x4
+#define CTRL_ERROR_NONE               0x00
+#define CTRL_ERROR_INIT               0x01 // service failed to initialise
+#define CTRL_ERROR_TS_READY_TIMEOUT   0x02 // TS ready from TRC timed out
+#define CTRL_ERROR_PRECHARGE_TIMEOUT  0x04 // precharge timed out
+#define CTRL_ERROR_TRC_RUN_FAULT      0x08 // TRC faulted at runtime
+#define CTRL_ERROR_INVERTER_RUN_FAULT 0x10 // inverter faulted at runtime
 
 /**
  * @brief   Control state
@@ -36,6 +38,7 @@ typedef enum
     CTRL_STATE_R2D_WAIT,
     CTRL_STATE_TS_ON,
     CTRL_STATE_TS_ACTIVATION_FAILURE,
+    CTRL_STATE_TS_RUN_FAULT
 } ctrl_state_t;
 
 /**

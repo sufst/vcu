@@ -29,13 +29,15 @@ typedef struct
     // driver inputs
     uint16_t apps_reading;
     uint16_t bps_reading;
-    uint32_t torque_request;
+    uint16_t sagl_reading;
+    uint16_t torque_request;
 
     // state
     uint16_t ctrl_state;
 
     // module errors
     uint8_t ctrl_error;
+    uint8_t scs_error;
 
 } canbc_states_t;
 

@@ -16,6 +16,7 @@
 void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
+void ctrl_handle_fault(ctrl_context_t* ctrl_ptr);
 
 /**
  * @brief       Initialises control service
@@ -148,9 +149,19 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
         // TODO: wait for pre-charge from PM100
+        bool timeout = false; // TODO: actually check for faults
 
-        dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
-        next_state = CTRL_STATE_R2D_WAIT;
+        if (timeout)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
+            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+        }
+        else
+        {
+            dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
+            next_state = CTRL_STATE_R2D_WAIT;
+        }
+
         break;
     }
 
@@ -171,6 +182,22 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         // TODO: read APPS
         // TODO: send torque request to PM100
+
+        bool inverter_fault = false; // TODO: actually check for faults
+        bool trc_fault = false;
+
+        if (inverter_fault)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_INVERTER_RUN_FAULT;
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+
+        if (trc_fault)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_TRC_RUN_FAULT;
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+
         break;
     }
 
@@ -178,10 +205,14 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // LED blinks (should be set faster in config)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     {
-        trc_set_ts_on(GPIO_PIN_RESET);
-        dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
-        ctrl_update_canbc_states(ctrl_ptr);
-        tx_thread_suspend(&ctrl_ptr->thread);
+        ctrl_handle_fault(ctrl_ptr);
+        break;
+    }
+
+    // runtime failure
+    case (CTRL_STATE_TS_RUN_FAULT):
+    {
+        ctrl_handle_fault(ctrl_ptr);
         break;
     }
 
@@ -190,6 +221,24 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     }
 
     ctrl_ptr->state = next_state;
+}
+
+/**
+ * @brief       Handles an initialisation or runtime fault of the TS and shuts
+ *              down the service
+ *
+ * @param[in]   ctrl_ptr    Control context
+ */
+void ctrl_handle_fault(ctrl_context_t* ctrl_ptr)
+{
+    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+
+    trc_set_ts_on(GPIO_PIN_RESET);
+    dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
+    ctrl_update_canbc_states(ctrl_ptr);
+
+    tx_thread_suspend(&ctrl_ptr->thread);
 }
 
 /**
