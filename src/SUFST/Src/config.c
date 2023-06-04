@@ -82,6 +82,12 @@ static const config_t config_instance = {
         .port = R2D_SIREN_GPIO_Port,
         .pin = R2D_SIREN_Pin
     },
+    .torque_map = {
+        .function = TORQUE_MAP_LINEAR,
+        .input_max = 1000,
+        .output_max = 230,
+        .deadzone_fraction = 0.05f
+    },
     .canbc = {
         .thread = {
             .name = "CANBC",
