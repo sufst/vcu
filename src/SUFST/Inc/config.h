@@ -103,6 +103,14 @@ typedef struct {
 } config_torque_map_t;
 
 /**
+ * @brief   PM100DZ inverter
+ */
+typedef struct {
+    config_thread_t thread;                 // service thread config
+    uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
+} config_pm100_t;
+
+/**
  * @brief   CAN broadcasting service
  */
 typedef struct {
@@ -125,6 +133,7 @@ typedef struct {
     config_ctrl_t ctrl;
     config_rtds_t rtds;
     config_torque_map_t torque_map;
+    config_pm100_t pm100;
     config_canbc_t canbc;
 } config_t;
 

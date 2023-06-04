@@ -88,6 +88,14 @@ static const config_t config_instance = {
         .output_max = 230,
         .deadzone_fraction = 0.05f
     },
+    .pm100 = {
+        .thread = {
+            .name = "PM100",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10)
+    },
     .canbc = {
         .thread = {
             .name = "CANBC",
