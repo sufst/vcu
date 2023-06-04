@@ -27,6 +27,7 @@ void ctrl_handle_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   canbc_ptr           CANBC context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
  * @param[in]   config_ptr          Configuration
+ * @param[in]   apps_config_ptr     APPS configuration
  * @param[in]   rtds_config_ptr     RTDS configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
@@ -34,6 +35,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
+                   const config_apps_t* apps_config_ptr,
                    const config_rtds_t* rtds_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
@@ -42,6 +44,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->config_ptr = config_ptr;
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->error = CTRL_ERROR_NONE;
+    ctrl_ptr->apps_reading = 0;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -64,12 +67,18 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                                      TX_AUTO_START);
     }
 
+    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+
+    // initialise the APPS
+    if (status == STATUS_OK)
+    {
+        status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
+    }
+
     // make sure TS is disabled
     trc_set_ts_on(GPIO_PIN_RESET);
 
-    // check all ok
-    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
-
+    // check all ok before starting
     if (status != STATUS_OK)
     {
         tx_thread_terminate(&ctrl_ptr->thread);
@@ -186,23 +195,29 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // the TS is on
     case (CTRL_STATE_TS_ON):
     {
-        // TODO: read APPS
-        // TODO: send torque request to PM100
+        // read from the APPS
+        status_t apps_status
+            = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
 
-        bool inverter_fault = false; // TODO: actually check for faults
-        bool trc_fault = false;
-
-        if (inverter_fault)
+        if (apps_status == STATUS_OK)
         {
-            ctrl_ptr->error |= CTRL_ERROR_INVERTER_RUN_FAULT;
-            next_state = CTRL_STATE_TS_RUN_FAULT;
+            // TODO: send torque request to inverter
         }
 
-        if (trc_fault)
-        {
-            ctrl_ptr->error |= CTRL_ERROR_TRC_RUN_FAULT;
-            next_state = CTRL_STATE_TS_RUN_FAULT;
-        }
+        // bool inverter_fault = false; // TODO: actually check for faults
+        // bool trc_fault = false;
+
+        // if (inverter_fault)
+        // {
+        //     ctrl_ptr->error |= CTRL_ERROR_INVERTER_RUN_FAULT;
+        //     next_state = CTRL_STATE_TS_RUN_FAULT;
+        // }
+
+        // if (trc_fault)
+        // {
+        //     ctrl_ptr->error |= CTRL_ERROR_TRC_RUN_FAULT;
+        //     next_state = CTRL_STATE_TS_RUN_FAULT;
+        // }
 
         break;
     }
@@ -212,6 +227,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_RUN_FAULT):
     {
         ctrl_handle_fault(ctrl_ptr);
+        break;
+    }
+
+    // SCS fault
+    case (CTRL_STATE_SCS_FAULT):
+    {
+        // TODO: handle
         break;
     }
 

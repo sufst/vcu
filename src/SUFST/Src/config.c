@@ -4,7 +4,8 @@
  * @brief   Convert seconds to ticks
  * 
  * @note    The maximum precision is determined by how many ticks there are per
- *          second. E.g. TX_TIMER_TICKS_PER_SECOND = 1000 gives down to 0.001s
+ *          second. E.g. TX_TIMER_TICKS_PER_SECOND = 1000 gives down to 0.001s.
+ *          Antyhing less than this rounds down to zero ticks.
  */
 #define SECONDS_TO_TICKS(x)  (TX_TIMER_TICKS_PER_SECOND * x)
 
@@ -32,6 +33,25 @@ static const config_t config_instance = {
         .vc_all_leds_on = true,
         .vc_led_on_ticks = SECONDS_TO_TICKS(2),
         .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
+    },
+    .apps = {
+        .apps_1_scs = {
+            .hadc = &hadc1,
+            .min_adc = 0x600,
+            .max_adc = 0x900,
+            .min_mapped = 0,
+            .max_mapped = 1000,
+            .outside_bounds_fraction = 0.05f
+        },
+        .apps_2_scs = {
+            .hadc = &hadc2,
+            .min_adc = 0x600,
+            .max_adc = 0x900,
+            .min_mapped = 0,
+            .max_mapped = 1000,
+            .outside_bounds_fraction = 0.05f
+        },
+        .max_discrepancy = 100, // 10% of range
     },
     .ctrl = {
         .thread = {

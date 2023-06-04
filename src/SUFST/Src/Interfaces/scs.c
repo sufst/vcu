@@ -6,132 +6,125 @@
 
 #include "scs.h"
 
-#include "config.h"
+#include <tx_api.h>
 
 /*
- * function prototypes
+ * internal function prototypes
  */
-static uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max);
-static uint32_t map_adc_reading(scs_t* scs_ptr);
+static uint16_t clip_to_range(uint16_t value, uint16_t min, uint16_t max);
+static uint16_t map_adc_reading(scs_t* scs_ptr);
+static bool validate(uint16_t adc_reading,
+                     uint16_t max_adc_reading,
+                     uint16_t min_adc_reading,
+                     uint32_t max_diff);
 
 /**
- * @brief           Create new safety critical signal
+ * @brief       Create new safety critical signal
  *
- * @param[inout]    scs_ptr     Pointer to SCS instance
- * @param[in]       hadc_ptr    Pointer to associated ADC handle
- * @param[in]       adc_min     Minimum expected raw ADC reading
- * @param[in]       adc_max     Maximum expected raw ADC reading
- * @param[in]       min         Minimum mapped value
- * @param[in]       max         Maximum mapped value
+ * @param[in]   scs_ptr     Pointer to SCS instance
+ * @param[in]   config_ptr  Configuration
  */
-void scs_create(scs_t* scs_ptr,
-                ADC_HandleTypeDef* hadc_ptr,
-                uint32_t adc_min,
-                uint32_t adc_max,
-                uint32_t min,
-                uint32_t max)
+status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr)
 {
-    if (scs_ptr == NULL || hadc_ptr == NULL)
-    {
-        scs_ptr->hadc_ptr = NULL;
-        return;
-    }
+    scs_ptr->config_ptr = config_ptr;
+    scs_ptr->adc_reading = config_ptr->min_adc;
+    scs_ptr->mapped_reading = config_ptr->min_mapped;
+    scs_ptr->is_valid = true;
+    scs_ptr->invalid_start_tick = 0;
 
-    scs_ptr->hadc_ptr = hadc_ptr;
-    scs_ptr->adc_min = adc_min;
-    scs_ptr->adc_max = adc_max;
-    scs_ptr->min = min;
-    scs_ptr->max = max;
-    scs_ptr->adc_reading = adc_min;
-    scs_ptr->mapped_reading = min;
+    // compute ranges of raw and mapped readings
+    uint32_t adc_range = config_ptr->max_adc - config_ptr->min_adc;
+    uint32_t mapped_range = config_ptr->max_mapped - config_ptr->min_mapped;
 
-    uint32_t adc_range = adc_max - adc_min;
-    uint32_t mapped_range = max - min;
-
+    // pre-compute the scale factors and validation constants
     scs_ptr->scale_up = (adc_range < mapped_range);
     scs_ptr->scale_factor = scs_ptr->scale_up
                                 ? ((float) mapped_range / adc_range)
                                 : ((float) adc_range / mapped_range);
-    scs_ptr->max_bounds_diff = adc_range * SCS_OUTSIDE_BOUNDS_FRACTION;
+    scs_ptr->max_bounds_diff = adc_range * config_ptr->outside_bounds_fraction;
+
+    return STATUS_OK;
 }
 
 /**
- * @brief       Reads the ADC and calculates the value of a safety critical
- *              signal
+ * @brief       Reads the SCS (blocking)
  *
- * @param[in]   scs_ptr     Pointer to SCS instance
+ * @details     In the event of an SCS failure, the output is set to the
+ *              minimum of the configured mapped range
+ *
+ * @param[in]   scs_ptr         SCS instance
+ * @param[out]  reading_ptr     Output reading, mapped to configured range
+ *
+ * @retval      STATUS_OK       SCS valid
+ * @retval      STATUS_ERROR    SCS out of bounds, or HAL error
  */
-uint32_t scs_read(scs_t* scs_ptr)
+status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
 {
-    if (scs_ptr == NULL || scs_ptr->hadc_ptr == NULL)
+    status_t status = STATUS_OK;
+    ADC_HandleTypeDef* hadc = scs_ptr->config_ptr->hadc;
+
+    // read from the ADC and validate
+    if ((HAL_ADC_Start(hadc) == HAL_OK)
+        && (HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY) == HAL_OK))
     {
-        return 0;
+        scs_ptr->adc_reading = HAL_ADC_GetValue(hadc);
+        scs_ptr->is_valid = validate(scs_ptr->adc_reading,
+                                     scs_ptr->config_ptr->max_adc,
+                                     scs_ptr->config_ptr->min_adc,
+                                     scs_ptr->max_bounds_diff);
+
+        if (scs_ptr->is_valid)
+        {
+            // everything is ok
+            status = STATUS_OK;
+            scs_ptr->invalid_start_tick = 0;
+            scs_ptr->mapped_reading = map_adc_reading(scs_ptr);
+            *reading_ptr = scs_ptr->mapped_reading;
+        }
+        else
+        {
+            status = STATUS_ERROR;
+        }
+    }
+    else
+    {
+        // TODO: HAL errors here behave as SCS errors, consider if they should
+        //       be treated differently for diagnostics
+        status = STATUS_ERROR;
     }
 
-    if (HAL_ADC_Start(scs_ptr->hadc_ptr) != HAL_OK
-        || HAL_ADC_PollForConversion(scs_ptr->hadc_ptr, HAL_MAX_DELAY)
-               != HAL_OK)
+    if (status != STATUS_OK)
     {
-        scs_ptr->adc_reading = scs_ptr->adc_min;
-        scs_ptr->mapped_reading = scs_ptr->min;
-
-        // TODO: use internal fault handling system
-        Error_Handler();
-
-        return scs_ptr->mapped_reading;
+        scs_ptr->invalid_start_tick = tx_time_get();
+        scs_ptr->is_valid = false;
+        scs_ptr->adc_reading = scs_ptr->config_ptr->min_adc;
+        scs_ptr->mapped_reading = scs_ptr->config_ptr->min_mapped;
     }
 
-    scs_ptr->adc_reading = HAL_ADC_GetValue(scs_ptr->hadc_ptr);
-    scs_ptr->mapped_reading = map_adc_reading(scs_ptr);
-
-    return scs_ptr->mapped_reading;
+    return status;
 }
 
 /**
- * @brief       Validates the ADC reading of a safety critical signal
- *
- * @details     Validation logic:
- *
- *              adc_reading
- *                  ^
- *                  |   invalid
- *                  |   ------------------------- adc_max + max_bounds_diff
- *                  |   valid
- *                  |   ------------------------- adc_max
- *                  |
- *                  |
- *                  |   valid
- *                  |
- *                  |
- *                  |   ------------------------- adc_min
- *                  |   valid
- *                  |   ------------------------- adc_min - max_bounds_diff
- *                  |   invalid
- *
- * @note        scs_read() must be called first
+ * @brief       Map raw ADC reading of safety critical signal, with clipping
  *
  * @param[in]   scs_ptr     Pointer to SCS instance
- *
- * @return      true        The signal is valid
- * @return      false       The signal is invalid
  */
-bool scs_validate(scs_t* scs_ptr)
+uint16_t map_adc_reading(scs_t* scs_ptr)
 {
-    uint32_t low_diff = 0;
-    uint32_t high_diff = 0;
+    uint16_t clipped = clip_to_range(scs_ptr->adc_reading,
+                                     scs_ptr->config_ptr->min_adc,
+                                     scs_ptr->config_ptr->max_adc);
 
-    if (scs_ptr->adc_reading < scs_ptr->adc_min)
-    {
-        low_diff = scs_ptr->adc_min - scs_ptr->adc_reading;
-    }
+    uint16_t shifted = clipped - scs_ptr->config_ptr->min_adc;
 
-    if (scs_ptr->adc_reading > scs_ptr->adc_max)
-    {
-        high_diff = scs_ptr->adc_reading - scs_ptr->adc_max;
-    }
+    uint16_t scaled = (scs_ptr->scale_up) ? shifted * scs_ptr->scale_factor
+                                          : shifted / scs_ptr->scale_factor;
 
-    return low_diff < scs_ptr->max_bounds_diff
-           && high_diff < scs_ptr->max_bounds_diff;
+    uint16_t mapped = scaled + scs_ptr->config_ptr->min_mapped;
+
+    return clip_to_range(mapped,
+                         scs_ptr->config_ptr->min_mapped,
+                         scs_ptr->config_ptr->max_mapped);
 }
 
 /**
@@ -143,37 +136,69 @@ bool scs_validate(scs_t* scs_ptr)
  * @param[in]   min     Minimum of range
  * @param[in]   max     Maximum of range
  */
-uint32_t clip_to_range(uint32_t value, uint32_t min, uint32_t max)
+uint16_t clip_to_range(uint16_t value, uint16_t min, uint16_t max)
 {
+    uint16_t ret = value;
+
     if (value < min)
     {
-        return min;
+        ret = min;
     }
     else if (value > max)
     {
-        return max;
+        ret = max;
     }
 
-    return value;
+    return ret;
 }
 
 /**
- * @brief       Map raw ADC reading of safety critical signal, with clipping
+ * @brief       Validates the ADC reading of a safety critical signal
  *
- * @param[in]   scs_ptr     Pointer to SCS instance
+ * @details     Validation logic:
+ *
+ *              adc_reading
+ *                  ^
+ *                  |   invalid
+ *                  |   ------------------------- max + max_diff
+ *                  |   valid
+ *                  |   ------------------------- max
+ *                  |
+ *                  |
+ *                  |   valid
+ *                  |
+ *                  |
+ *                  |   ------------------------- min
+ *                  |   valid
+ *                  |   ------------------------- min - max_diff
+ *                  |   invalid
+ *
+ *
+ * @param[in]   adc_reading         ADC reading
+ * @param[in]   max_adc_reading     Maximum valid ADC reading
+ * @param[in]   min_adc_reading     Minimum valid ADC reading
+ * @param[in]   max_diff            Maximum amount over max/min
+ *
+ * @return      true                The signal is valid
+ * @return      false               The signal is invalid
  */
-uint32_t map_adc_reading(scs_t* scs_ptr)
+bool validate(uint16_t adc_reading,
+              uint16_t max_adc_reading,
+              uint16_t min_adc_reading,
+              uint32_t max_diff)
 {
-    uint32_t clipped = clip_to_range(scs_ptr->adc_reading,
-                                     scs_ptr->adc_min,
-                                     scs_ptr->adc_max);
+    uint16_t low_diff = 0;
+    uint16_t high_diff = 0;
 
-    uint32_t shifted = clipped - scs_ptr->adc_min;
+    if (adc_reading < min_adc_reading)
+    {
+        low_diff = min_adc_reading - adc_reading;
+    }
 
-    uint32_t scaled = scs_ptr->scale_up ? shifted * scs_ptr->scale_factor
-                                        : shifted / scs_ptr->scale_factor;
+    if (adc_reading > max_adc_reading)
+    {
+        high_diff = adc_reading - max_adc_reading;
+    }
 
-    uint32_t mapped = scaled + scs_ptr->min;
-
-    return clip_to_range(mapped, scs_ptr->min, scs_ptr->max);
+    return (low_diff < max_diff) && (high_diff < max_diff);
 }
