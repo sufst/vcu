@@ -40,7 +40,7 @@ typedef enum
     CTRL_STATE_TS_ON,
     CTRL_STATE_TS_ACTIVATION_FAILURE,
     CTRL_STATE_TS_RUN_FAULT,
-    CTRL_STATE_SCS_FAULT
+    CTRL_STATE_APPS_SCS_FAULT
 } ctrl_state_t;
 
 /**
@@ -53,7 +53,10 @@ typedef struct
     dash_context_t* dash_ptr;             // dash service
     canbc_context_t* canbc_ptr;           // CANBC service
     apps_context_t apps;                  // APPS interface instance
-    uint16_t apps_reading;                // lastest APPS reading
+    uint16_t apps_reading;                // APPS reading (% * 10)
+    uint16_t bps_reading;                 // BPS reading (% * 10)
+    int16_t sagl_reading;                 // steering angle reading (deg * 10)
+    uint16_t torque_request;              // last torque request
     const config_ctrl_t* config_ptr;      // config
     const config_rtds_t* rtds_config_ptr; // RTDS config
     uint8_t error;                        // error code

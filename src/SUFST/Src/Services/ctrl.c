@@ -17,7 +17,7 @@
 void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
-void ctrl_handle_fault(ctrl_context_t* ctrl_ptr);
+void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
 
 /**
  * @brief       Initialises control service
@@ -45,6 +45,9 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->error = CTRL_ERROR_NONE;
     ctrl_ptr->apps_reading = 0;
+    ctrl_ptr->bps_reading = 0;
+    ctrl_ptr->sagl_reading = 0;
+    ctrl_ptr->torque_request = 0;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -203,21 +206,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             // TODO: send torque request to inverter
         }
+        else
+        {
+            // TODO: disable inverter
+            next_state = CTRL_STATE_APPS_SCS_FAULT;
+        }
 
-        // bool inverter_fault = false; // TODO: actually check for faults
-        // bool trc_fault = false;
-
-        // if (inverter_fault)
-        // {
-        //     ctrl_ptr->error |= CTRL_ERROR_INVERTER_RUN_FAULT;
-        //     next_state = CTRL_STATE_TS_RUN_FAULT;
-        // }
-
-        // if (trc_fault)
-        // {
-        //     ctrl_ptr->error |= CTRL_ERROR_TRC_RUN_FAULT;
-        //     next_state = CTRL_STATE_TS_RUN_FAULT;
-        // }
+        // TODO: check for inverter fault, or TRC fault
 
         break;
     }
@@ -226,14 +221,21 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     case (CTRL_STATE_TS_RUN_FAULT):
     {
-        ctrl_handle_fault(ctrl_ptr);
+        ctrl_handle_ts_fault(ctrl_ptr);
         break;
     }
 
     // SCS fault
-    case (CTRL_STATE_SCS_FAULT):
+    // this is recoverable, if the signal becomes plausible again
+    case (CTRL_STATE_APPS_SCS_FAULT):
     {
-        // TODO: handle
+        // TODO: request zero torque repeatedly
+
+        if (apps_check_plausibility(&ctrl_ptr->apps))
+        {
+            next_state = CTRL_STATE_TS_ON;
+        }
+
         break;
     }
 
@@ -250,7 +252,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
  *
  * @param[in]   ctrl_ptr    Control context
  */
-void ctrl_handle_fault(ctrl_context_t* ctrl_ptr)
+void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
 {
     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
@@ -274,7 +276,11 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
     if (states != NULL)
     {
         // TODO: add ready to drive state?
-        states->state.vcu_ctrl_state = (uint16_t) ctrl_ptr->state;
+        states->sensors.vcu_apps = ctrl_ptr->apps_reading;
+        states->sensors.vcu_bps = ctrl_ptr->bps_reading;
+        states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
+        states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
+        states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
         states->errors.vcu_ctrl_error = ctrl_ptr->error;
         canbc_unlock_state(ctrl_ptr->canbc_ptr);
     }

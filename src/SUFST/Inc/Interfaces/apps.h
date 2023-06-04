@@ -29,5 +29,6 @@ typedef struct
  */
 status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr);
 status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr);
+bool apps_check_plausibility(apps_context_t* apps_ptr);
 
 #endif
