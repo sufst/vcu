@@ -13,6 +13,7 @@
 #include <tx_api.h>
 
 #include "apps.h"
+#include "bps.h"
 #include "canbc.h"
 #include "config.h"
 #include "dash.h"
@@ -48,18 +49,23 @@ typedef enum
  */
 typedef struct
 {
-    ctrl_state_t state;                   // state machine state
-    TX_THREAD thread;                     // service thread
-    dash_context_t* dash_ptr;             // dash service
-    canbc_context_t* canbc_ptr;           // CANBC service
-    apps_context_t apps;                  // APPS interface instance
-    uint16_t apps_reading;                // APPS reading (% * 10)
-    uint16_t bps_reading;                 // BPS reading (% * 10)
-    int16_t sagl_reading;                 // steering angle reading (deg * 10)
-    uint16_t torque_request;              // last torque request
+    ctrl_state_t state;      // state machine state
+    TX_THREAD thread;        // service thread
+    uint16_t apps_reading;   // APPS reading (% * 10)
+    uint16_t bps_reading;    // BPS reading (% * 10)
+    int16_t sagl_reading;    // steering angle reading (deg * 10)
+    uint16_t torque_request; // last torque request
+
+    dash_context_t* dash_ptr;   // dash service
+    canbc_context_t* canbc_ptr; // CANBC service
+    apps_context_t apps;        // APPS interface instance
+    bps_context_t bps;          // BPS interface instance
+
     const config_ctrl_t* config_ptr;      // config
     const config_rtds_t* rtds_config_ptr; // RTDS config
-    uint8_t error;                        // error code
+
+    uint8_t error; // error code
+
 } ctrl_context_t;
 
 /*
@@ -71,6 +77,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,
+                   const config_bps_t* bps_config_ptr,
                    const config_rtds_t* rtds_config_ptr);
 
 #endif
