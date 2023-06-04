@@ -101,7 +101,6 @@ src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
-src/SUFST/Src/Test/trace.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
@@ -330,8 +329,6 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
--Isrc/SUFST/Inc/Test \
--Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
 -Isrc/Drivers/CMSIS/Device/ST/STM32f7xx/Include \
