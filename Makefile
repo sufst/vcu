@@ -90,8 +90,7 @@ C_SOURCES =  \
 src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
 src/SUFST/Src/CAN/pm100.c \
-src/SUFST/Src/Profiles/driver_profiles.c \
-src/SUFST/Src/Profiles/driver_profile_data.c \
+src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/bps.c \
 src/SUFST/Src/Interfaces/rtds.c \
@@ -100,7 +99,6 @@ src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
-src/SUFST/Src/Services/ts_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
@@ -330,7 +328,7 @@ C_INCLUDES =  \
 -Isrc/Core/Inc \
 -Isrc/SUFST/Inc \
 -Isrc/SUFST/Inc/CAN \
--Isrc/SUFST/Inc/Profiles \
+-Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
 -Isrc/SUFST/Inc/Test \
