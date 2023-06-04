@@ -89,15 +89,14 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 C_SOURCES =  \
 src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
-src/SUFST/Src/config_rules.c \
-src/SUFST/Src/ready_to_drive.c \
 src/SUFST/Src/shutdown.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
 src/SUFST/Src/Interfaces/apps.c \
-src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/bps.c \
+src/SUFST/Src/Interfaces/rtds.c \
+src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
