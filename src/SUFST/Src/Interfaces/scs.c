@@ -8,10 +8,11 @@
 
 #include <tx_api.h>
 
+#include "clip_to_range.h"
+
 /*
  * internal function prototypes
  */
-static uint16_t clip_to_range(uint16_t value, uint16_t min, uint16_t max);
 static uint16_t map_adc_reading(scs_t* scs_ptr);
 static bool validate(uint16_t adc_reading,
                      uint16_t max_adc_reading,
@@ -125,31 +126,6 @@ uint16_t map_adc_reading(scs_t* scs_ptr)
     return clip_to_range(mapped,
                          scs_ptr->config_ptr->min_mapped,
                          scs_ptr->config_ptr->max_mapped);
-}
-
-/**
- * @brief       Clips a value to a range
- *
- * @details     Value is clipped to [min, max]
- *
- * @param[in]   value   Value to clip
- * @param[in]   min     Minimum of range
- * @param[in]   max     Maximum of range
- */
-uint16_t clip_to_range(uint16_t value, uint16_t min, uint16_t max)
-{
-    uint16_t ret = value;
-
-    if (value < min)
-    {
-        ret = min;
-    }
-    else if (value > max)
-    {
-        ret = max;
-    }
-
-    return ret;
 }
 
 /**
