@@ -72,6 +72,14 @@ typedef struct {
 } config_apps_t;
 
 /**
+ * @brief   BPS
+ */
+typedef struct {
+    config_scs_t scs;                       // SCS configuration
+    float fully_pressed_fraction;           // threshold above which considered 'fully pressed'
+} config_bps_t;
+
+/**
  * @brief   Ready to drive speaker
  */
 typedef struct {
@@ -99,11 +107,11 @@ typedef struct {
 typedef struct {
     config_dash_t dash;
     config_apps_t apps;
+    config_bps_t bps;
     config_ctrl_t ctrl;
     config_rtds_t rtds;
     config_canbc_t canbc;
 } config_t;
-
 
 /*
  * public functions
@@ -146,27 +154,6 @@ const config_t* config_get();
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 
-/***************************************************************************
- * sensors
- ***************************************************************************/
-
-#define APPS_DISABLE_DIFF_CHECK             1       // disable check for discrepancy between APPS inputs
-#define APPS_DISABLE_SCS_CHECK              1       // disable check for APPS ADC reading out of bounds
-
-#define APPS_ADC_RESOLUTION                 16      // resolution of raw APPS input from ADC
-#define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
-#define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
-
-/***************************************************************************
- * BPS - brake pressure sensor
- ***************************************************************************/
-
-#define BPS_DISABLE_SCS_CHECK               1       // disable check for BPS ADC reading out of bounds
-
-#define BPS_ADC_MIN                         200     // minimum raw ADC reading for BPS
-#define BPS_ADC_MAX                         4000    // maximum raw ADC reading for BPS
-#define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
-#define BPS_FULLY_PRESSED_THRESHOLD         0.95f   // fraction of BPS full range beyond which it is considered to be fully pressed
 
 /***************************************************************************
  * testbenches

@@ -53,13 +53,24 @@ static const config_t config_instance = {
         },
         .max_discrepancy = 100, // 10% of range
     },
+    .bps = {
+        .scs = {
+            .hadc = &hadc3,
+            .min_adc = 0x600,
+            .max_adc = 0x900,
+            .min_mapped = 0,
+            .max_mapped = 1000,
+            .outside_bounds_fraction = 0.05f
+        },
+        .fully_pressed_fraction = 0.8f
+    },
     .ctrl = {
         .thread = {
             .name = "Control",
             .priority = 2,
             .stack_size = 1024
         },
-        .r2d_requires_brake = false,
+        .r2d_requires_brake = true,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),

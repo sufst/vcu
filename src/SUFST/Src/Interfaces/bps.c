@@ -1,57 +1,55 @@
 #include "bps.h"
 
-// /**
-//  * @brief Safety critical signal instance for BPS
-//  */
-// static scs_t bps_signal;
+/**
+ * @brief       Initialises BPS
+ *
+ * @param[in]   bps_ptr     BPS context
+ * @param[in]   config_ptr  Configuration
+ */
+status_t bps_init(bps_context_t* bps_ptr, const config_bps_t* config_ptr)
+{
+    bps_ptr->config_ptr = config_ptr;
 
-// /**
-//  * @brief Initialise BPS
-//  */
-// void bps_init()
-// {
-//     // TODO: reimplement
-//     // uint32_t bps_signal_max = (1 << BPS_SCALED_RESOLUTION) - 1;
+    // compute pressure thresholds
+    const uint16_t range
+        = config_ptr->scs.max_mapped - config_ptr->scs.min_mapped;
 
-//     // scs_create(&bps_signal,
-//     //            &hadc3,
-//     //            BPS_ADC_MIN,
-//     //            BPS_ADC_MAX,
-//     //            0,
-//     //            bps_signal_max);
-// }
+    const uint16_t offset = config_ptr->scs.min_mapped;
 
-// /**
-//  * @brief Read BPS
-//  */
-// uint32_t bps_read()
-// {
-//     // TODO: reimplement
-//     // uint32_t reading = scs_read(&bps_signal);
+    bps_ptr->fully_pressed_threshold
+        = (config_ptr->fully_pressed_fraction * range) + offset;
 
-// #if !BPS_DISABLE_SCS_CHECK
-//     if (!scs_validate(&bps_signal))
-//     {
-//         // TODO: create fault handling system
-//         Error_Handler();
-//     }
-// #endif
+    // create the SCS instance
+    status_t status = scs_create(&bps_ptr->signal, &config_ptr->scs);
 
-//     return 0;
-// }
+    return status;
+}
 
-// /**
-//  * @brief   Checks if BPS is fully pressed
-//  *
-//  * @return  true    BPS is fully pressed
-//  * @return  false   BPS is not fully pressed
-//  */
-// bool bps_fully_pressed()
-// {
-//     const uint32_t bps_max = (1 << BPS_SCALED_RESOLUTION) - 1;
-//     const uint32_t bps_threshold = bps_max * BPS_FULLY_PRESSED_THRESHOLD;
+/**
+ * @brief       Reads the BPS
+ *
+ * @param[in]   bps_ptr
+ * @param[out]  reading_ptr
+ */
+status_t bps_read(bps_context_t* bps_ptr, uint16_t* reading_ptr)
+{
+    return scs_read(&bps_ptr->signal, reading_ptr);
+}
 
-//     uint32_t bps_input = bps_read();
+/**
+ * @brief
+ *
+ * @param[in]   bps_ptr     BPS context
+ *
+ * @retval  true    BPS is fully pressed
+ * @retval  false   BPS not fully pressed, or SCS fault
+ */
+bool bps_fully_pressed(bps_context_t* bps_ptr)
+{
+    uint16_t reading = 0;
+    status_t status = bps_read(bps_ptr, &reading);
 
-//     return bps_input > bps_threshold;
-// }
+    bool above_threshold = (reading > bps_ptr->fully_pressed_threshold);
+
+    return (status == STATUS_OK) && above_threshold;
+}

@@ -28,6 +28,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
  * @param[in]   config_ptr          Configuration
  * @param[in]   apps_config_ptr     APPS configuration
+ * @param[in]   bps_config_ptr      BPS configuration
  * @param[in]   rtds_config_ptr     RTDS configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
@@ -36,6 +37,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,
+                   const config_bps_t* bps_config_ptr,
                    const config_rtds_t* rtds_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
@@ -72,10 +74,15 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 
     status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 
-    // initialise the APPS
+    // initialise the APPS and BPS
     if (status == STATUS_OK)
     {
         status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
+    }
+
+    if (status == STATUS_OK)
+    {
+        status = bps_init(&ctrl_ptr->bps, bps_config_ptr);
     }
 
     // make sure TS is disabled
@@ -182,16 +189,33 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     }
 
     // pre-charge is complete, wait for R2D signal
+    // also wait for brake to be fully pressed (if enabled)
     case (CTRL_STATE_R2D_WAIT):
     {
+        bool r2d = false;
         dash_wait_for_r2d(dash_ptr);
-        dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 
-        // TODO: enable inverter
+        if (config_ptr->r2d_requires_brake)
+        {
+            if (bps_fully_pressed(&ctrl_ptr->bps))
+            {
+                r2d = true;
+            }
+        }
+        else
+        {
+            r2d = true;
+        }
 
-        rtds_activate(ctrl_ptr->rtds_config_ptr);
+        if (r2d)
+        {
+            dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+            rtds_activate(ctrl_ptr->rtds_config_ptr);
+            next_state = CTRL_STATE_TS_ON;
 
-        next_state = CTRL_STATE_TS_ON;
+            // TODO: enable inverter
+        }
+
         break;
     }
 
