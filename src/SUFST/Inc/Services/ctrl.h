@@ -17,6 +17,7 @@
 #include "canbc.h"
 #include "config.h"
 #include "dash.h"
+#include "pm100.h"
 #include "status.h"
 #include "torque_map.h"
 
@@ -58,6 +59,7 @@ typedef struct
     uint16_t torque_request; // last torque request
 
     dash_context_t* dash_ptr;   // dash service
+    pm100_context_t* pm100_ptr; // PM100 service
     canbc_context_t* canbc_ptr; // CANBC service
     apps_context_t apps;        // APPS interface instance
     bps_context_t bps;          // BPS interface instance
@@ -75,6 +77,7 @@ typedef struct
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
+                   pm100_context_t* pm100_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,

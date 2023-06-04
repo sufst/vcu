@@ -83,6 +83,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     {
         status = ctrl_init(&vcu_ptr->ctrl,
                            &vcu_ptr->dash,
+                           &vcu_ptr->pm100,
                            &vcu_ptr->canbc,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->ctrl,

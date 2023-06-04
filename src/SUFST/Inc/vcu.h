@@ -21,7 +21,9 @@
 #include "status.h"
 
 /**
- * @brief   Contains the entire state of the VCU and all module instances
+ * @brief       VCU context
+ *
+ * @details     Contains the entire state of the VCU and all module instances
  */
 typedef struct
 {
@@ -37,7 +39,7 @@ typedef struct
 } vcu_context_t;
 
 /*
- * function prototypes
+ * public functions
  */
 
 status_t vcu_init(vcu_context_t* vcu_ptr,

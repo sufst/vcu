@@ -25,6 +25,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   ctrl_ptr                Control context
  * @param[in]   dash_ptr                Dash context
  * @param[in]   canbc_ptr               CANBC context
+ * @param[in]   pm100_ptr               PM100 context
  * @param[in]   stack_pool_ptr          Byte pool to allocate thread stack from
  * @param[in]   config_ptr              Configuration
  * @param[in]   apps_config_ptr         APPS configuration
@@ -34,6 +35,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
+                   pm100_context_t* pm100_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
@@ -44,6 +46,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
+    ctrl_ptr->pm100_ptr = pm100_ptr;
     ctrl_ptr->canbc_ptr = canbc_ptr;
     ctrl_ptr->config_ptr = config_ptr;
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
