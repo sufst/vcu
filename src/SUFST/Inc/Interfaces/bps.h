@@ -10,8 +10,12 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-void bps_init();
-uint32_t bps_read();
-bool bps_fully_pressed();
+#include "config.h"
+#include "scs.h"
+#include "status.h"
+
+// void bps_init();
+// uint32_t bps_read();
+// bool bps_fully_pressed();
 
 #endif

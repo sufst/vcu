@@ -9,19 +9,32 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <adc.h>
 #include <gpio.h>
 #include <tx_api.h>
 #include <stdint.h>
 #include <stdbool.h>
 
 /**
- * @brief  Generic configuration for threads
+ * @brief  Threads
  */
 typedef struct {
     uint32_t priority;                      // thread priority
     uint32_t stack_size;                    // stack size
     const char* name;                       // name
 } config_thread_t;
+
+/**
+ * @brief   System critical signals
+ */
+typedef struct {
+    ADC_HandleTypeDef* hadc;                // ADC handle
+    uint16_t min_adc;                       // minimum expected ADC reading
+    uint16_t max_adc;                       // maximum expected ADC reading
+    uint16_t min_mapped;                    // minimum mapped reading
+    uint16_t max_mapped;                    // maximum mapped reading
+    float outside_bounds_fraction;          // fraction of mapped range defining out of bounds signal
+} config_scs_t;
 
 /**
  * @brief   Control
@@ -50,6 +63,15 @@ typedef struct {
 } config_dash_t;
 
 /**
+ * @brief   APPS
+ */
+typedef struct {
+    config_scs_t apps_1_scs;                // SCS configuration for first APPS signal
+    config_scs_t apps_2_scs;                // SCS configuration for second APPS signal
+    uint32_t max_discrepancy;               // maximum discrepancy between APPS readings
+} config_apps_t;
+
+/**
  * @brief   Ready to drive speaker
  */
 typedef struct {
@@ -76,11 +98,16 @@ typedef struct {
  */
 typedef struct {
     config_dash_t dash;
+    config_apps_t apps;
     config_ctrl_t ctrl;
     config_rtds_t rtds;
     config_canbc_t canbc;
 } config_t;
 
+
+/*
+ * public functions
+ */
 const config_t* config_get();
 
 
@@ -96,31 +123,6 @@ const config_t* config_get();
  * NOTE: MIGRATION OF OLD CONFIG SYSTEM BELOW IN PROGRESS!
  * 
  ***************************************************************************/
-
-/***************************************************************************
- * competition mode 
- * -> defaults to 0 for debug
- * -> set to 1 automatically in release build
- * -> this enables strict checks on configuration 
- ***************************************************************************/
-
-#ifndef COMPETITION_MODE
-    #define COMPETITION_MODE		        0
-#endif
-
-/***************************************************************************
- * ready-to-drive
- ***************************************************************************/
-
-#define READY_TO_DRIVE_BUTTON_ENABLE		1		// set to 1 to use the 'USER' button as the ready-to-drive signal
-#define READY_TO_DRIVE_CHECK_BPS            0
-#define READY_TO_DRIVE_SPEAKER_TIME	        2500	// in ms
-
-/***************************************************************************
- * fault state
- ***************************************************************************/
-
-#define FAULT_STATE_LED_BLINK_RATE 	        2		// in Hz
 
 /***************************************************************************
  * RTOS
@@ -155,11 +157,6 @@ const config_t* config_get();
 #define APPS_MAX_DIFF_FRACTION              0.025f  // maximum allowable difference between APPS inputs as a fraction of scaled range
 #define APPS_OUTSIDE_BOUNDS_FRACTION        0.01f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
-#define APPS_1_ADC_MIN                      0x600    //  minimum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MIN                      0x600    // ^                                ^ channel 2
-#define APPS_1_ADC_MAX                      0x900    //  maximum raw ADC reading for APPS  channel 1
-#define APPS_2_ADC_MAX                      0x900    // ^                                ^ channel 2
-
 /***************************************************************************
  * BPS - brake pressure sensor
  ***************************************************************************/
@@ -170,12 +167,6 @@ const config_t* config_get();
 #define BPS_ADC_MAX                         4000    // maximum raw ADC reading for BPS
 #define BPS_SCALED_RESOLUTION               10      // resolution of scaled BPS input
 #define BPS_FULLY_PRESSED_THRESHOLD         0.95f   // fraction of BPS full range beyond which it is considered to be fully pressed
-
-/***************************************************************************
- * SCS - safety critical signals
- ***************************************************************************/
-
-#define SCS_OUTSIDE_BOUNDS_FRACTION         0.05f   // fraction of full ADC range above/below ADC min/max considered 'out of bounds'
 
 /***************************************************************************
  * testbenches
