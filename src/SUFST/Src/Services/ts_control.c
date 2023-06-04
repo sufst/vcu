@@ -8,7 +8,6 @@
 
 #include <stdbool.h>
 
-#include "can_database.h"
 #include "config.h"
 #include "driver_profiles.h"
 

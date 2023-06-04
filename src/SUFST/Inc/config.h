@@ -23,7 +23,7 @@ typedef struct {
 } config_thread_t;
 
 /**
- * @brief   COntrol
+ * @brief   Control
  */
 typedef struct {
     config_thread_t thread;                 // control thread config
@@ -50,6 +50,14 @@ typedef struct {
 } config_dash_t;
 
 /**
+ * @brief   CAN broadcasting service
+ */
+typedef struct {
+    config_thread_t thread;                 // CANBC thread config
+    uint32_t broadcast_period_ticks;        // ticks between broadcasts
+} config_canbc_t;
+
+/**
  * @brief   VCU configuration
  * 
  * @details The intended usage is that the main VCU module loads an instance of
@@ -58,10 +66,9 @@ typedef struct {
  *          but that makes them less portable / decoupled.
  */
 typedef struct {
-
     config_dash_t dash;
     config_ctrl_t ctrl;
-
+    config_canbc_t canbc;
 } config_t;
 
 const config_t* config_get();
@@ -111,14 +118,12 @@ const config_t* config_get();
 
 #define RTCAN_S_PRIORITY                    3   
 #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
-#define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
 #define TS_CTRL_THREAD_PRIORITY		        2
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100 // times per second
-#define CANBC_BROADCAST_PERIOD              100 // milliseconds
 
 /***************************************************************************
  * CAN / inverter

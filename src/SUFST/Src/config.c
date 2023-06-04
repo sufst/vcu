@@ -46,6 +46,14 @@ static const config_t config_instance = {
         .rtds_sound_ticks = SECONDS_TO_TICKS(2.5),
         .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1)
+    },
+    .canbc = {
+        .thread = {
+            .name = "CANBC",
+            .priority = 4,
+            .stack_size = 1024
+        },
+        .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
     }
 };
 

@@ -92,7 +92,6 @@ src/SUFST/Src/config.c \
 src/SUFST/Src/config_rules.c \
 src/SUFST/Src/ready_to_drive.c \
 src/SUFST/Src/shutdown.c \
-src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
 src/SUFST/Src/Profiles/driver_profile_data.c \
@@ -100,9 +99,10 @@ src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/bps.c \
 src/SUFST/Src/Interfaces/trc.c \
-src/SUFST/Src/Services/ts_control.c \
+src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
+src/SUFST/Src/Services/ts_control.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/SUFST/Src/Test/trace.c \
@@ -311,7 +311,7 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_database.c
+src/Middlewares/SUFST/can-defs/out/can_c.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \

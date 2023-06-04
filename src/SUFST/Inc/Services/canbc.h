@@ -9,9 +9,13 @@
 #define CANBC_H
 
 #include <can.h>
+#include <can_c.h>
 #include <rtcan.h>
 #include <stdint.h>
 #include <tx_api.h>
+
+#include "config.h"
+#include "status.h"
 
 /**
  * @brief   Stores system states which will be broadcast to the CAN bus
@@ -23,18 +27,9 @@
  */
 typedef struct
 {
-    // driver inputs
-    uint16_t apps_reading;
-    uint16_t bps_reading;
-    uint32_t torque_request;
-
-    // VCU internal states
-    struct
-    {
-        uint8_t r2d : 1;
-        uint8_t shutdown : 1;
-        uint8_t UNUSED1 : 6;
-    } vcu_state;
+    struct can_c_vcu_sensors_t sensors;
+    struct can_c_vcu_state_t state;
+    struct can_c_vcu_error_t errors;
 
 } canbc_states_t;
 
@@ -43,29 +38,25 @@ typedef struct
  */
 typedef struct
 {
+    TX_THREAD thread;                 // service thread
+    TX_MUTEX state_mutex;             // mutex for locking broadcast states
+    rtcan_handle_t* rtcan_h;          // RTCAN instance to broadcast on
+    canbc_states_t states;            // broadcasting states
+    uint16_t rolling_counter;         // counts number of broadcasts
+    const config_canbc_t* config_ptr; // configuration
 
-    TX_THREAD thread;
-    TX_MUTEX state_mutex;
-
-    rtcan_handle_t* rtcan_h;
-    uint32_t bc_period;
-
-    canbc_states_t states;
-    uint16_t rolling_counter;
-
-} canbc_handle_t;
+} canbc_context_t;
 
 /*
  * public functions
  */
-void canbc_init(canbc_handle_t* canbc_h,
-                rtcan_handle_t* rtcan_h,
-                uint32_t period,
-                uint32_t priority,
-                TX_BYTE_POOL* stack_pool_ptr);
+status_t canbc_init(canbc_context_t* canbc_h,
+                    rtcan_handle_t* rtcan_h,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    const config_canbc_t* config_ptr);
 
-canbc_states_t* canbc_lock_state(canbc_handle_t* canbc_h, uint32_t timeout);
+canbc_states_t* canbc_lock_state(canbc_context_t* canbc_h, uint32_t timeout);
 
-void canbc_unlock_state(canbc_handle_t* canbc_h);
+void canbc_unlock_state(canbc_context_t* canbc_h);
 
 #endif

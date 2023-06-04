@@ -16,23 +16,28 @@
 void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
+void ctrl_handle_fault(ctrl_context_t* ctrl_ptr);
 
 /**
  * @brief       Initialises control service
  *
  * @param[in]   ctrl_ptr            Control context
  * @param[in]   dash_ptr            Dash context
+ * @param[in]   canbc_ptr           CANBC context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
  * @param[in]   config_ptr          Configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
+                   canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
+    ctrl_ptr->canbc_ptr = canbc_ptr;
     ctrl_ptr->config_ptr = config_ptr;
+    ctrl_ptr->error = CTRL_ERROR_NONE;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -58,7 +63,19 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     // make sure TS is disabled
     trc_set_ts_on(GPIO_PIN_RESET);
 
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    // check all ok
+    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+
+    if (status != STATUS_OK)
+    {
+        tx_thread_terminate(&ctrl_ptr->thread);
+        ctrl_ptr->error |= CTRL_ERROR_INIT;
+    }
+
+    // send initial state update
+    ctrl_update_canbc_states(ctrl_ptr);
+
+    return status;
 }
 
 /**
@@ -114,8 +131,15 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
                                  config_ptr->ts_ready_timeout_ticks);
 
-        next_state = (result == STATUS_OK) ? CTRL_STATE_PRECHARGE_WAIT
-                                           : CTRL_STATE_TS_ACTIVATION_FAILURE;
+        if (result == STATUS_OK)
+        {
+            next_state = CTRL_STATE_PRECHARGE_WAIT;
+        }
+        else
+        {
+            ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
+            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+        }
 
         break;
     }
@@ -125,9 +149,19 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
         // TODO: wait for pre-charge from PM100
+        bool timeout = false; // TODO: actually check for faults
 
-        dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
-        next_state = CTRL_STATE_R2D_WAIT;
+        if (timeout)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
+            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+        }
+        else
+        {
+            dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
+            next_state = CTRL_STATE_R2D_WAIT;
+        }
+
         break;
     }
 
@@ -148,18 +182,30 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         // TODO: read APPS
         // TODO: send torque request to PM100
+
+        bool inverter_fault = false; // TODO: actually check for faults
+        bool trc_fault = false;
+
+        if (inverter_fault)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_INVERTER_RUN_FAULT;
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+
+        if (trc_fault)
+        {
+            ctrl_ptr->error |= CTRL_ERROR_TRC_RUN_FAULT;
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+
         break;
     }
 
-    // activation failure
-    // LED blinks (should be set faster in config)
+    // activation or runtime failure
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
+    case (CTRL_STATE_TS_RUN_FAULT):
     {
-        trc_set_ts_on(GPIO_PIN_RESET);
-        dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
-
-        // TODO: update broadcast states before suspending
-        tx_thread_suspend(&ctrl_ptr->thread);
+        ctrl_handle_fault(ctrl_ptr);
         break;
     }
 
@@ -171,11 +217,37 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 }
 
 /**
+ * @brief       Handles an initialisation or runtime fault of the TS and shuts
+ *              down the service
+ *
+ * @param[in]   ctrl_ptr    Control context
+ */
+void ctrl_handle_fault(ctrl_context_t* ctrl_ptr)
+{
+    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+
+    trc_set_ts_on(GPIO_PIN_RESET);
+    dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
+    ctrl_update_canbc_states(ctrl_ptr);
+
+    tx_thread_suspend(&ctrl_ptr->thread);
+}
+
+/**
  * @brief       Updates the CAN broadcast states relevant to the control service
  *
  * @param[in]   ctrl_ptr
  */
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 {
-    // TODO: implement
+    canbc_states_t* states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
+
+    if (states != NULL)
+    {
+        // TODO: add ready to drive state?
+        states->state.vcu_ctrl_state = (uint16_t) ctrl_ptr->state;
+        states->errors.vcu_ctrl_error = ctrl_ptr->error;
+        canbc_unlock_state(ctrl_ptr->canbc_ptr);
+    }
 }
