@@ -8,6 +8,7 @@
 
 #include <stdbool.h>
 
+#include "rtds.h"
 #include "trc.h"
 
 /*
@@ -26,17 +27,20 @@ void ctrl_handle_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   canbc_ptr           CANBC context
  * @param[in]   stack_pool_ptr      Byte pool to allocate thread stack from
  * @param[in]   config_ptr          Configuration
+ * @param[in]   rtds_config_ptr     RTDS configuration
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_ctrl_t* config_ptr)
+                   const config_ctrl_t* config_ptr,
+                   const config_rtds_t* rtds_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
     ctrl_ptr->canbc_ptr = canbc_ptr;
     ctrl_ptr->config_ptr = config_ptr;
+    ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->error = CTRL_ERROR_NONE;
 
     // create the thread
@@ -172,6 +176,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 
         // TODO: enable inverter
+
+        rtds_activate(ctrl_ptr->rtds_config_ptr);
 
         next_state = CTRL_STATE_TS_ON;
         break;

@@ -46,12 +46,13 @@ typedef enum
  */
 typedef struct
 {
-    ctrl_state_t state;              // state machine state
-    TX_THREAD thread;                // service thread
-    dash_context_t* dash_ptr;        // dash service
-    canbc_context_t* canbc_ptr;      // CANBC service
-    const config_ctrl_t* config_ptr; // config
-    uint8_t error;                   // error code
+    ctrl_state_t state;                   // state machine state
+    TX_THREAD thread;                     // service thread
+    dash_context_t* dash_ptr;             // dash service
+    canbc_context_t* canbc_ptr;           // CANBC service
+    const config_ctrl_t* config_ptr;      // config
+    const config_rtds_t* rtds_config_ptr; // RTDS config
+    uint8_t error;                        // error code
 } ctrl_context_t;
 
 /*
@@ -61,6 +62,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
-                   const config_ctrl_t* config_ptr);
+                   const config_ctrl_t* config_ptr,
+                   const config_rtds_t* rtds_config_ptr);
 
 #endif

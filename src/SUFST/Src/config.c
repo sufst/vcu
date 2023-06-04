@@ -43,9 +43,13 @@ static const config_t config_instance = {
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
-        .rtds_sound_ticks = SECONDS_TO_TICKS(2.5),
         .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1)
+    },
+    .rtds = {
+        .active_ticks = SECONDS_TO_TICKS(2),
+        .port = R2D_SIREN_GPIO_Port,
+        .pin = R2D_SIREN_Pin
     },
     .canbc = {
         .thread = {

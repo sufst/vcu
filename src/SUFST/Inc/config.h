@@ -9,6 +9,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include <gpio.h>
 #include <tx_api.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -31,7 +32,6 @@ typedef struct {
     uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
     uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
     uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
-    uint32_t rtds_sound_ticks;              // ticks for which RTDS is active
     uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
     uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
 } config_ctrl_t;
@@ -48,6 +48,15 @@ typedef struct {
     bool vc_all_leds_on;                    // whether or not the visual check turns on all LEDs, or just the VC LEDs
     uint32_t vc_stagger_ticks;              // ticks between turning on each visible check LED (set to zero to turn all on at once)
 } config_dash_t;
+
+/**
+ * @brief   Ready to drive speaker
+ */
+typedef struct {
+    uint32_t active_ticks;                  // ticks for which RTDS sounds
+    GPIO_TypeDef* port;                     // port for pin driving RTDS
+    uint16_t pin;                           // pin driving RTDS
+} config_rtds_t;
 
 /**
  * @brief   CAN broadcasting service
@@ -68,6 +77,7 @@ typedef struct {
 typedef struct {
     config_dash_t dash;
     config_ctrl_t ctrl;
+    config_rtds_t rtds;
     config_canbc_t canbc;
 } config_t;
 
