@@ -9,6 +9,7 @@
 #define CANBC_H
 
 #include <can.h>
+#include <can_c.h>
 #include <rtcan.h>
 #include <stdint.h>
 #include <tx_api.h>
@@ -26,26 +27,9 @@
  */
 typedef struct
 {
-    // driver inputs
-    uint16_t apps_reading;
-    uint16_t bps_reading;
-    uint16_t sagl_reading;
-    uint16_t torque_request;
-
-    // state
-    uint8_t ctrl_state;
-    bool r2d;
-    bool drs_allowed;
-    bool drs_active;
-    uint16_t rolling_counter;
-
-    // module errors
-    uint8_t ctrl_error;
-    uint8_t pm100_error;
-    uint8_t scs_error;
-    uint8_t rtcan1_error;
-    uint8_t rtcan2_error;
-    uint8_t canbc_error;
+    struct can_c_vcu_sensors_t sensors;
+    struct can_c_vcu_state_t state;
+    struct can_c_vcu_error_t errors;
 
 } canbc_states_t;
 

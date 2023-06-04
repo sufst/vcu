@@ -78,6 +78,9 @@ static void canbc_thread_entry(ULONG input)
 /**
  * @brief       Sends broadcast messages via RTCAN
  *
+ * @details     The broadcast states packed into the CAN messages using the
+ *              packing functions generated from the DBC (see `can-defs` repo).
+ *
  * @note        This approach doesn't scale particularly well, but at the
  *              moment there are a limited number of broadcast states so this
  *              implementation is the simplest.
@@ -90,6 +93,38 @@ static void send_bc_messages(canbc_context_t* canbc_h)
 
     if (tx_status == TX_SUCCESS)
     {
+        // states
+        {
+            rtcan_msg_t message = {.identifier = CAN_C_VCU_STATE_FRAME_ID,
+                                   .length = CAN_C_VCU_STATE_LENGTH};
+
+            can_c_vcu_state_pack(message.data,
+                                 &canbc_h->states.state,
+                                 message.length);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
+
+        // sensors
+        {
+            rtcan_msg_t message = {.identifier = CAN_C_VCU_SENSORS_FRAME_ID,
+                                   .length = CAN_C_VCU_SENSORS_LENGTH};
+
+            can_c_vcu_sensors_pack(message.data,
+                                   &canbc_h->states.sensors,
+                                   message.length);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
+
+        // errors
+        {
+            rtcan_msg_t message = {.identifier = CAN_C_VCU_ERROR_FRAME_ID,
+                                   .length = CAN_C_VCU_ERROR_LENGTH};
+
+            can_c_vcu_error_pack(message.data,
+                                 &canbc_h->states.errors,
+                                 message.length);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
 
         tx_mutex_put(&canbc_h->state_mutex);
     }

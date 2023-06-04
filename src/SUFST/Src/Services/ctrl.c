@@ -246,8 +246,8 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
     if (states != NULL)
     {
         // TODO: add ready to drive state?
-        states->ctrl_state = (uint16_t) ctrl_ptr->state;
-        states->ctrl_error = ctrl_ptr->error;
+        states->state.vcu_ctrl_state = (uint16_t) ctrl_ptr->state;
+        states->errors.vcu_ctrl_error = ctrl_ptr->error;
         canbc_unlock_state(ctrl_ptr->canbc_ptr);
     }
 }
