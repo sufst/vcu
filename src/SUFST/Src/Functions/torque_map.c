@@ -57,9 +57,10 @@ status_t torque_map_init(torque_map_t* map_ptr,
  */
 uint16_t torque_map_apply(torque_map_t* map_ptr, uint16_t input)
 {
-    uint16_t input_deadzone = apply_deadzone(map_ptr, input);
+    const uint16_t input_deadzone = apply_deadzone(map_ptr, input);
+    const uint16_t torque = map_ptr->map_func(map_ptr, input_deadzone);
 
-    return map_ptr->map_func(map_ptr, input_deadzone);
+    return torque;
 }
 
 /**
@@ -101,7 +102,12 @@ uint16_t null_torque_map(torque_map_t* map_ptr, uint16_t input)
  */
 uint16_t linear_torque_map(torque_map_t* map_ptr, uint16_t input)
 {
-    const float scale_factor = map_ptr->config_ptr->input_max
-                               / (float) map_ptr->config_ptr->output_max;
-    return (uint16_t) (input * scale_factor);
+    const float scale_factor = map_ptr->config_ptr->output_max
+                               / (float) map_ptr->config_ptr->input_max;
+
+    const uint16_t torque = (uint16_t) (input * scale_factor);
+
+    // TODO: clip to range
+
+    return torque;
 }

@@ -70,7 +70,7 @@ static const config_t config_instance = {
             .priority = 2,
             .stack_size = 1024
         },
-        .r2d_requires_brake = true,
+        .r2d_requires_brake = false,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),

@@ -18,6 +18,7 @@
 #include "config.h"
 #include "dash.h"
 #include "status.h"
+#include "torque_map.h"
 
 /*
  * error codes
@@ -60,6 +61,7 @@ typedef struct
     canbc_context_t* canbc_ptr; // CANBC service
     apps_context_t apps;        // APPS interface instance
     bps_context_t bps;          // BPS interface instance
+    torque_map_t torque_map;    // torque map (APPS -> torque request)
 
     const config_ctrl_t* config_ptr;      // config
     const config_rtds_t* rtds_config_ptr; // RTDS config
@@ -78,6 +80,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,
                    const config_bps_t* bps_config_ptr,
-                   const config_rtds_t* rtds_config_ptr);
+                   const config_rtds_t* rtds_config_ptr,
+                   const config_torque_map_t* torque_map_config_ptr);
 
 #endif
