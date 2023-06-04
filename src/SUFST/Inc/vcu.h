@@ -17,7 +17,6 @@
 #include "config.h"
 #include "ctrl.h"
 #include "dash.h"
-#include "ts_control.h"
 
 /*
  * error codes
