@@ -45,9 +45,10 @@
     "canbc.h": "c",
     "driver_control.h": "c",
     "gpio.h": "c",
-    "can_database.h": "c"
+    "can_database.h": "c",
+    "status.h": "c"
   },
-  "cortex-debug.variableUseNaturalFormat": false,
+  "cortex-debug.variableUseNaturalFormat": true,
   "C_Cpp.errorSquiggles": "Enabled",
   "mcu-debug.rtos-views.showRTOS": false
 }
