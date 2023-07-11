@@ -58,6 +58,8 @@ typedef struct
     int16_t sagl_reading;    // steering angle reading (deg * 10)
     uint16_t torque_request; // last torque request
 
+    uint32_t precharge_start; // precharge start time in ticks
+
     dash_context_t* dash_ptr;   // dash service
     pm100_context_t* pm100_ptr; // PM100 service
     canbc_context_t* canbc_ptr; // CANBC service

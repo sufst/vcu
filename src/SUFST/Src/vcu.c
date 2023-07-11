@@ -98,6 +98,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     {
         status = pm100_init(&vcu_ptr->pm100,
                             app_mem_pool,
+                            &vcu_ptr->rtcan_c,
                             &vcu_ptr->config_ptr->pm100);
     }
 
