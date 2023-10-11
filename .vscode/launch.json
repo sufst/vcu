@@ -15,7 +15,6 @@
         "executable": "build/VCU.elf",
         "request": "launch",
         "type": "cortex-debug",
-        "armToolchainPath": "/Applications/ARM/bin",
         "serverpath": "st-util"
       },
       "linux": {
@@ -23,15 +22,13 @@
         "executable": "build/VCU.elf",
         "request": "launch",
         "type": "cortex-debug",
-        "armToolchainPath": "?",
-        "serverpath": "?"
+        "serverpath": "st-util"
       },
       "windows": {
         "name": "debug (stutil)",
         "executable": "build/VCU.elf",
         "request": "launch",
         "type": "cortex-debug",
-        "armToolchainPath": "C:\\Program Files (x86)\\GNU Arm Embedded Toolchain\\10 2021.10\\bin",
         "serverpath": "st-util"
       }
     },
@@ -44,14 +41,12 @@
       "type": "cortex-debug",
       "showDevDebugOutput": "none",
       "servertype": "openocd",
-      "configFiles": ["interface/stlink.cfg", "target/stm32h7x.cfg"],
+      "configFiles": ["interface/stlink.cfg", "target/stm32f7x.cfg"],
       "osx": {
-        "armToolchainPath": "/Applications/ARM/bin",
         "serverpath": "openocd"
       },
       "linux": {
-        "armToolchainPath": "?",
-        "serverpath": "?"
+        "serverpath": "openocd"
       }
     }
   ]
