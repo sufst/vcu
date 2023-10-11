@@ -10,27 +10,7 @@
       "showDevDebugOutput": "none",
       "servertype": "stutil",
       "svdFile": "debug/STM32F7x6.svd",
-      "osx": {
-        "name": "debug (stutil)",
-        "executable": "build/VCU.elf",
-        "request": "launch",
-        "type": "cortex-debug",
-        "serverpath": "st-util"
-      },
-      "linux": {
-        "name": "debug (stutil)",
-        "executable": "build/VCU.elf",
-        "request": "launch",
-        "type": "cortex-debug",
-        "serverpath": "st-util"
-      },
-      "windows": {
-        "name": "debug (stutil)",
-        "executable": "build/VCU.elf",
-        "request": "launch",
-        "type": "cortex-debug",
-        "serverpath": "st-util"
-      }
+      "serverpath": "st-util"
     },
     // debug with openocd
     {
@@ -42,12 +22,7 @@
       "showDevDebugOutput": "none",
       "servertype": "openocd",
       "configFiles": ["interface/stlink.cfg", "target/stm32f7x.cfg"],
-      "osx": {
-        "serverpath": "openocd"
-      },
-      "linux": {
-        "serverpath": "openocd"
-      }
+      "serverpath": "openocd"
     }
   ]
 }
