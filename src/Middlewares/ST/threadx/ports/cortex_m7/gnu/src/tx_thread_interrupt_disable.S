@@ -20,14 +20,14 @@
 /**************************************************************************/
 /**************************************************************************/
 
-    .text
+    .text 32
     .align 4
     .syntax unified
 /**************************************************************************/
 /*                                                                        */
 /*  FUNCTION                                               RELEASE        */
 /*                                                                        */
-/*    _tx_thread_context_save                          Cortex-M7/GNU      */
+/*    _tx_thread_interrupt_disable                     Cortex-M7/GNU      */
 /*                                                           6.1.7        */
 /*  AUTHOR                                                                */
 /*                                                                        */
@@ -35,8 +35,8 @@
 /*                                                                        */
 /*  DESCRIPTION                                                           */
 /*                                                                        */
-/*    This function is only needed for legacy applications and it should  */
-/*    not be called in any new development on a Cortex-M.                 */
+/*    This function is responsible for disabling interrupts and returning */
+/*    the previous interrupt lockout posture.                             */
 /*                                                                        */
 /*  INPUT                                                                 */
 /*                                                                        */
@@ -44,15 +44,15 @@
 /*                                                                        */
 /*  OUTPUT                                                                */
 /*                                                                        */
-/*    None                                                                */
+/*    old_posture                           Old interrupt lockout posture */
 /*                                                                        */
 /*  CALLS                                                                 */
 /*                                                                        */
-/*    [_tx_execution_isr_enter]             Execution profiling ISR enter */
+/*    None                                                                */
 /*                                                                        */
 /*  CALLED BY                                                             */
 /*                                                                        */
-/*    ISRs                                                                */
+/*    Application Code                                                    */
 /*                                                                        */
 /*  RELEASE HISTORY                                                       */
 /*                                                                        */
@@ -61,20 +61,19 @@
 /*  06-02-2021      Scott Larson            Initial Version 6.1.7         */
 /*                                                                        */
 /**************************************************************************/
-// VOID   _tx_thread_context_save(VOID)
+// UINT   _tx_thread_interrupt_disable(VOID)
 // {
-    .global  _tx_thread_context_save
+    .global  _tx_thread_interrupt_disable
     .thumb_func
-_tx_thread_context_save:
-
-#if (defined(TX_ENABLE_EXECUTION_CHANGE_NOTIFY) || defined(TX_EXECUTION_PROFILE_ENABLE))        
-    /* Call the ISR enter function to indicate an ISR is starting.  */
-    PUSH    {r0, lr}                                // Save return address
-    BL      _tx_execution_isr_enter                 // Call the ISR enter function
-    POP     {r0, lr}                                // Recover return address
+_tx_thread_interrupt_disable:
+    /* Return current interrupt lockout posture.  */
+#ifdef TX_PORT_USE_BASEPRI
+    MRS     r0, BASEPRI
+    LDR     r1, =TX_PORT_BASEPRI
+    MSR     BASEPRI, r1
+#else
+    MRS     r0, PRIMASK
+    CPSID   i
 #endif
-
-    /* Context is already saved - just return.  */
-
     BX      lr
 // }

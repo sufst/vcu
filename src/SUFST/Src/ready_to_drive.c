@@ -43,9 +43,10 @@ void rtd_wait()
         ;
 #endif
 
-    HAL_GPIO_WritePin(RTD_OUT_GPIO_Port,
-                      RTD_OUT_Pin,
-                      GPIO_PIN_RESET); // active low
+    // TODO: what was this used for? it is not on the schematic
+    // HAL_GPIO_WritePin(RTD_OUT_GPIO_Port,
+    //                   RTD_OUT_Pin,
+    //                   GPIO_PIN_RESET); // active low
     sound_buzzer();
     HAL_GPIO_WritePin(RED_LED_GPIO_Port, RED_LED_Pin, GPIO_PIN_RESET);
 }
@@ -74,7 +75,7 @@ bool rtd_input_active()
  */
 void sound_buzzer()
 {
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(R2D_SIREN_GPIO_Port, R2D_SIREN_Pin, GPIO_PIN_SET);
     tx_thread_sleep(READY_TO_DRIVE_BUZZER_TIME);
-    HAL_GPIO_WritePin(BUZZER_GPIO_Port, BUZZER_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(R2D_SIREN_GPIO_Port, R2D_SIREN_Pin, GPIO_PIN_RESET);
 }
