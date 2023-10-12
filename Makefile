@@ -314,13 +314,15 @@ src/Middlewares/SUFST/can-defs/out/can_database.c
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
 src/Core/Src/tx_initialize_low_level.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_restore.s \
 src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_control.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.s \
 src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.s \
 src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_disable.s
 
 ###############################################################################
 # includes
