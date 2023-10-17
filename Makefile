@@ -61,6 +61,8 @@ FPU = -mfpu=fpv5-sp-d16
 FLOAT_ABI = -mfloat-abi=hard
 MCU = $(CPU) -mthumb $(FPU) $(FLOAT_ABI)
 
+PYTHON = python3
+
 ###############################################################################
 # toolchain
 ###############################################################################
@@ -447,7 +449,7 @@ flash: $(BUILD_DIR)/$(TARGET).bin
 
 ccd:
 	tput setaf 5; tput bold; echo "Generating compile commands database..."
-	python3 -m ccdgen --extensions .c .s .S --compiler arm-none-eabi-gcc -- ${MAKE}
+	${PYTHON} -m ccdgen --extensions .c .s .S --compiler arm-none-eabi-gcc -- ${MAKE}
 	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
   
 ###############################################################################
