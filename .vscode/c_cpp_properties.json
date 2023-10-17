@@ -21,7 +21,8 @@
       ],
       "cStandard": "gnu11",
       "intelliSenseMode": "gcc-arm",
-      "configurationProvider": "ms-vscode.makefile-tools"
+      "configurationProvider": "ms-vscode.makefile-tools",
+      "compilerPath": "/opt/homebrew/bin/arm-none-eabi-gcc"
     },
     {
       "name": "WIN-arm-none-eabi-gcc",
