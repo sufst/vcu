@@ -61,11 +61,19 @@ For detailed toolchain setup instructions, see the SUFST Docs Site.
 
 This project is set up to be edited and debugged in [VS Code](https://code.visualstudio.com).
 The `.vscode`folder includes tasks and launch configurations. To improve
-Intellisense, it is recommended to use [`ccdgen`](https://github.com/t-bre/ccdgen)
-to generate a `compile_commands.json` database with the following command:
+Intellisense, it is recommended to use [`ccdgen`](https://github.com/t-bre/ccdgen).
+
+Make sure it is installed with the following command, which may differ depending on your
+environment:
 
 ```sh
-python -m ccdgen --extension .c .s --compiler arm-none-eabi-gcc -- make
+python3 -m pip install ccdgen
+```
+
+Then, you can generate the compile commands database using the relevant `Makefile` target:
+
+```sh
+make -s ccd
 ```
 
 Since the toolchain is set up to be fully command line based, it is also

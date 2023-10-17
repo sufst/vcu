@@ -8,11 +8,9 @@
     "**/Thumbs.db": true,
     ".mxproject": true,
     "**.ftl": true,
-    "build": true,
     ".vscode/.cortex-debug.*": true,
     ".vscode/*.log": true,
     "null.d": true,
-    "compile_commands.json": true,
     "**/.mxproject": true,
     ".trunk/logs": true
   },
