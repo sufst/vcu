@@ -41,6 +41,10 @@ typedef struct
      */
     uint32_t err;
 
+    /**
+     * RTCAN instance
+     */
+     rtcan_handle_t* rtcan_h;
 } therm_spoof_handle_t;
 
 /**
@@ -55,11 +59,10 @@ typedef enum
 /*
  * function prototypes
  */
-therm_spoof_status_t driver_ctrl_init(driver_ctrl_handle_t* driver_ctrl_h,
-                                      ts_ctrl_handle_t* ts_ctrl_h,
-                                      canbc_handle_t* canbc_h,
+therm_spoof_status_t therm_spoof_init(therm_spoof_handle_t* therm_spoof_h,
+                                      rtcan_handle_t* rtcan_h,
                                       TX_BYTE_POOL* stack_pool_ptr);
 
-therm_spoof_status_t driver_ctrl_start(driver_ctrl_handle_t* driver_ctrl_h);
+therm_spoof_status_t therm_spoof_start(therm_spoof_handle_t* therm_spoof_h);
 
 #endif

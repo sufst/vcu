@@ -263,6 +263,7 @@ static void init_thread_entry(ULONG input)
     // TODO: handle errors
     (void) ts_ctrl_start(&vcu_h->ts_ctrl);
     (void) driver_ctrl_start(&vcu_h->driver_ctrl);
+    (void) therm_spoof_start(&vcu_h->therm_spoofer);
 
     // terminate this thread
     (void) tx_thread_terminate(&vcu_h->init_thread);

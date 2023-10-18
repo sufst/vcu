@@ -18,6 +18,7 @@
 #include "canbc.h"
 #include "driver_control.h"
 #include "ts_control.h"
+#include "thermistor_spoofer.h"
 
 /*
  * error codes
@@ -68,6 +69,8 @@ typedef struct
      * @brief   Current error code
      */
     uint32_t err;
+
+    therm_spoof_handle_t therm_spoofer;
 
 } vcu_handle_t;
 

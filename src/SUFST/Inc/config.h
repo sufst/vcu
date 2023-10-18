@@ -46,12 +46,14 @@
 #define CANBC_PRIORITY                      4   // broadcast data not critical to system operation
 #define TS_CTRL_THREAD_PRIORITY		        2
 #define DRIVER_CTRL_THREAD_PRIORITY		    2
+#define THERM_SPOOF_THREAD_PRIORITY         3
 #define INIT_THREAD_PRIORITY                0
 
 #define TRACEX_ENABLE                       0
        // enable TraceX logging
 
 #define DRIVER_CTRL_TICK_RATE               100  // times per second
+#define THERM_SPOOF_TICK_RATE               10  // times per second
 #define CANBC_BROADCAST_PERIOD              100 // milliseconds
 
 /***************************************************************************
