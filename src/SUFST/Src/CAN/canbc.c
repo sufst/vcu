@@ -371,6 +371,7 @@ static void create_message(canbc_segment_t* segment_ptr, rtcan_msg_t* msg_ptr)
 
     msg_ptr->identifier = segment_ptr->identifier;
     msg_ptr->length = segment_ptr->bytes_used;
+    msg_ptr->extended = false;
 
     if (needs_lock)
     {
