@@ -1,6 +1,7 @@
 [submodule "src/Middlewares/SUFST/rtcan"]
 	path = src/Middlewares/SUFST/rtcan
 	url = https://github.com/sufst/rtcan
+	branch = feat/extended-frames
 [submodule "src/Middlewares/SUFST/can-defs"]
 	path = src/Middlewares/SUFST/can-defs
 	url = https://github.com/sufst/can-defs
