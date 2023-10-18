@@ -75,7 +75,7 @@ status_t pm100_init(pm100_handle_t* pm100_h, rtcan_handle_t* rtcan_h)
     {
         rtcan_status_t status
             = rtcan_subscribe(pm100_h->rtcan_h,
-                              CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID,
+                              CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
                               &pm100_h->can_rx_queue);
 
         ADD_ERROR_IF(status != RTCAN_OK, PM100_ERROR_INIT, pm100_h);
@@ -134,8 +134,8 @@ status_t pm100_enable(pm100_handle_t* pm100_h)
 status_t pm100_disable(pm100_handle_t* pm100_h)
 {
     rtcan_msg_t msg
-        = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
-           .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+        = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
+           .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
            .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
     rtcan_status_t status = rtcan_transmit(pm100_h->rtcan_h, &msg);
@@ -159,17 +159,17 @@ status_t pm100_request_torque(pm100_handle_t* pm100_h, uint32_t torque)
                                                      : torque;
 
         rtcan_msg_t msg
-            = {.identifier = CAN_DATABASE_PM100_COMMAND_MESSAGE_FRAME_ID,
-               .length = CAN_DATABASE_PM100_COMMAND_MESSAGE_LENGTH,
+            = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
+               .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-        struct can_database_pm100_command_message_t cmd
+        struct can_c_pm100_command_message_t cmd
             = {.pm100_torque_command = torque,
                .pm100_direction_command = PM100_DIRECTION_FORWARD,
                .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
                .pm100_inverter_enable = PM100_INVERTER_ON};
 
-        can_database_pm100_command_message_pack(msg.data, &cmd, msg.length);
+        can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
         rtcan_transmit(pm100_h->rtcan_h, &msg);
     }
@@ -197,11 +197,11 @@ status_t pm100_process_broadcast_msgs(pm100_handle_t* pm100_h)
     {
         switch (msg_ptr->identifier)
         {
-        case CAN_DATABASE_PM100_INTERNAL_STATES_FRAME_ID:
-            can_database_pm100_internal_states_unpack(
+        case CAN_C_PM100_INTERNAL_STATES_FRAME_ID:
+            can_c_pm100_internal_states_unpack(
                 &pm100_h->state,
                 msg_ptr->data,
-                CAN_DATABASE_PM100_INTERNAL_STATES_LENGTH);
+                CAN_C_PM100_INTERNAL_STATES_LENGTH);
             __ASM("NOP");
             break;
 

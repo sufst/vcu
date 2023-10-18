@@ -158,3 +158,6 @@ misra.txt
 
 # TraceX
 *.trx
+
+# clangd
+.cache/
