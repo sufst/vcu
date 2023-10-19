@@ -144,6 +144,19 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // thermistor spoofer service
+    if (no_errors(vcu_h))
+    {
+        therm_spoof_status_t status = therm_spoof_init(&vcu_h->therm_spoofer,
+                                                       &vcu_h->rtcan_c,
+                                                       app_mem_pool);
+
+        if (status != THERM_SPOOF_OK)
+        {
+            vcu_h->err |= VCU_ERROR_INIT;
+        }
+    }
+
     return create_status(vcu_h);
 }
 
