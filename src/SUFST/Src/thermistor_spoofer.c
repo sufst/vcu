@@ -33,7 +33,6 @@ static rtcan_msg_t msgs_100ms[NUM_MSG_100MS] = {(rtcan_msg_t){
 
 };
 
-
 static rtcan_msg_t msgs_200ms[NUM_MSG_200MS] = {(rtcan_msg_t){
     .identifier = 0x124,
     .length = 8,
@@ -42,7 +41,6 @@ static rtcan_msg_t msgs_200ms[NUM_MSG_200MS] = {(rtcan_msg_t){
     }
 };
 
-
 static rtcan_msg_t msgs_1000ms[NUM_MSG_1000MS] = {(rtcan_msg_t){
     .identifier = 0x125,
     .length = 8,
@@ -50,7 +48,6 @@ static rtcan_msg_t msgs_1000ms[NUM_MSG_1000MS] = {(rtcan_msg_t){
     .extended = true
     }
 };
-
 
 
 /*
