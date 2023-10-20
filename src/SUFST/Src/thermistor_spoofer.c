@@ -19,36 +19,82 @@
 #define THERM_SPOOF_STATE_MUTEX_NAME  "Thermistor Spoofer State Mutex"
 
 static uint8_t tick_counter = 0; // Counts the number of 100ms that have passed to run the 200ms and 1s messages
+static uint8_t temp = 0;
+static uint8_t therm_count = 0;
 
-#define NUM_MSG_100MS    1
-#define NUM_MSG_200MS    1
-#define NUM_MSG_1000MS   1
+#define NUM_MSG_100MS    0
+#define NUM_MSG_200MS    0
+#define NUM_MSG_1000MS   0
 
-static rtcan_msg_t msgs_100ms[NUM_MSG_100MS] = {(rtcan_msg_t){
-    .identifier = 0x123,
-    .length = 8,
-    .data = {0,0,0,0,0,0,0,0},
-    .extended = true
-    },
+static rtcan_msg_t msgs_100ms[NUM_MSG_100MS] = {};
 
+static rtcan_msg_t msgs_200ms[NUM_MSG_200MS] = {};
+
+static rtcan_msg_t msgs_1000ms[NUM_MSG_1000MS] = {};
+
+#define NUM_THERMS      24
+
+struct tem {
+    uint8_t min;
+    uint8_t max;
+    uint8_t vals[NUM_THERMS];
 };
 
-static rtcan_msg_t msgs_200ms[NUM_MSG_200MS] = {(rtcan_msg_t){
-    .identifier = 0x124,
-    .length = 8,
-    .data = {0,0,0,0,0,0,0,0},
-    .extended = true
+uint8_t calc_avg(struct tem *t){
+    uint8_t a = 0;
+
+    for(uint8_t i = 0; i < NUM_THERMS; i++) a += t->vals[i];
+
+    return (a / NUM_THERMS);
+}
+
+void calc_checksum(rtcan_msg_t *m){
+    uint8_t checksum = 0;
+    for(uint8_t i = 0; i < m->length-1; i++){
+        checksum += m->data[i];
     }
-};
+    checksum += 0x41;
 
-static rtcan_msg_t msgs_1000ms[NUM_MSG_1000MS] = {(rtcan_msg_t){
-    .identifier = 0x125,
-    .length = 8,
-    .data = {0,0,0,0,0,0,0,0},
-    .extended = true
+    m->data[7] = checksum;
+}
+
+void run_temps(struct tem *t){
+    t->vals[0] = (temp++ % 30)+15;
+    for(uint8_t i = 1; i < NUM_THERMS; i++){
+        t->vals[i] = 20;
     }
-};
+}
 
+void min_max(struct tem *t){
+    for(uint8_t i = 0; i < NUM_THERMS; i++){
+        if(t->min > t->vals[i]) t->min = t->vals[i];
+        if(t->max < t->vals[i]) t->max = t->vals[i];
+    }
+}
+
+void gen_msgs(struct tem* t, rtcan_msg_t* bmsbc, rtcan_msg_t* genbc){
+
+    // BMS BC
+
+    *(bmsbc) = (rtcan_msg_t) {
+        .identifier = 0x1839F380,
+        .length = 8,
+        .data = {0,t->min,t->max,calc_avg(t),NUM_THERMS,NUM_THERMS-1,0,0},
+        .extended = true
+    };
+
+    calc_checksum(bmsbc);
+
+    // General BC
+
+    *(genbc) = (rtcan_msg_t) {
+        .identifier = 0x1838F380,
+        .length = 8,
+        .data = {0,therm_count,t->vals[therm_count],NUM_THERMS,t->min,t->max,NUM_THERMS,0},
+        .extended = true
+    };
+
+}
 
 /*
  * internal functions
@@ -175,23 +221,78 @@ static void therm_spoof_thread_entry(ULONG input)
         while (1)
         {
 
-            for(uint8_t i = 0; i < NUM_MSG_100MS; i++) rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_100ms[i]));
-            for(uint8_t i = 0; i < NUM_MSG_100MS; i++) {
-                if(tick_counter % 2 == 0){ // Every 200ms
-                    rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_200ms[i]));
-                }
-            }
-            for(uint8_t i = 0; i < NUM_MSG_100MS; i++) {
-                if(tick_counter % 10 == 0){ // Every second
-                    rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_1000ms[i]));
-                }
-            }
+            // for(uint8_t i = 0; i < NUM_MSG_100MS; i++){ 
+            //     if(i == 0){
+            //         msgs_100ms[i].data[2] = temp;
 
-            if(tick_counter % 10 == 0){
-                tick_counter = 0;
-            } else {
-                tick_counter++;
-            }
+            //         uint8_t checksum = 0;
+            //         for(uint8_t j = 0; j < msgs_100ms[i].length-1; j++){
+            //                 checksum += msgs_100ms[i].data[j];
+            //             }
+            //         checksum += 0x41;
+            //         msgs_100ms[i].data[msgs_100ms[i].length-1] = checksum;
+            //     } else if(i == 1){
+
+            //         msgs_100ms[i].data[0] = 0;
+            //         msgs_100ms[i].data[1] = therm_count;
+            //         msgs_100ms[i].data[2] = 50+therm_count / 5;
+            //         msgs_100ms[i].data[3] = 24;
+            //         msgs_100ms[i].data[4] = 15;
+            //         msgs_100ms[i].data[5] = 
+
+            //         therm_count = therm_count++ % 24;
+            //     }
+                
+                
+            //     rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_100ms[i]));
+                
+            // }
+            // if((tick_counter % 2) == 0) {
+            //     for(uint8_t i = 0; i < NUM_MSG_200MS; i++) {
+            //         msgs_200ms[i].data[2] = temp;
+
+            //         uint8_t checksum = 0;
+            //         for(uint8_t j = 0; j < msgs_200ms[i].length-1; j++){
+            //             checksum += msgs_200ms[i].data[j];
+            //         }
+            //         checksum += 0x41;
+            //         msgs_200ms[i].data[msgs_200ms[i].length-1] = checksum;
+                    
+
+            //         rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_200ms[i]));
+            //     }
+            // }
+
+            // if((tick_counter % 10) == 0) {
+            //     for(uint8_t i = 0; i < NUM_MSG_1000MS; i++) {
+            //         msgs_1000ms[i].data[2] = temp;
+
+            //         uint8_t checksum = 0;
+            //         for(uint8_t j = 0; j < msgs_1000ms[i].length-1; j++){
+            //             checksum += msgs_1000ms[i].data[j];
+            //         }
+            //         checksum += 0x41;
+            //         msgs_1000ms[i].data[msgs_1000ms[i].length-1] = checksum;
+                    
+
+            //         rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_1000ms[i]));
+            //     }
+            // }
+
+
+            rtcan_msg_t b;
+            rtcan_msg_t g;
+            struct tem t;
+            run_temps(&t);
+            min_max(&t);
+            gen_msgs(&t, &b, &g);
+            rtcan_transmit(therm_spoof_h->rtcan_h, &b);
+            rtcan_transmit(therm_spoof_h->rtcan_h, &g);
+
+            tick_counter++;
+            tick_counter = tick_counter % 10;
+            temp = (temp < 15) ? 15 : temp+1;
+            therm_count = therm_count++ % NUM_THERMS;
             
             tx_mutex_put(&therm_spoof_h->state_mutex);
 

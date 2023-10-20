@@ -447,7 +447,7 @@ clean:
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
 	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
-	st-flash write $< 0x08000000
+	st-flash --connect-under-reset write $< 0x08000000
 
 ccd:
 	tput setaf 5; tput bold; echo "Generating compile commands database..."

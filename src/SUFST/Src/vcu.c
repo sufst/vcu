@@ -68,25 +68,25 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
-    // CAN broadcast service
-    if (no_errors(vcu_h))
-    {
-        canbc_status_t status = canbc_init(&vcu_h->canbc,
-                                           &vcu_h->rtcan_s,
-                                           CANBC_PRIORITY,
-                                           CANBC_BROADCAST_PERIOD,
-                                           app_mem_pool);
+    // // CAN broadcast service
+    // if (no_errors(vcu_h))
+    // {
+    //     canbc_status_t status = canbc_init(&vcu_h->canbc,
+    //                                        &vcu_h->rtcan_s,
+    //                                        CANBC_PRIORITY,
+    //                                        CANBC_BROADCAST_PERIOD,
+    //                                        app_mem_pool);
 
-        if (status == CANBC_OK)
-        {
-            status = canbc_start(&vcu_h->canbc);
-        }
+    //     if (status == CANBC_OK)
+    //     {
+    //         status = canbc_start(&vcu_h->canbc);
+    //     }
 
-        if (status != CANBC_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
-    }
+    //     if (status != CANBC_OK)
+    //     {
+    //         vcu_h->err |= VCU_ERROR_INIT;
+    //     }
+    // }
 
     // initialisation thread
     if (no_errors(vcu_h))
@@ -118,31 +118,31 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
-    // tractive system controller
-    if (no_errors(vcu_h))
-    {
-        ts_ctrl_status_t status
-            = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
+    // // tractive system controller
+    // if (no_errors(vcu_h))
+    // {
+    //     ts_ctrl_status_t status
+    //         = ts_ctrl_init(&vcu_h->ts_ctrl, &vcu_h->rtcan_c, app_mem_pool);
 
-        if (status != TS_CTRL_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
-    }
+    //     if (status != TS_CTRL_OK)
+    //     {
+    //         vcu_h->err |= VCU_ERROR_INIT;
+    //     }
+    // }
 
-    // driver control input service
-    if (no_errors(vcu_h))
-    {
-        driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
-                                                       &vcu_h->ts_ctrl,
-                                                       &vcu_h->canbc,
-                                                       app_mem_pool);
+    // // driver control input service
+    // if (no_errors(vcu_h))
+    // {
+    //     driver_ctrl_status_t status = driver_ctrl_init(&vcu_h->driver_ctrl,
+    //                                                    &vcu_h->ts_ctrl,
+    //                                                    &vcu_h->canbc,
+    //                                                    app_mem_pool);
 
-        if (status != DRIVER_CTRL_OK)
-        {
-            vcu_h->err |= VCU_ERROR_INIT;
-        }
-    }
+    //     if (status != DRIVER_CTRL_OK)
+    //     {
+    //         vcu_h->err |= VCU_ERROR_INIT;
+    //     }
+    // }
 
     // thermistor spoofer service
     if (no_errors(vcu_h))
@@ -268,14 +268,14 @@ static void init_thread_entry(ULONG input)
     vcu_handle_t* vcu_h = (vcu_handle_t*) input;
 
     // RTD procedure
-    init_pre_rtd();
-    rtd_wait();
-    init_post_rtd();
+    // init_pre_rtd();
+    // rtd_wait();
+    // init_post_rtd();
 
     // start application threads
     // TODO: handle errors
-    (void) ts_ctrl_start(&vcu_h->ts_ctrl);
-    (void) driver_ctrl_start(&vcu_h->driver_ctrl);
+    //(void) ts_ctrl_start(&vcu_h->ts_ctrl);
+    //(void) driver_ctrl_start(&vcu_h->driver_ctrl);
     (void) therm_spoof_start(&vcu_h->therm_spoofer);
 
     // terminate this thread
