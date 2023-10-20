@@ -63,6 +63,8 @@ void min_max(struct tem *t){
 
 void send_msgs(struct tem* t, therm_spoof_handle_t* therm_spoof_h){
 
+    static uint8_t current_therm = 0;
+
     // BMS BC
 
     rtcan_msg_t bmsbc = (rtcan_msg_t) {
@@ -78,19 +80,18 @@ void send_msgs(struct tem* t, therm_spoof_handle_t* therm_spoof_h){
 
     // General BC
 
-    for(uint8_t i = 0; i < NUM_THERMS; i++){
-        rtcan_msg_t genbc = (rtcan_msg_t) {
-            .identifier = 0x1838F380,
-            .length = 8,
-            .data = {0,255,255,NUM_THERMS,t->min,t->max,NUM_THERMS,0},
-            .extended = true
-        };
+    rtcan_msg_t genbc = (rtcan_msg_t) {
+        .identifier = 0x1838F380,
+        .length = 8,
+        .data = {0,255,255,NUM_THERMS,t->min,t->max,NUM_THERMS,0},
+        .extended = true
+    };
 
-        genbc.data[1] = i;
-        genbc.data[2] = t->vals[i];
-    
-        rtcan_transmit(therm_spoof_h->rtcan_h, &genbc);
-    }
+    genbc.data[1] = current_therm;
+    genbc.data[2] = t->vals[current_therm];
+    current_therm++;
+
+    rtcan_transmit(therm_spoof_h->rtcan_h, &genbc);
 }
 
 /*
