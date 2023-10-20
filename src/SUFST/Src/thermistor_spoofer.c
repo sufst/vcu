@@ -20,17 +20,6 @@
 
 static uint8_t tick_counter = 0; // Counts the number of 100ms that have passed to run the 200ms and 1s messages
 static uint8_t temp = 0;
-static uint8_t therm_count = 0;
-
-#define NUM_MSG_100MS    0
-#define NUM_MSG_200MS    0
-#define NUM_MSG_1000MS   0
-
-static rtcan_msg_t msgs_100ms[NUM_MSG_100MS] = {};
-
-static rtcan_msg_t msgs_200ms[NUM_MSG_200MS] = {};
-
-static rtcan_msg_t msgs_1000ms[NUM_MSG_1000MS] = {};
 
 #define NUM_THERMS      24
 
@@ -72,28 +61,36 @@ void min_max(struct tem *t){
     }
 }
 
-void gen_msgs(struct tem* t, rtcan_msg_t* bmsbc, rtcan_msg_t* genbc){
+void send_msgs(struct tem* t, therm_spoof_handle_t* therm_spoof_h){
 
     // BMS BC
 
-    *(bmsbc) = (rtcan_msg_t) {
+    rtcan_msg_t bmsbc = (rtcan_msg_t) {
         .identifier = 0x1839F380,
         .length = 8,
-        .data = {0,t->min,t->max,calc_avg(t),NUM_THERMS,NUM_THERMS-1,0,0},
+        .data = {0,t->min,t->max,255,NUM_THERMS,(NUM_THERMS-1),0,0},
         .extended = true
     };
 
-    calc_checksum(bmsbc);
+    bmsbc.data[3] = calc_avg(t);
+    calc_checksum(&bmsbc);
+    rtcan_transmit(therm_spoof_h->rtcan_h, &bmsbc);
 
     // General BC
 
-    *(genbc) = (rtcan_msg_t) {
-        .identifier = 0x1838F380,
-        .length = 8,
-        .data = {0,therm_count,t->vals[therm_count],NUM_THERMS,t->min,t->max,NUM_THERMS,0},
-        .extended = true
-    };
+    for(uint8_t i = 0; i < NUM_THERMS; i++){
+        rtcan_msg_t genbc = (rtcan_msg_t) {
+            .identifier = 0x1838F380,
+            .length = 8,
+            .data = {0,255,255,NUM_THERMS,t->min,t->max,NUM_THERMS,0},
+            .extended = true
+        };
 
+        genbc.data[1] = i;
+        genbc.data[2] = t->vals[i];
+    
+        rtcan_transmit(therm_spoof_h->rtcan_h, &genbc);
+    }
 }
 
 /*
@@ -220,79 +217,14 @@ static void therm_spoof_thread_entry(ULONG input)
     {
         while (1)
         {
-
-            // for(uint8_t i = 0; i < NUM_MSG_100MS; i++){ 
-            //     if(i == 0){
-            //         msgs_100ms[i].data[2] = temp;
-
-            //         uint8_t checksum = 0;
-            //         for(uint8_t j = 0; j < msgs_100ms[i].length-1; j++){
-            //                 checksum += msgs_100ms[i].data[j];
-            //             }
-            //         checksum += 0x41;
-            //         msgs_100ms[i].data[msgs_100ms[i].length-1] = checksum;
-            //     } else if(i == 1){
-
-            //         msgs_100ms[i].data[0] = 0;
-            //         msgs_100ms[i].data[1] = therm_count;
-            //         msgs_100ms[i].data[2] = 50+therm_count / 5;
-            //         msgs_100ms[i].data[3] = 24;
-            //         msgs_100ms[i].data[4] = 15;
-            //         msgs_100ms[i].data[5] = 
-
-            //         therm_count = therm_count++ % 24;
-            //     }
-                
-                
-            //     rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_100ms[i]));
-                
-            // }
-            // if((tick_counter % 2) == 0) {
-            //     for(uint8_t i = 0; i < NUM_MSG_200MS; i++) {
-            //         msgs_200ms[i].data[2] = temp;
-
-            //         uint8_t checksum = 0;
-            //         for(uint8_t j = 0; j < msgs_200ms[i].length-1; j++){
-            //             checksum += msgs_200ms[i].data[j];
-            //         }
-            //         checksum += 0x41;
-            //         msgs_200ms[i].data[msgs_200ms[i].length-1] = checksum;
-                    
-
-            //         rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_200ms[i]));
-            //     }
-            // }
-
-            // if((tick_counter % 10) == 0) {
-            //     for(uint8_t i = 0; i < NUM_MSG_1000MS; i++) {
-            //         msgs_1000ms[i].data[2] = temp;
-
-            //         uint8_t checksum = 0;
-            //         for(uint8_t j = 0; j < msgs_1000ms[i].length-1; j++){
-            //             checksum += msgs_1000ms[i].data[j];
-            //         }
-            //         checksum += 0x41;
-            //         msgs_1000ms[i].data[msgs_1000ms[i].length-1] = checksum;
-                    
-
-            //         rtcan_transmit(therm_spoof_h->rtcan_h, &(msgs_1000ms[i]));
-            //     }
-            // }
-
-
-            rtcan_msg_t b;
-            rtcan_msg_t g;
             struct tem t;
             run_temps(&t);
             min_max(&t);
-            gen_msgs(&t, &b, &g);
-            rtcan_transmit(therm_spoof_h->rtcan_h, &b);
-            rtcan_transmit(therm_spoof_h->rtcan_h, &g);
+            send_msgs(&t, therm_spoof_h);
 
             tick_counter++;
             tick_counter = tick_counter % 10;
             temp = (temp < 15) ? 15 : temp+1;
-            therm_count = therm_count++ % NUM_THERMS;
             
             tx_mutex_put(&therm_spoof_h->state_mutex);
 
