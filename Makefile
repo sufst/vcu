@@ -101,6 +101,7 @@ src/SUFST/Src/shutdown.c \
 src/SUFST/Src/ts_control.c \
 src/SUFST/Src/driver_control.c \
 src/SUFST/Src/eeprom.c \
+src/SUFST/Src/i2c_support.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
