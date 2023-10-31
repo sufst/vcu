@@ -100,8 +100,6 @@ src/SUFST/Src/bps.c \
 src/SUFST/Src/shutdown.c \
 src/SUFST/Src/ts_control.c \
 src/SUFST/Src/driver_control.c \
-src/SUFST/Src/eeprom.c \
-src/SUFST/Src/i2c_support.c \
 src/SUFST/Src/CAN/canbc.c \
 src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Profiles/driver_profiles.c \
@@ -112,7 +110,6 @@ src/SUFST/Src/Test/trace.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
-src/Core/Src/i2c.c \
 src/Core/Src/gpio.c \
 src/Core/Src/usart.c \
 src/Core/Src/usb_otg.c \
@@ -320,15 +317,15 @@ src/Middlewares/SUFST/can-defs/out/can_database.c
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
 src/Core/Src/tx_initialize_low_level.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_restore.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_control.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.S \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_disable.S
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_restore.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_control.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.s \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_disable.s
 
 ###############################################################################
 # includes
@@ -401,7 +398,7 @@ vpath %.S $(sort $(dir $(ASM_SOURCES)))
 ###############################################################################
 
 # default build all
-all:
+all: 
 	${MAKE} $(BUILD_DIR)/$(TARGET).elf $(BUILD_DIR)/$(TARGET).hex $(BUILD_DIR)/$(TARGET).bin \
 
 # pre build
