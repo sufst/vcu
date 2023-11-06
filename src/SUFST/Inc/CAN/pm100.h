@@ -12,7 +12,7 @@
 
 #include "rtcan.h"
 
-#include "can_database.h"
+#include "can_c.h"
 #include "status.h"
 
 #define PM100_ERROR_NONE          0x00000000U // no error
@@ -35,7 +35,7 @@ typedef struct
     /**
      * @brief   Internal states from broadcast message
      */
-    struct can_database_pm100_internal_states_t state;
+    struct can_c_pm100_internal_states_t state;
 
     /**
      * @brief   RTCAN receive queue for PM100 messages

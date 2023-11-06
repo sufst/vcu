@@ -312,7 +312,8 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_database.c
+src/Middlewares/SUFST/can-defs/out/can_c.c \
+src/Middlewares/SUFST/can-defs/out/can_s.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
@@ -340,7 +341,7 @@ C_INCLUDES =  \
 -Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
--Isrc/Drivers/CMSIS/Device/ST/STM32f7xx/Include \
+-Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
 -Isrc/Drivers/CMSIS/Include \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \

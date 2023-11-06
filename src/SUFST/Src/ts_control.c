@@ -10,7 +10,8 @@
 
 #include "config.h"
 
-#include "can_database.h"
+#include "can_c.h"
+#include "can_s.h"
 #include "driver_profiles.h"
 
 /*
