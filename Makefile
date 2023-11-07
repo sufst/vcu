@@ -385,8 +385,9 @@ OBJECTS = $(addprefix $(BUILD_DIR)/,$(notdir $(C_SOURCES:.c=.o)))
 vpath %.c $(sort $(dir $(C_SOURCES)))
 
 # list of ASM objects
-OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(ASM_SOURCES:.s=.o)))
+OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(patsubst %.s, %.o, $(patsubst %.S, %.o, $(ASM_SOURCES)))))
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
+vpath %.S $(sort $(dir $(ASM_SOURCES)))
 
 ###############################################################################
 # targets
@@ -408,7 +409,11 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
 
 # ASM
 $(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
-	@echo "$<"
+	echo "$<"
+	$(AS) -c $(CFLAGS) $< -o $@
+
+$(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR) prebuild
+	echo "$<"
 	$(AS) -c $(CFLAGS) $< -o $@
 
 # .elf 

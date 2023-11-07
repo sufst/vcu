@@ -57,19 +57,19 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define R2D_LED_Pin GPIO_PIN_3
-#define R2D_LED_GPIO_Port GPIOE
+#define VC_LEDS_Pin GPIO_PIN_3
+#define VC_LEDS_GPIO_Port GPIOE
 #define DRS_LED_Pin GPIO_PIN_4
 #define DRS_LED_GPIO_Port GPIOE
 #define TS_ON_LED_Pin GPIO_PIN_5
 #define TS_ON_LED_GPIO_Port GPIOE
-#define VC_LEDS_Pin GPIO_PIN_6
-#define VC_LEDS_GPIO_Port GPIOE
+#define R2D_LED_Pin GPIO_PIN_6
+#define R2D_LED_GPIO_Port GPIOE
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
 #define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
-#define TS_READY_Pin GPIO_PIN_1
-#define TS_READY_GPIO_Port GPIOF
+#define SHDN_Pin GPIO_PIN_1
+#define SHDN_GPIO_Port GPIOF
 #define R2D_BTN_Pin GPIO_PIN_2
 #define R2D_BTN_GPIO_Port GPIOF
 #define TS_ON_BTN_Pin GPIO_PIN_5
@@ -82,6 +82,8 @@ void Error_Handler(void);
 #define BPS_ADC_GPIO_Port GPIOC
 #define APPS_2_ADC_Pin GPIO_PIN_3
 #define APPS_2_ADC_GPIO_Port GPIOC
+#define DRS_Pin GPIO_PIN_0
+#define DRS_GPIO_Port GPIOA
 #define APPS_1_ADC_Pin GPIO_PIN_3
 #define APPS_1_ADC_GPIO_Port GPIOA
 #define GREEN_LED_Pin GPIO_PIN_0
@@ -118,6 +120,7 @@ void Error_Handler(void);
 #define TCK_GPIO_Port GPIOA
 #define BLUE_LED_Pin GPIO_PIN_7
 #define BLUE_LED_GPIO_Port GPIOB
+
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
