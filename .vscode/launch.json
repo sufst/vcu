@@ -12,6 +12,7 @@
       "svdFile": "debug/STM32F7x6.svd",
       "serverpath": "st-util"
     },
+
     // debug with openocd
     {
       "cwd": "${workspaceFolder}",

@@ -20,6 +20,11 @@
 #define INIT_THREAD_PREEMPTION_THRESHOLD INIT_THREAD_PRIORITY
 #define INIT_THREAD_NAME                 "Initialisation Thread"
 
+#include "apps.h"
+#include "bps.h"
+#include "config.h"
+#include "dash.h"
+
 /*
  * internal function prototypes
  */
@@ -34,13 +39,18 @@ static vcu_status_t create_status(vcu_handle_t* vcu_h);
  * @param[in]   can_c_h         Critical systems CAN bus handle
  * @param[in]   can_s_h         Sensor CAN bus handle
  * @param[in]   app_mem_pool    Pointer to RTOS application memory pool
+ * @param[in]   config_ptr      Pointer to VCU configuration instance
  */
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                       CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
-                      TX_BYTE_POOL* app_mem_pool)
+                      TX_BYTE_POOL* app_mem_pool,
+                      const config_t* config_ptr)
 {
     vcu_h->err = VCU_ERROR_NONE;
+    vcu_h->config_ptr = config_ptr;
+
+    status_t status = STATUS_OK;
 
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_h->rtcan_s, &vcu_h->rtcan_c};
@@ -51,17 +61,17 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
     {
         if (no_errors(vcu_h))
         {
-            rtcan_status_t status = rtcan_init(rtcan_handles[i],
-                                               can_handles[i],
-                                               rtcan_priorities[i],
-                                               app_mem_pool);
+            rtcan_status_t rtcan_status = rtcan_init(rtcan_handles[i],
+                                                     can_handles[i],
+                                                     rtcan_priorities[i],
+                                                     app_mem_pool);
 
-            if (status == RTCAN_OK)
+            if (rtcan_status == RTCAN_OK)
             {
-                status = rtcan_start(rtcan_handles[i]);
+                rtcan_status = rtcan_start(rtcan_handles[i]);
             }
 
-            if (status != RTCAN_OK)
+            if (rtcan_status != RTCAN_OK)
             {
                 vcu_h->err |= VCU_ERROR_INIT;
             }
@@ -144,7 +154,32 @@ vcu_status_t vcu_init(vcu_handle_t* vcu_h,
         }
     }
 
+    // dash
+    if (status == STATUS_OK)
+    {
+        status
+            = dash_init(&vcu_h->dash, app_mem_pool, &vcu_h->config_ptr->dash);
+    }
+
+    // control
+    if (status == STATUS_OK)
+    {
+        status = ctrl_init(&vcu_h->ctrl,
+                           &vcu_h->dash,
+                           &vcu_h->canbc,
+                           app_mem_pool,
+                           &vcu_h->config_ptr->ctrl,
+                           &vcu_h->config_ptr->apps,
+                           &vcu_h->config_ptr->bps,
+                           &vcu_h->config_ptr->rtds,
+                           &vcu_h->config_ptr->torque_map);
+    }
+
     return create_status(vcu_h);
+        canbc_init(&vcu_h->canbc,
+                   &vcu_h->rtcan_c,
+                   app_mem_pool,
+                   &vcu_h->config_ptr->canbc);
 }
 
 /**
@@ -163,6 +198,7 @@ vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     status = rtcan_handle_tx_mailbox_callback(&vcu_h->rtcan_s, can_h);
@@ -170,6 +206,7 @@ vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     return create_status(vcu_h);
@@ -200,6 +237,7 @@ vcu_status_t vcu_handle_can_rx_it(vcu_handle_t* vcu_h,
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     return create_status(vcu_h);
@@ -227,6 +265,7 @@ vcu_status_t vcu_handle_can_err(vcu_handle_t* vcu_h, CAN_HandleTypeDef* can_h)
     if (status != RTCAN_OK)
     {
         vcu_h->err |= VCU_ERROR_PERIPHERAL;
+        Error_Handler();
     }
 
     return create_status(vcu_h);

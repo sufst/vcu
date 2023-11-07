@@ -12,11 +12,11 @@ actions:
     - trunk-fmt-pre-commit
     - trunk-upgrade-available
 cli:
-  version: 0.18.0-beta
+  version: 1.5.1
 plugins:
   sources:
     - id: trunk
-      ref: v0.0.4
+      ref: v0.0.11
       uri: https://github.com/trunk-io/plugins
 lint:
   definitions:
@@ -30,16 +30,16 @@ lint:
           read_output_from: stderr
           run_linter_from: workspace
           run_when: [cli, lsp, monitor, ci]
-    - name: cppcheck-misra # MISRA C checker
+    - name: cppcheck-misra
       files: [c]
       commands:
         - output: regex
           success_codes: [0]
           parse_regex: '((?P<path>.*):(?P<line>\d+):(?P<col>\d+): style: (?P<message>.*)) \[(?P<code>.*)\]'
-          run: cppcheck --addon=./.trunk/config/misra.json --cppcheck-build-dir=./cppcheck ${target}
+          run: cppcheck --enable=all --suppress=unusedFunction --cppcheck-build-dir=./cppcheck ${target}
           read_output_from: stderr
           run_linter_from: workspace
-          run_when: [cli]
+          run_when: [cli, lsp, monitor, ci]
   enabled:
     - cppcheck@SYSTEM
     - clang-format@14.0.0
@@ -55,6 +55,9 @@ lint:
         - src/AZURE_RTOS/**
         - src/Core/**
         - src/Drivers/**
-        - src/Middlewares/**
-        - src/SUFST/Inc/config.h
+        - src/Middlewares/ST
         - scripts/*
+    - linters: [clang-format]
+      paths:
+        - src/SUFST/Inc/config.h
+        - src/SUFST/Src/config.c

@@ -87,7 +87,8 @@ typedef enum
 vcu_status_t vcu_init(vcu_handle_t* vcu_h,
                       CAN_HandleTypeDef* can_c_h,
                       CAN_HandleTypeDef* can_s_h,
-                      TX_BYTE_POOL* app_mem_pool);
+                      TX_BYTE_POOL* app_mem_pool,
+                      const config_t* config_ptr);
 
 vcu_status_t vcu_handle_can_tx_mailbox_callback(vcu_handle_t* vcu_h,
                                                 CAN_HandleTypeDef* can_h);

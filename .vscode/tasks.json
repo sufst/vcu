@@ -8,7 +8,10 @@
       "command": "make",
       "args": ["-j$(nproc)", "-s", "DEBUG=1"],
       "problemMatcher": "$gcc",
-      "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     },
     // make build task (RELEASE)
     {
@@ -35,11 +38,15 @@
       "args": ["flash", "-s", "-j $(nproc)"],
       "group": "build"
     },
+    // generate compile commands
     {
-      "label": "generate compile_commands.json",
+      "label": "ccdgen",
       "type": "shell",
-      "command": "./scripts/compile-commands.sh",
-      "group": "build"
+      "command": "python",
+      "osx": {
+        "command": "python3"
+      },
+      "args": ["-m", "ccdgen", "--extensions", ".c", "--", "make", "-j"]
     },
     // open STM32CubeMX
     {
@@ -56,18 +63,7 @@
       "osx": {
         "command": "/Applications/STMicroelectronics/STM32CubeMX.app/Contents/MacOs/STM32CubeMX"
       },
-      "linux": {
-        "command": "?"
-      },
       "args": ["${workspaceRoot}/src/VCU.ioc"]
-    },
-    // open ThreadX docs
-    {
-      "label": "ThreadX Docs",
-      "type": "shell",
-      "osx": {
-        "command": "osascript -e \"open location \\\"https://docs.microsoft.com/en-us/azure/rtos/threadx/chapter4\\\"\""
-      }
     }
   ]
 }

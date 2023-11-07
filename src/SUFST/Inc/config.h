@@ -1,22 +1,150 @@
 /***************************************************************************
- * @file   config.h
- * @author Tim Brewis (tab1g19@soton.ac.uk)
- * @date   2022-02-08
- * @brief  System configuration
- *
- * @note   See config_rules.c which checks these parameters are valid
+ * @file    config.h
+ * @author  Tim Brewis (tab1g19@soton.ac.uk)
+ * @brief   System configuration
+ * @details Related configuration parameters are grouped as a struct
+ * @note    The autoformatter is disabled for config.h and config.c
 ***************************************************************************/
 
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "tx_api.h"
+#include <adc.h>
+#include <gpio.h>
+#include <tx_api.h>
+#include <stdint.h>
+#include <stdbool.h>
+
+#include "torque_map_funcs.h"
+
+/**
+ * @brief  Threads
+ */
+typedef struct {
+    uint32_t priority;                      // thread priority
+    uint32_t stack_size;                    // stack size
+    const char* name;                       // name
+} config_thread_t;
+
+/**
+ * @brief   System critical signals
+ */
+typedef struct {
+    ADC_HandleTypeDef* hadc;                // ADC handle
+    uint16_t min_adc;                       // minimum expected ADC reading
+    uint16_t max_adc;                       // maximum expected ADC reading
+    uint16_t min_mapped;                    // minimum mapped reading
+    uint16_t max_mapped;                    // maximum mapped reading
+    float outside_bounds_fraction;          // fraction of mapped range defining out of bounds signal
+} config_scs_t;
+
+/**
+ * @brief   Control
+ */
+typedef struct {
+    config_thread_t thread;                 // control thread config
+    bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
+    uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
+    uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
+    uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
+    uint32_t ready_wait_led_toggle_ticks;   // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
+    uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
+} config_ctrl_t;
+
+/**
+ * @brief   Dash
+ */
+typedef struct {
+    config_thread_t thread;                 // dash thread config
+    uint32_t btn_active_ticks;              // ticks for which a button must be pressed for it to be considered 'activated'
+    uint32_t btn_sample_ticks;              // ticks between sampling buttons
+    bool vc_run_check;                      // whether or not the visual check should run
+    uint32_t vc_led_on_ticks;               // number of ticks for which the visual check should last
+    bool vc_all_leds_on;                    // whether or not the visual check turns on all LEDs, or just the VC LEDs
+    uint32_t vc_stagger_ticks;              // ticks between turning on each visible check LED (set to zero to turn all on at once)
+} config_dash_t;
+
+/**
+ * @brief   APPS
+ */
+typedef struct {
+    config_scs_t apps_1_scs;                // SCS configuration for first APPS signal
+    config_scs_t apps_2_scs;                // SCS configuration for second APPS signal
+    uint32_t max_discrepancy;               // maximum discrepancy between APPS readings
+} config_apps_t;
+
+/**
+ * @brief   BPS
+ */
+typedef struct {
+    config_scs_t scs;                       // SCS configuration
+    float fully_pressed_fraction;           // threshold above which considered 'fully pressed'
+} config_bps_t;
+
+/**
+ * @brief   Ready to drive speaker
+ */
+typedef struct {
+    uint32_t active_ticks;                  // ticks for which RTDS sounds
+    GPIO_TypeDef* port;                     // port for pin driving RTDS
+    uint16_t pin;                           // pin driving RTDS
+} config_rtds_t;
+
+/**
+ * @brief   Torque map
+ * 
+ * @note    All torque is represented as Nm * 10
+ */
+typedef struct {
+    torque_map_func_e function;             // mapping function
+    uint16_t input_max;                     // maximum input value (range must be zero to max)
+    uint16_t output_max;                    // maximum output value (Nm * 10)
+    float deadzone_fraction;                // fraction of input range for deadzone
+} config_torque_map_t;
+
+/**
+ * @brief   CAN broadcasting service
+ */
+typedef struct {
+    config_thread_t thread;                 // CANBC thread config
+    uint32_t broadcast_period_ticks;        // ticks between broadcasts
+} config_canbc_t;
+
+/**
+ * @brief   VCU configuration
+ * 
+ * @details The intended usage is that the main VCU module loads an instance of
+ *          this struct and initialises all other modules based on its state. 
+ *          Theoretically all the individual modules could load the config, 
+ *          but that makes them less portable / decoupled.
+ */
+typedef struct {
+    config_dash_t dash;
+    config_apps_t apps;
+    config_bps_t bps;
+    config_ctrl_t ctrl;
+    config_rtds_t rtds;
+    config_torque_map_t torque_map;
+    config_canbc_t canbc;
+} config_t;
+
+/*
+ * public functions
+ */
+const config_t* config_get();
+
+
+
+
+
+
+
+
 
 /***************************************************************************
- * competition mode 
- * -> defaults to 0 for debug
- * -> set to 1 automatically in release build
- * -> this enables strict checks on configuration 
+ * 
+ * NOTE: MIGRATION OF OLD CONFIG SYSTEM BELOW IN PROGRESS!
+ * 
  ***************************************************************************/
 
 #ifndef COMPETITION_MODE
@@ -62,8 +190,6 @@
 
 #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
 #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
-#define INVERTER_EEPROM_MAX_RETRY		        10		// maximum number of retry attempts
-#define INVERTER_EEPROM_RETRY_DELAY		        100		// in ms
 
 #define CANBC_DRIVER_INPUTS_ID                  0x100   // CAN broadcast address for driver inputs
 
