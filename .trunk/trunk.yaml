@@ -30,28 +30,25 @@ lint:
           read_output_from: stderr
           run_linter_from: workspace
           run_when: [cli, lsp, monitor, ci]
-    - name: cppcheck-misra # MISRA C checker
+    - name: cppcheck-misra
       files: [c]
       commands:
         - output: regex
           success_codes: [0]
           parse_regex: '((?P<path>.*):(?P<line>\d+):(?P<col>\d+): style: (?P<message>.*)) \[(?P<code>.*)\]'
-          run: cppcheck --addon=./.trunk/config/misra.json --cppcheck-build-dir=./cppcheck ${target}
+          run: cppcheck --enable=all --suppress=unusedFunction --cppcheck-build-dir=./cppcheck ${target}
           read_output_from: stderr
           run_linter_from: workspace
-          run_when: [cli]
+          run_when: [cli, lsp, monitor, ci]
   enabled:
     - cppcheck@SYSTEM
     - clang-format@14.0.0
-    - gitleaks@8.16.0
-    - markdownlint@0.33.0
-    - prettier@2.8.4
+    - gitleaks@8.13.0
+    - markdownlint@0.32.2
+    - prettier@2.7.1
   disabled:
     - cppcheck-misra@SYSTEM
     - git-diff-check@SYSTEM
-    - black@23.1.0
-    - flake8@6.0.0
-    - isort@5.12.0
   ignore:
     - linters: [clang-format, gitleaks, cppcheck, cppcheck-misra]
       paths:

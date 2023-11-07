@@ -8,15 +8,16 @@
 #ifndef VCU_H
 #define VCU_H
 
-#include <can.h>
-#include <rtcan.h>
 #include <stdint.h>
-#include <tx_api.h>
 
+#include "tx_api.h"
+
+#include "rtcan.h"
+
+#include "can.h"
 #include "canbc.h"
-#include "config.h"
-#include "ctrl.h"
-#include "dash.h"
+#include "driver_control.h"
+#include "ts_control.h"
 
 /*
  * error codes
@@ -30,15 +31,43 @@
  */
 typedef struct
 {
-    rtcan_handle_t rtcan_s; // RTCAN service for sensors CAN bus
-    rtcan_handle_t rtcan_c; // RTCAN service for critical systems CAN bus
-    canbc_context_t canbc;  // CAN broadcasting service instance
 
-    dash_context_t dash; // dash service
-    ctrl_context_t ctrl; // control service
+    /**
+     * @brief   RTCAN service for the sensors CAN bus
+     */
+    rtcan_handle_t rtcan_s;
 
-    uint32_t err;               // current error code
-    const config_t* config_ptr; // pointer to global VCU configuration
+    /**
+     * @brief   RTCAN service for critical systems CAN bus
+     */
+    rtcan_handle_t rtcan_c;
+
+    /**
+     * @brief   CAN broadcasting service for VCU state
+     *
+     * @details Broadcasts to the sensors CAN bus using the RTCAN service
+     */
+    canbc_handle_t canbc;
+
+    /**
+     * @brief   Tractive system controller
+     */
+    ts_ctrl_handle_t ts_ctrl;
+
+    /**
+     * @brief   Driver control input service
+     */
+    driver_ctrl_handle_t driver_ctrl;
+
+    /**
+     * @brief   Initialisation thread
+     */
+    TX_THREAD init_thread;
+
+    /**
+     * @brief   Current error code
+     */
+    uint32_t err;
 
 } vcu_handle_t;
 
