@@ -68,8 +68,8 @@ void Error_Handler(void);
 #define USER_BUTTON_Pin GPIO_PIN_13
 #define USER_BUTTON_GPIO_Port GPIOC
 #define USER_BUTTON_EXTI_IRQn EXTI15_10_IRQn
-#define SHDN_Pin GPIO_PIN_1
-#define SHDN_GPIO_Port GPIOF
+#define TS_READY_Pin GPIO_PIN_1
+#define TS_READY_GPIO_Port GPIOF
 #define R2D_BTN_Pin GPIO_PIN_2
 #define R2D_BTN_GPIO_Port GPIOF
 #define TS_ON_BTN_Pin GPIO_PIN_5

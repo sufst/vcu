@@ -86,10 +86,10 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
   /*Configure GPIO pin : PtPin */
-  GPIO_InitStruct.Pin = SHDN_Pin;
+  GPIO_InitStruct.Pin = TS_READY_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(SHDN_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(TS_READY_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PFPin PFPin PFPin */
   GPIO_InitStruct.Pin = R2D_BTN_Pin|TS_ON_BTN_Pin|DRS_BTN_Pin;
