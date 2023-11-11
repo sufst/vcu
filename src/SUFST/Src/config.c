@@ -70,6 +70,7 @@ static const config_t config_instance = {
             .priority = 2,
             .stack_size = 1024
         },
+        .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = false,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
@@ -87,6 +88,14 @@ static const config_t config_instance = {
         .input_max = 1000,
         .output_max = 230,
         .deadzone_fraction = 0.05f
+    },
+    .pm100 = {
+        .thread = {
+            .name = "PM100",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10)
     },
     .canbc = {
         .thread = {

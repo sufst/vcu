@@ -24,6 +24,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "vcu.h"
+#include "status.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -47,7 +48,7 @@
 /**
  * @brief   VCU instance
  */
-static vcu_handle_t vcu;
+static vcu_context_t vcu;
 
 /* USER CODE END PV */
 
@@ -74,9 +75,9 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   // initialise system
   if (ret == TX_SUCCESS)
   {
-    vcu_status_t status = vcu_init(&vcu, &hcan1, &hcan2, byte_pool, config_get());
+    status_t status = vcu_init(&vcu, &hcan1, &hcan2, byte_pool, config_get());
 
-    if (status != VCU_OK)
+    if (status != STATUS_OK)
     {
         ret = TX_START_ERROR;
     }

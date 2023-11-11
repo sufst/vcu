@@ -89,7 +89,6 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 C_SOURCES =  \
 src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
-src/SUFST/Src/CAN/pm100.c \
 src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
 src/SUFST/Src/Interfaces/apps.c \
@@ -100,9 +99,9 @@ src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
+src/SUFST/Src/Services/pm100.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
-src/SUFST/Src/Test/trace.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
@@ -328,12 +327,9 @@ src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
 C_INCLUDES =  \
 -Isrc/Core/Inc \
 -Isrc/SUFST/Inc \
--Isrc/SUFST/Inc/CAN \
 -Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
--Isrc/SUFST/Inc/Test \
--Isrc/SUFST/Inc/Threads \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
 -Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \

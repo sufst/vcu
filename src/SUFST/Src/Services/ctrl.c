@@ -25,6 +25,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   ctrl_ptr                Control context
  * @param[in]   dash_ptr                Dash context
  * @param[in]   canbc_ptr               CANBC context
+ * @param[in]   pm100_ptr               PM100 context
  * @param[in]   stack_pool_ptr          Byte pool to allocate thread stack from
  * @param[in]   config_ptr              Configuration
  * @param[in]   apps_config_ptr         APPS configuration
@@ -34,6 +35,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  */
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
+                   pm100_context_t* pm100_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
@@ -44,6 +46,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 {
     ctrl_ptr->state = CTRL_STATE_TS_OFF;
     ctrl_ptr->dash_ptr = dash_ptr;
+    ctrl_ptr->pm100_ptr = pm100_ptr;
     ctrl_ptr->canbc_ptr = canbc_ptr;
     ctrl_ptr->config_ptr = config_ptr;
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
@@ -52,6 +55,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->bps_reading = 0;
     ctrl_ptr->sagl_reading = 0;
     ctrl_ptr->torque_request = 0;
+    ctrl_ptr->precharge_start = 0;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -119,9 +123,11 @@ void ctrl_thread_entry(ULONG input)
 
     while (1)
     {
+        // uint32_t start_time = tx_time_get();
         ctrl_state_machine_tick(ctrl_ptr);
         ctrl_update_canbc_states(ctrl_ptr);
-        // TODO: thread sleep??
+        // uint32_t run_time = tx_time_get() - start_time;
+        // tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks - run_time);
     }
 }
 
@@ -163,7 +169,14 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (result == STATUS_OK)
         {
+            tx_thread_sleep(
+                5 * TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
+                                                // current of AIRs before
+                                                // turning on inverter
+
             next_state = CTRL_STATE_PRECHARGE_WAIT;
+            pm100_start_precharge(ctrl_ptr->pm100_ptr);
+            ctrl_ptr->precharge_start = tx_time_get();
         }
         else
         {
@@ -178,18 +191,18 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // TS on LED turns solid
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
-        // TODO: wait for pre-charge from PM100
-        bool timeout = false; // TODO: actually check for faults
+        const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
-        if (timeout)
+        if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
+        {
+            pm100_disable(ctrl_ptr->pm100_ptr);
+            dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
+            next_state = CTRL_STATE_R2D_WAIT;
+        }
+        else if (charge_time >= config_ptr->precharge_timeout_ticks)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-        }
-        else
-        {
-            dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
-            next_state = CTRL_STATE_R2D_WAIT;
         }
 
         break;
@@ -240,6 +253,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             // TODO: send torque request to inverter
             (void) torque_request;
             __ASM("NOP");
+            // status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr,
+            // torque_request);
+
+            // if (pm100_status != STATUS_OK)
+            // {
+            //     next_state = CTRL_STATE_TS_RUN_FAULT;
+            // }
         }
         else
         {
@@ -292,6 +312,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
+    pm100_disable(ctrl_ptr->pm100_ptr);
     trc_set_ts_on(GPIO_PIN_RESET);
     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
     ctrl_update_canbc_states(ctrl_ptr);
