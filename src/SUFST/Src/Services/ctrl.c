@@ -265,26 +265,33 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         // read from the APPS
         status_t apps_status
             = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+        status_t pm100_status;
 
         if (apps_status == STATUS_OK)
         {
             uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
                                                        ctrl_ptr->apps_reading);
-            // TODO: send torque request to inverter
-            (void) torque_request;
-            __ASM("NOP");
-            // status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr,
-            // torque_request);
 
-            // if (pm100_status != STATUS_OK)
-            // {
-            //     next_state = CTRL_STATE_TS_RUN_FAULT;
-            // }
+            pm100_status
+                = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
+
+            if (pm100_status != STATUS_OK)
+            {
+                next_state = CTRL_STATE_TS_RUN_FAULT;
+            }
         }
         else
         {
-            // TODO: disable inverter
-            next_state = CTRL_STATE_APPS_SCS_FAULT;
+            pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
+
+            if (pm100_status != STATUS_OK)
+            {
+                next_state = CTRL_STATE_TS_RUN_FAULT;
+            }
+            else
+            {
+                next_state = CTRL_STATE_APPS_SCS_FAULT;
+            }
         }
 
         // TODO: check for inverter fault, or TRC fault
