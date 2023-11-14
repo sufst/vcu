@@ -104,7 +104,15 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
-    }
+    },
+    .heartbeat = {
+        .thread = {
+            .name = "HEARTBEAT",
+            .priority = 10,
+            .stack_size = 512
+        },
+        .blink_period_ticks = SECONDS_TO_TICKS(0.25)
+    },
 };
 
 /**

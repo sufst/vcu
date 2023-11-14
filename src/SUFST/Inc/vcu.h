@@ -17,6 +17,7 @@
 #include "config.h"
 #include "ctrl.h"
 #include "dash.h"
+#include "heartbeat.h"
 #include "pm100.h"
 #include "status.h"
 
@@ -27,15 +28,15 @@
  */
 typedef struct
 {
-    rtcan_handle_t rtcan_s;     // RTCAN service for sensors CAN bus
-    rtcan_handle_t rtcan_c;     // RTCAN service for critical systems CAN bus
-    canbc_context_t canbc;      // CAN broadcasting service instance
-    dash_context_t dash;        // dash service
-    ctrl_context_t ctrl;        // control service
-    pm100_context_t pm100;      // PM100 service
-    uint32_t err;               // current error code
-    const config_t* config_ptr; // pointer to global VCU configuration
-
+    rtcan_handle_t rtcan_s;        // RTCAN service for sensors CAN bus
+    rtcan_handle_t rtcan_c;        // RTCAN service for critical systems CAN bus
+    canbc_context_t canbc;         // CAN broadcasting service instance
+    dash_context_t dash;           // dash service
+    ctrl_context_t ctrl;           // control service
+    pm100_context_t pm100;         // PM100 service
+    heartbeat_context_t heartbeat; // heartbeat service
+    uint32_t err;                  // current error code
+    const config_t* config_ptr;    // pointer to global VCU configuration
 } vcu_context_t;
 
 /*
