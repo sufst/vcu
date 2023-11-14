@@ -389,6 +389,7 @@ OBJECTS += $(addprefix $(BUILD_DIR)/,$(notdir $(patsubst %.s, %.o, $(patsubst %.
 vpath %.s $(sort $(dir $(ASM_SOURCES)))
 vpath %.S $(sort $(dir $(ASM_SOURCES)))
 
+
 ###############################################################################
 # targets
 ###############################################################################
