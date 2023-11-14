@@ -114,6 +114,14 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->config_ptr->pm100);
     }
 
+    // heartbeat
+    if (status == STATUS_OK)
+    {
+        status = heartbeat_init(&vcu_ptr->heartbeat,
+                                app_mem_pool,
+                                &vcu_ptr->config_ptr->heartbeat);
+    }
+
     if (status != STATUS_OK)
         LOG_ERROR(&vcu_ptr->log, "Some services failed to initialise\n");
 

@@ -120,6 +120,12 @@ typedef struct {
     uint32_t broadcast_period_ticks;        // ticks between broadcasts
 } config_canbc_t;
 
+typedef struct
+{
+    config_thread_t thread;                 // thread config
+    uint32_t blink_period_ticks;            // period to blink the LED
+} config_heartbeat_t;
+
 /**
  * @brief log level
  */
@@ -161,6 +167,7 @@ typedef struct {
     config_pm100_t pm100;
     config_canbc_t canbc;
     config_log_t log;
+    config_heartbeat_t heartbeat;
 } config_t;
 
 /*

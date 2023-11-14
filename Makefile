@@ -105,6 +105,7 @@ src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Services/pm100.c \
 src/SUFST/Src/Services/log.c \
+src/SUFST/Src/Services/heartbeat.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/Core/Src/main.c \
