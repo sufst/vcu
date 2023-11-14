@@ -74,7 +74,7 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
                                      config_ptr->thread.priority,
                                      config_ptr->thread.priority,
                                      TX_NO_TIME_SLICE,
-                                     TX_DONT_START);
+                                     TX_AUTO_START);
     }
 
     // create CAN receive queue
