@@ -21,6 +21,7 @@
 #include "main.h"
 #include "adc.h"
 #include "can.h"
+#include "spi.h"
 #include "usart.h"
 #include "usb_otg.h"
 #include "gpio.h"
@@ -104,6 +105,9 @@ int main(void)
   MX_ADC2_Init();
   MX_CAN1_Init();
   MX_CAN2_Init();
+  MX_SPI2_Init();
+  MX_UART4_Init();
+  MX_UART5_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
