@@ -86,6 +86,10 @@ void Error_Handler(void);
 #define DRS_GPIO_Port GPIOA
 #define APPS_1_ADC_Pin GPIO_PIN_3
 #define APPS_1_ADC_GPIO_Port GPIOA
+#define LED_OUT_Pin GPIO_PIN_5
+#define LED_OUT_GPIO_Port GPIOA
+#define MCU_DIN_1_Pin GPIO_PIN_5
+#define MCU_DIN_1_GPIO_Port GPIOC
 #define GREEN_LED_Pin GPIO_PIN_0
 #define GREEN_LED_GPIO_Port GPIOB
 #define TS_ON_Pin GPIO_PIN_14
@@ -102,10 +106,16 @@ void Error_Handler(void);
 #define STLK_RX_GPIO_Port GPIOD
 #define STLK_TX_Pin GPIO_PIN_9
 #define STLK_TX_GPIO_Port GPIOD
+#define MCU_DIN_4_Pin GPIO_PIN_2
+#define MCU_DIN_4_GPIO_Port GPIOG
 #define USB_PowerSwitchOn_Pin GPIO_PIN_6
 #define USB_PowerSwitchOn_GPIO_Port GPIOG
 #define USB_OverCurrent_Pin GPIO_PIN_7
 #define USB_OverCurrent_GPIO_Port GPIOG
+#define MCU_DIN_2_Pin GPIO_PIN_6
+#define MCU_DIN_2_GPIO_Port GPIOC
+#define MCU_DIN_3_Pin GPIO_PIN_8
+#define MCU_DIN_3_GPIO_Port GPIOC
 #define USB_SOF_Pin GPIO_PIN_8
 #define USB_SOF_GPIO_Port GPIOA
 #define USB_VBUS_Pin GPIO_PIN_9
