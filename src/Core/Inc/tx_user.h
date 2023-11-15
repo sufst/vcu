@@ -252,7 +252,7 @@
 
 /* Define if the safety critical configuration is enabled. */
 
-/*#define TX_SAFETY_CRITICAL*/
+#define TX_SAFETY_CRITICAL
 
 #endif
 
