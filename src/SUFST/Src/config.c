@@ -104,6 +104,15 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
+    },
+    .log = {
+        .thread = {
+            .name = "LOG",
+            .priority = 15,
+            .stack_size = 1024,
+        },
+        .min_level = LOG_LEVEL_DEBUG,
+        .uart = USART3
     }
 };
 

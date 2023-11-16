@@ -17,6 +17,7 @@
 #include "config.h"
 #include "ctrl.h"
 #include "dash.h"
+#include "log.h"
 #include "pm100.h"
 #include "status.h"
 
@@ -33,9 +34,9 @@ typedef struct
     dash_context_t dash;        // dash service
     ctrl_context_t ctrl;        // control service
     pm100_context_t pm100;      // PM100 service
+    log_context_t log;          // logging service
     uint32_t err;               // current error code
     const config_t* config_ptr; // pointer to global VCU configuration
-
 } vcu_context_t;
 
 /*
