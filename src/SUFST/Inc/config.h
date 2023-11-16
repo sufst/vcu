@@ -128,7 +128,8 @@ typedef enum
     LOG_LEVEL_INFO,
     LOG_LEVEL_WARN,
     LOG_LEVEL_ERROR,
-    LOG_LEVEL_FATAL
+    LOG_LEVEL_FATAL,
+    LOG_LEVEL_NONE = 0xFF
 } config_log_level_t;
 
 /**
