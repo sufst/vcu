@@ -89,6 +89,10 @@ status_t log_init(log_context_t* log_ptr,
         tx_thread_terminate(&log_ptr->thread);
     }
 
+    LOG_INFO(log_ptr,
+             "Logging service initialised (min level: %s)",
+             log_level_names[log_ptr->config_ptr->min_level]);
+
     return status;
 }
 
@@ -137,6 +141,7 @@ void log_thread_entry(ULONG thread_input)
         // if a message was received, print it
         if (tx_status == TX_SUCCESS)
         {
+
             // ensures the string is null-terminated
             char msg_restrict[LOG_MSG_MAX_LEN + 1];
             strncpy(msg.msg, msg_restrict, LOG_MSG_MAX_LEN);
