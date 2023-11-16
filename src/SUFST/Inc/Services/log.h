@@ -15,15 +15,22 @@
 #include "status.h"
 
 // error codes
-#define LOG_ERROR_NONE 0x00 // no error
-#define LOG_ERROR_INIT 0x01 // initialisation error
-#define LOG_ERROR_UART 0x02 // UART transmit error
-
-// number of log messages that can be queued
-#define LOG_MSG_QUEUE_SIZE 32
+#define LOG_ERROR_NONE  0x00 // no error
+#define LOG_ERROR_INIT  0x01 // initialisation error
+#define LOG_ERROR_UART  0x02 // UART transmit error
+#define LOG_ERROR_MUTEX 0x04 // mutex error
 
 // the max length for a log message
-#define LOG_MSG_MAX_LEN 256
+#define LOG_MSG_MAX_LEN 64
+
+typedef struct
+{
+    config_log_level_t level;
+    char msg[LOG_MSG_MAX_LEN + 1];
+} log_msg_t;
+
+// number of log messages that can be queued
+#define LOG_MSG_QUEUE_SIZE 128 * sizeof(log_msg_t)
 
 /**
  * @brief logging service context
@@ -31,18 +38,12 @@
 typedef struct
 {
     TX_THREAD thread;
-    TX_QUEUE msg_queue;
     TX_MUTEX uart_mutex;
+    TX_QUEUE msg_queue;
     ULONG msg_queue_mem[LOG_MSG_QUEUE_SIZE];
-    config_log_t* config_ptr;
+    const config_log_t* config_ptr;
     uint16_t error;
 } log_context_t;
-
-typedef struct
-{
-    config_log_level_t level;
-    char* msg;
-} log_msg_t;
 
 status_t log_init(log_context_t* log_ptr,
                   TX_BYTE_POOL* stack_pool_ptr,
@@ -54,7 +55,7 @@ status_t log_printf(log_context_t* log_ptr,
                     ...);
 
 // Convenience macros
-#define LOG_DEBUG(log_ptr, format, ...) \
+#define LOG_DEBUG(log_ptr, message) \
     log_printf(log_ptr, LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define LOG_INFO(log_ptr, format, ...) \
     log_printf(log_ptr, LOG_LEVEL_INFO, format, ##__VA_ARGS__)

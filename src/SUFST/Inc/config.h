@@ -11,6 +11,7 @@
 
 #include <adc.h>
 #include <gpio.h>
+#include <usart.h>
 #include <tx_api.h>
 #include <stdint.h>
 #include <stdbool.h>

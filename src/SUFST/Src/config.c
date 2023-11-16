@@ -112,7 +112,7 @@ static const config_t config_instance = {
             .stack_size = 1024,
         },
         .min_level = LOG_LEVEL_DEBUG,
-        .uart = USART3
+        .uart = &huart3
     }
 };
 
