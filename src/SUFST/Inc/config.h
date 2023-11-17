@@ -11,6 +11,7 @@
 
 #include <adc.h>
 #include <gpio.h>
+#include <usart.h>
 #include <tx_api.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -120,6 +121,29 @@ typedef struct {
 } config_canbc_t;
 
 /**
+ * @brief log level
+ */
+typedef enum
+{
+    LOG_LEVEL_DEBUG,
+    LOG_LEVEL_INFO,
+    LOG_LEVEL_WARN,
+    LOG_LEVEL_ERROR,
+    LOG_LEVEL_FATAL,
+    LOG_LEVEL_NONE = 0xFF
+} config_log_level_t;
+
+/**
+ * @brief log service configuration
+ */
+typedef struct
+{
+    config_thread_t thread;
+    config_log_level_t min_level;
+    UART_HandleTypeDef *uart;
+} config_log_t;
+
+/**
  * @brief   VCU configuration
  * 
  * @details The intended usage is that the main VCU module loads an instance of
@@ -136,6 +160,7 @@ typedef struct {
     config_torque_map_t torque_map;
     config_pm100_t pm100;
     config_canbc_t canbc;
+    config_log_t log;
 } config_t;
 
 /*
