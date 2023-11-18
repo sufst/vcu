@@ -11,6 +11,8 @@
 #include "rtds.h"
 #include "trc.h"
 
+static log_context_t* log_h;
+
 /*
  * internal function prototypes
  */
@@ -37,6 +39,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    pm100_context_t* pm100_ptr,
                    canbc_context_t* canbc_ptr,
+                   log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,
@@ -56,6 +59,8 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->sagl_reading = 0;
     ctrl_ptr->torque_request = 0;
     ctrl_ptr->precharge_start = 0;
+
+    log_h = log_ptr;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -151,7 +156,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // LED flashes until activation is complete
     case (CTRL_STATE_TS_OFF):
     {
+        LOG_INFO(log_h, "Waiting for ts_on\n");
         dash_wait_for_ts_on(dash_ptr);
+        LOG_INFO(log_h, "ts_on received\n");
         next_state = CTRL_STATE_TS_READY_WAIT;
 
         break;
@@ -163,6 +170,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
         trc_set_ts_on(GPIO_PIN_SET);
 
+        LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
         status_t result
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
                                  config_ptr->ts_ready_timeout_ticks);
@@ -177,11 +185,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             next_state = CTRL_STATE_PRECHARGE_WAIT;
             pm100_start_precharge(ctrl_ptr->pm100_ptr);
             ctrl_ptr->precharge_start = tx_time_get();
+            LOG_INFO(log_h, "TS ready & precharge started\n");
         }
         else
         {
             ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+            LOG_ERROR(log_h, "Timeout reached waiting for TS ready\n");
         }
 
         break;
@@ -198,11 +208,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             pm100_disable(ctrl_ptr->pm100_ptr);
             dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
             next_state = CTRL_STATE_R2D_WAIT;
+            LOG_INFO(log_h, "Precharge complete\n");
         }
         else if (charge_time >= config_ptr->precharge_timeout_ticks)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+            LOG_ERROR(log_h, "Precharge timeout reached\n");
         }
 
         break;
@@ -213,6 +225,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_R2D_WAIT):
     {
         bool r2d = false;
+        LOG_INFO(log_h,
+                 "Waiting for R2D from dash (brake required: %d)\n",
+                 config_ptr->r2d_requires_brake);
         dash_wait_for_r2d(dash_ptr);
 
         if (config_ptr->r2d_requires_brake)
@@ -231,10 +246,15 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
             rtds_activate(ctrl_ptr->rtds_config_ptr);
+
             next_state = CTRL_STATE_TS_ON;
 
             // TODO: enable inverter
+            LOG_ERROR(log_h, "NEED TO ENABLE PM100\n");
+            LOG_INFO(log_h, "R2D active\n");
         }
+        else
+            LOG_ERROR(log_h, "R2D failed to activate\n");
 
         break;
     }

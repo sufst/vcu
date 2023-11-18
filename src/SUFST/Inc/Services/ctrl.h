@@ -17,6 +17,7 @@
 #include "canbc.h"
 #include "config.h"
 #include "dash.h"
+#include "log.h"
 #include "pm100.h"
 #include "status.h"
 #include "torque_map.h"
@@ -81,6 +82,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    pm100_context_t* pm100_ptr,
                    canbc_context_t* canbc_ptr,
+                   log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_apps_t* apps_config_ptr,

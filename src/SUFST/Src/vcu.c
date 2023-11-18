@@ -65,6 +65,10 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                 status = STATUS_ERROR;
                 // vcu_h->err |= VCU_ERROR_INIT;
             }
+            else
+            {
+                LOG_INFO(&vcu_ptr->log, "RTCAN service %d started\n", i);
+            }
         }
     }
 
@@ -92,6 +96,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->dash,
                            &vcu_ptr->pm100,
                            &vcu_ptr->canbc,
+                           &vcu_ptr->log,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->ctrl,
                            &vcu_ptr->config_ptr->apps,
@@ -108,6 +113,9 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->rtcan_c,
                             &vcu_ptr->config_ptr->pm100);
     }
+
+    if (status != STATUS_OK)
+        LOG_ERROR(&vcu_ptr->log, "Some services failed to initialise\n");
 
     return status;
 }
