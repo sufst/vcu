@@ -1,6 +1,7 @@
 /*****************************************************************************
  * @file   driver_control.c
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
+ * @author Toby Godfrey (@_tg03, tmag1g21@soton.ac.uk)
  * @brief  Driver control
  ****************************************************************************/
 
@@ -157,7 +158,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_OFF):
     {
         LOG_INFO(log_h, "Waiting for ts_on\n");
-        dash_wait_for_ts_on(dash_ptr);
+        // TODO dash_wait_for_ts_on(dash_ptr);
+        LOG_ERROR(log_h, "BUTTON WAIT DISABLED\n");
         LOG_INFO(log_h, "ts_on received\n");
         next_state = CTRL_STATE_TS_READY_WAIT;
 
@@ -171,9 +173,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         trc_set_ts_on(GPIO_PIN_SET);
 
         LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
-        status_t result
-            = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
-                                 config_ptr->ts_ready_timeout_ticks);
+        // TODO status_t result =
+        // trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
+        // config_ptr->ts_ready_timeout_ticks);
+        LOG_ERROR(log_h, "TS READY WAIT DISABLED\n");
+        status_t result = STATUS_OK;
 
         if (result == STATUS_OK)
         {

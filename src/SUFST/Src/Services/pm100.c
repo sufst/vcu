@@ -29,6 +29,8 @@
 #define PM100_DIRECTION_FORWARD            0x1
 #define PM100_DIRECTION_REVERSE            0x0
 
+static log_context_t* log_h;
+
 /*
  * internal function prototypes
  */
@@ -45,6 +47,7 @@ static void process_broadcast(pm100_context_t* pm100_ptr,
  * @param[in]   config_ptr      Configuration
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
+                    log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     rtcan_handle_t* rtcan_ptr,
                     const config_pm100_t* config_ptr)
@@ -53,6 +56,7 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     pm100_ptr->rtcan_ptr = rtcan_ptr;
     pm100_ptr->error = PM100_ERROR_NONE;
     pm100_ptr->broadcasts_valid = false;
+    log_h = log_ptr;
 
     status_t status = STATUS_OK;
 
@@ -275,6 +279,7 @@ bool pm100_is_precharged(pm100_context_t* pm100_ptr)
  */
 status_t pm100_disable(pm100_context_t* pm100_ptr)
 {
+    LOG_INFO(log_h, "Sending PM100 Disable command\n");
     rtcan_msg_t msg = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
@@ -328,6 +333,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
                 can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
+                LOG_INFO(log_h, "Sending torque request\n");
                 rtcan_status_t rtcan_status
                     = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
                 status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
