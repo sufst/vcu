@@ -207,7 +207,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
-        if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
+        if (/*TODO pm100_is_precharged(ctrl_ptr->pm100_ptr)*/ true)
         {
             pm100_disable(ctrl_ptr->pm100_ptr);
             dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
@@ -232,7 +232,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         LOG_INFO(log_h,
                  "Waiting for R2D from dash (brake required: %d)\n",
                  config_ptr->r2d_requires_brake);
-        dash_wait_for_r2d(dash_ptr);
+        // TODO dash_wait_for_r2d(dash_ptr);
+        LOG_ERROR(log_h, "R2D WAIT DISABLED\n");
 
         if (config_ptr->r2d_requires_brake)
         {
@@ -250,6 +251,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
             rtds_activate(ctrl_ptr->rtds_config_ptr);
+            // LOG_ERROR(log_h, "R2DS DISABLED\n");
 
             next_state = CTRL_STATE_TS_ON;
 
