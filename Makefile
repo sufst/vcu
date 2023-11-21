@@ -112,6 +112,7 @@ src/SUFST/Src/Services/Telemetry/xbee_comms.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/Core/Src/main.c \
+src/Core/Src/spi.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
 src/Core/Src/gpio.c \
@@ -147,6 +148,8 @@ src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_usb.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c \
 src/Middlewares/ST/threadx/common/src/tx_initialize_high_level.c \
 src/Middlewares/ST/threadx/common/src/tx_initialize_kernel_enter.c \
 src/Middlewares/ST/threadx/common/src/tx_initialize_kernel_setup.c \
@@ -358,10 +361,7 @@ src/Middlewares/SUFST/xbee_ansic_library/src/util/jslong.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/util/memcheck.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/util/swapbytes.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/util/swapcpy.c \
-src/Middlewares/SUFST/xbee_ansic_library/src/util/xmodem_crc16.c \
-Core/Src/spi.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
-Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c
+src/Middlewares/SUFST/xbee_ansic_library/src/util/xmodem_crc16.c 
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
