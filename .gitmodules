@@ -4,3 +4,6 @@
 [submodule "src/Middlewares/SUFST/can-defs"]
 	path = src/Middlewares/SUFST/can-defs
 	url = https://github.com/sufst/can-defs
+[submodule "src/Middlewares/SUFST/xbee_ansic_library"]
+	path = src/Middlewares/SUFST/xbee_ansic_library
+	url = https://github.com/sufst/xbee_ansic_library
