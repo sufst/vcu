@@ -109,9 +109,9 @@ UINT tx_status;
     /* Subscribe to can messages*/
     if (tx_status == TX_SUCCESS)
     {
-        for(int i = 0; i < CAN_HANDLERS_TABLE_SIZE; i++)
+        for(int i = 0; i < CAN_C_HANDLERS_TABLE_SIZE; i++)
         {
-            can_status = rtcan_subscribe(unpack_ptr->rtcan, can_handler_get(i)->identifier , &unpack_ptr->rx_queue);
+            can_status = 0;// rtcan_subscribe(unpack_ptr->rtcan, can_handler_get(i)->identifier , &unpack_ptr->rx_queue);
             if(can_status != RTCAN_OK)
             {
                 /* Error handling - rtcan_subscribe failed */
@@ -192,16 +192,16 @@ void queue_receive_thread_entry(ULONG input)
         
         /* Find the can handler of matching identifier */
         int index = 0;
-        for(; index<=CAN_HANDLERS_TABLE_SIZE; index++)
+        for(; index<=CAN_C_HANDLERS_TABLE_SIZE; index++)
         {
-            handlerunpack = (can_handler_t *) can_handler_get(index);
+            handlerunpack = 0; // (can_handler_t *) can_handler_get(index);
             
             if(rx_msg_ptr->identifier == handlerunpack->identifier)
             {
               break;
             }
             /* Couldn't find matching identifier - deassign pointer. */
-            if(index == CAN_HANDLERS_TABLE_SIZE)
+            if(index == CAN_C_HANDLERS_TABLE_SIZE)
             {
               handlerunpack = NULL;
             }
@@ -221,7 +221,7 @@ void queue_receive_thread_entry(ULONG input)
         }
         /* Check latest timestamp in ts_table, skip frame if not enough time has elapsed. Update ts_table. */
         /* This part will not be needed when this feature will be implemented in rtcan */
-        l_timestamp = ts_table[index];
+        l_timestamp = 0; //ts_table[index]
         c_timestamp = tx_time_get();
         if (c_timestamp - l_timestamp < 50)
         {
@@ -235,7 +235,7 @@ void queue_receive_thread_entry(ULONG input)
           #endif
           continue;
         }
-        ts_table[index] = c_timestamp;
+        ts_table_C[index] = c_timestamp; //changed to compile
         
         /* Fill pdu_struct data buffer */
         handlerunpack->unpack_func((uint8_t *) &pdu_struct.data, rx_msg_ptr->data, rx_msg_ptr->length);

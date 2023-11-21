@@ -25,7 +25,8 @@ C_STANDARD = c11
 ALWAYS_C_DEFS = \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DUSE_HAL_DRIVER \
--DSTM32F746xx
+-DSTM32F746xx \
+-DXBEE_PLATFORM_HEADER='"../ports/stm32/platform_config.h"'
 
 DEBUG_C_DEFS = \
 -DDEBUG \
@@ -104,6 +105,10 @@ src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Services/pm100.c \
+src/SUFST/Src/Services/Telemetry/can_publisher.c \
+src/SUFST/Src/Services/Telemetry/can_unpack.c \
+src/SUFST/Src/Services/Telemetry/error_handler.c \
+src/SUFST/Src/Services/Telemetry/xbee_comms.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/Core/Src/main.c \
@@ -311,7 +316,52 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_c.c
+src/Middlewares/SUFST/can-defs/out/can_c.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_atcmd.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_atmode.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_cbuf.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_delivery_status.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_device.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_discovery.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_ebl_file.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_ext_modem_status.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_file_system.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_firmware.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_gpm.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_io.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_register_device.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_reg_descr.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_route.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_scan.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_secure_session.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_sxa.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_time.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_transparent_serial.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_user_data.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_wpan.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_xmodem.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_basic.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_client.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_identify.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_onoff.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_time.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zcl_types.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zigbee_zcl.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/zigbee/zigbee_zdo.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/wpan/wpan_aps.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/wpan/wpan_types.c \
+src/Middlewares/SUFST/xbee_ansic_library/ports/stm32/xbee_platform_stm32.c \
+src/Middlewares/SUFST/xbee_ansic_library/ports/stm32/xbee_serial_stm32.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/hexdump.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/hexstrtobyte.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/jslong.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/memcheck.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/swapbytes.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/swapcpy.c \
+src/Middlewares/SUFST/xbee_ansic_library/src/util/xmodem_crc16.c \
+Core/Src/spi.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
+Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
@@ -342,7 +392,10 @@ C_INCLUDES =  \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
 -Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
 -Isrc/Middlewares/SUFST/rtcan/inc/ \
--Isrc/Middlewares/SUFST/can-defs/out/
+-Isrc/Middlewares/SUFST/can-defs/out/ \
+-Isrc/Middlewares/SUFST/xbee_ansic_library/include \
+-Isrc/SUFST/Inc/Services/Telemetry
+
 
 ASM_INCLUDES = 
 

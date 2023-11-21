@@ -1,8 +1,8 @@
 #include <tx_api.h>
 #include "rtcan.h"
 #include "can_publisher.h"
-#include "can_database.h"
-#include "Debug/testbench_can_data.h"
+#include "can_c.h"
+#include "can_s.h"
 #include "error_handler.h"
 
 #define QUEUE_SEND_THREAD_PRIORITY             10
@@ -58,12 +58,12 @@ void queue_send_thread_entry(ULONG input)
 
     while(1){
     
-    queue_data.identifier = CAN_DATABASE_PM100_CURRENT_INFO_FRAME_ID;
-    queue_data.length = CAN_DATABASE_PM100_CURRENT_INFO_LENGTH;
+    queue_data.identifier = CAN_C_PM100_CURRENT_INFO_FRAME_ID;
+    queue_data.length = CAN_C_PM100_CURRENT_INFO_LENGTH;
 
-    memcpy(&queue_data.data, testbench_can_get_data_ptr(i), sizeof(uint8_t)*DEBUG_LOOKUP_DATA_CELL_SIZE);
+    // memcpy(&queue_data.data, testbench_can_get_data_ptr(i), sizeof(uint8_t)*5);
 
-    i += DEBUG_LOOKUP_DATA_CELL_SIZE;  
+    i += 5;  
 
     // Send the data to the queue.
     UINT ret = tx_queue_send(publisher_ptr->tx_queue, (rtcan_msg_t *) &data_ptr, TX_WAIT_FOREVER);
@@ -71,7 +71,7 @@ void queue_send_thread_entry(ULONG input)
         return;
     }
 
-    if(i >= DEBUG_LOOKUP_SIZE - 1)
+    if(i >= 5 - 1)
     {
         i = 0;
     }

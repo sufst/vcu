@@ -50,6 +50,7 @@ typedef struct
 /**
  * @brief   Table of CAN message IDs and associated unpacking functions
  */
-static uint32_t ts_table[CAN_HANDLERS_TABLE_SIZE] = {0};
+static uint32_t ts_table_C[CAN_C_HANDLERS_TABLE_SIZE] = {0};
+static uint32_t ts_table_S[CAN_S_HANDLERS_TABLE_SIZE] = {0};
 
 #endif /* CAN_TELEMETRY_H */

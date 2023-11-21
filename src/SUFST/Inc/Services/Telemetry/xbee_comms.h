@@ -10,6 +10,11 @@
 #include "xbee/transparent_serial.h"
 #include "error_handler.h"
 
+// typedef struct{
+//   uint32_t baudrate;
+//   UART_HandleTypeDef* huart;
+// } xbee_serial_t;
+
 typedef struct {
 
   TX_THREAD thread;
