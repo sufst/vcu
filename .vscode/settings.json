@@ -47,7 +47,8 @@
     "gpio.h": "c",
     "can_database.h": "c",
     "status.h": "c",
-    "torque_map_funcs.h": "c"
+    "torque_map_funcs.h": "c",
+    "rtds.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": true,
   "C_Cpp.errorSquiggles": "Enabled",

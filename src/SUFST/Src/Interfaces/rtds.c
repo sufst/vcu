@@ -9,10 +9,16 @@
  *
  * @param[in]   config_ptr  RTDS configuration
  */
-status_t rtds_activate(const config_rtds_t* config_ptr)
+status_t rtds_activate(const config_rtds_t* config_ptr, log_context_t* log_h)
 {
     HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_SET);
-    UINT tx_status = tx_thread_sleep(config_ptr->active_ticks);
+    LOG_INFO(log_h, "Waiting - RTDS\n");
+    UINT tx_status
+        = tx_thread_sleep(config_ptr->active_ticks); //! This never returns
+    //! If this line below is enabled the tx_thread_sleep for the AIRs never
+    //! returns. Memory issue? Heartbeat thread stops too :(
+    //// UINT tx_status = TX_SUCCESS;
+    LOG_INFO(log_h, "Waited - RTDS\n");
     HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_RESET);
 
     return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;

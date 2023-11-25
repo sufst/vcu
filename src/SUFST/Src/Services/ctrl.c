@@ -181,10 +181,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (result == STATUS_OK)
         {
+            LOG_INFO(log_h, "Waiting - AIRs\n");
             tx_thread_sleep(
                 5 * TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
                                                 // current of AIRs before
                                                 // turning on inverter
+            LOG_INFO(log_h, "Waited - AIRs\n");
 
             next_state = CTRL_STATE_PRECHARGE_WAIT;
             pm100_start_precharge(ctrl_ptr->pm100_ptr);
@@ -250,8 +252,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         if (r2d)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
-            rtds_activate(ctrl_ptr->rtds_config_ptr);
-            // LOG_ERROR(log_h, "R2DS DISABLED\n");
+            rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
+            LOG_ERROR(log_h, "R2DS DISABLED\n");
 
             next_state = CTRL_STATE_TS_ON;
 
@@ -288,6 +290,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         }
         else
         {
+            LOG_ERROR(log_h, "APPS error\n");
             pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
 
             if (pm100_status != STATUS_OK)
@@ -315,7 +318,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // SCS fault
     // this is recoverable, if the signal becomes plausible again
-    case (CTRL_STATE_APPS_SCS_FAULT):
+    case (CTRL_STATE_APPS_SCS_FAULT): //!
     {
         // TODO: request zero torque repeatedly
 
