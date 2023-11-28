@@ -257,8 +257,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
             next_state = CTRL_STATE_TS_ON;
 
-            // TODO: enable inverter
-            LOG_ERROR(log_h, "NEED TO ENABLE PM100\n");
             LOG_INFO(log_h, "R2D active\n");
         }
         else
