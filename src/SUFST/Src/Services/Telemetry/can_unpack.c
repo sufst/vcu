@@ -1,5 +1,5 @@
 #include <tx_api.h>
-#include "error_handler.h"
+#include "telem_error_handler.h"
 #include "can_handlers.h"
 #include "can_unpack.h"
 #include "usart.h"
@@ -111,7 +111,7 @@ UINT tx_status;
     {
         for(int i = 0; i < CAN_C_HANDLERS_TABLE_SIZE; i++)
         {
-            can_status = 0;// rtcan_subscribe(unpack_ptr->rtcan, can_handler_get(i)->identifier , &unpack_ptr->rx_queue);
+            can_status = rtcan_subscribe(unpack_ptr->rtcan, can_handler_get(i,CAN_C_HANDLER_TABLE_INSTANCE)->identifier , &unpack_ptr->rx_queue); // only on critical bus so far
             if(can_status != RTCAN_OK)
             {
                 /* Error handling - rtcan_subscribe failed */
@@ -194,7 +194,7 @@ void queue_receive_thread_entry(ULONG input)
         int index = 0;
         for(; index<=CAN_C_HANDLERS_TABLE_SIZE; index++)
         {
-            handlerunpack = 0; // (can_handler_t *) can_handler_get(index);
+            handlerunpack = (can_handler_t *) can_handler_get(index, CAN_C_HANDLER_TABLE_INSTANCE);
             
             if(rx_msg_ptr->identifier == handlerunpack->identifier)
             {

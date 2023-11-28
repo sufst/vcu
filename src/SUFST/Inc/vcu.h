@@ -19,6 +19,9 @@
 #include "dash.h"
 #include "pm100.h"
 #include "status.h"
+#include "can_unpack.h"
+#include "telem_error_handler.h"
+#include "xbee_comms.h"
 
 /**
  * @brief       VCU context
@@ -33,6 +36,9 @@ typedef struct
     dash_context_t dash;        // dash service
     ctrl_context_t ctrl;        // control service
     pm100_context_t pm100;      // PM100 service
+    unpack_context_t unpack;    // unpacking service
+    error_handler_context_t error;      // error service
+    xbee_comms_context_t xbee_comms;    // xbee service
     uint32_t err;               // current error code
     const config_t* config_ptr; // pointer to global VCU configuration
 

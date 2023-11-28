@@ -3,7 +3,7 @@
 #include "can_publisher.h"
 #include "can_c.h"
 #include "can_s.h"
-#include "error_handler.h"
+#include "telem_error_handler.h"
 
 #define QUEUE_SEND_THREAD_PRIORITY             10
 #define QUEUE_SEND_THREAD_STACK_SIZE           1024

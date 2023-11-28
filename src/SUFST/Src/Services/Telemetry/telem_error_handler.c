@@ -1,5 +1,5 @@
 #include <tx_api.h>
-#include "error_handler.h"
+#include "telem_error_handler.h"
 #include "main.h"
 #include <stdatomic.h>
 #define ERROR_HANDLER_THREAD_PRIORITY             10

@@ -102,6 +102,33 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->config_ptr->pm100);
     }
 
+    // error handler
+    if (status == STATUS_OK)
+    {
+        status = error_handler_init(&vcu_ptr->error,
+                                    app_mem_pool);
+    }
+
+    // can_unpack
+    if (status == STATUS_OK)
+    {
+        status = unpack_init(&vcu_ptr->unpack,
+                            &vcu_ptr->error,
+                            app_mem_pool,
+                            rtcan_handles[1]); /*TODO: May need to initialise other rtcan threads - only init critical for now*/
+    }
+
+    // xbee_comms
+    if (status == STATUS_OK)
+    {
+        status = xbee_comms_init(&vcu_ptr->xbee_comms,
+                                    &vcu_ptr->error,
+                                    &vcu_ptr->xbee_comms.rx_queue,
+                                    app_mem_pool);
+    }
+
+    /* TODO: Import can_publisher for debugging - need to fix publisher first*/
+
     return status;
 }
 

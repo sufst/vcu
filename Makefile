@@ -107,7 +107,7 @@ src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Services/pm100.c \
 src/SUFST/Src/Services/Telemetry/can_publisher.c \
 src/SUFST/Src/Services/Telemetry/can_unpack.c \
-src/SUFST/Src/Services/Telemetry/error_handler.c \
+src/SUFST/Src/Services/Telemetry/telem_error_handler.c \
 src/SUFST/Src/Services/Telemetry/xbee_comms.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
@@ -320,6 +320,7 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
 src/Middlewares/SUFST/can-defs/out/can_c.c \
+src/Middlewares/SUFST/can-defs/out/can_handlers.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_atcmd.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_atmode.c \
 src/Middlewares/SUFST/xbee_ansic_library/src/xbee/xbee_cbuf.c \

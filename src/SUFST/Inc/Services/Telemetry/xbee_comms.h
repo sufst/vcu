@@ -8,7 +8,7 @@
 #include "xbee/discovery.h"
 #include "zigbee/zdo.h"
 #include "xbee/transparent_serial.h"
-#include "error_handler.h"
+#include "telem_error_handler.h"
 
 // typedef struct{
 //   uint32_t baudrate;

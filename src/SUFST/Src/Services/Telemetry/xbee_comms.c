@@ -2,7 +2,7 @@
 #include "rtcan.h"
 #include "xbee_comms.h"
 #include "usart.h"
-#include "error_handler.h"
+#include "telem_error_handler.h"
 
 /* Include transmit frame API layer */
 #include "xbee/wpan.h"

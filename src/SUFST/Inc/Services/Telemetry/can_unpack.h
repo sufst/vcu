@@ -4,7 +4,7 @@
 #include "telemetry_protocol.h"
 #include "rtcan.h"
 #include <stdint.h>
-#include "error_handler.h"
+#include "telem_error_handler.h"
 
 #define CAN_PUBLISHER_RX_QUEUE_SIZE 10 //TODO: add config.h storing such values to avoid redefinition.
 #define PDU_TX_QUEUE_SIZE 10
