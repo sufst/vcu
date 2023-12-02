@@ -62,10 +62,6 @@ status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr)
 status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
 {
 
-    // TODO: Remove this
-    *reading_ptr = 750;
-    return STATUS_OK;
-
     status_t status = STATUS_OK;
     ADC_HandleTypeDef* hadc = scs_ptr->config_ptr->hadc;
 
