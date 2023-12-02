@@ -158,9 +158,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_OFF):
     {
         LOG_INFO(log_h, "Waiting for ts_on\n");
-        // TODO dash_wait_for_ts_on(dash_ptr);
-        LOG_ERROR(log_h,
-                  "BUTTON WAIT DISABLED =================================\n");
+        dash_wait_for_ts_on(dash_ptr);
         LOG_INFO(log_h, "ts_on received\n");
         next_state = CTRL_STATE_TS_READY_WAIT;
 
@@ -174,12 +172,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         trc_set_ts_on(GPIO_PIN_SET);
 
         LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
-        // TODO status_t result =
-        // trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
-        // config_ptr->ts_ready_timeout_ticks);
-        LOG_ERROR(log_h,
-                  "TS READY WAIT DISABLED =================================\n");
-        status_t result = STATUS_OK;
+        status_t result
+            = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
+                                 config_ptr->ts_ready_timeout_ticks);
 
         if (result == STATUS_OK)
         {
@@ -211,7 +206,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
-        if (/*TODO pm100_is_precharged(ctrl_ptr->pm100_ptr)*/ true)
+        if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
         {
             pm100_disable(ctrl_ptr->pm100_ptr);
             dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
@@ -236,9 +231,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         LOG_INFO(log_h,
                  "Waiting for R2D from dash (brake required: %d)\n",
                  config_ptr->r2d_requires_brake);
-        // TODO dash_wait_for_r2d(dash_ptr);
-        LOG_ERROR(log_h,
-                  "R2D WAIT DISABLED =================================\n");
+        dash_wait_for_r2d(dash_ptr);
 
         if (config_ptr->r2d_requires_brake)
         {
@@ -256,8 +249,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
             rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-            LOG_ERROR(log_h,
-                      "R2DS DISABLED =================================\n");
 
             next_state = CTRL_STATE_TS_ON;
 
