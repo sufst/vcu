@@ -159,7 +159,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         LOG_INFO(log_h, "Waiting for ts_on\n");
         // TODO dash_wait_for_ts_on(dash_ptr);
-        LOG_ERROR(log_h, "BUTTON WAIT DISABLED\n");
+        LOG_ERROR(log_h,
+                  "BUTTON WAIT DISABLED =================================\n");
         LOG_INFO(log_h, "ts_on received\n");
         next_state = CTRL_STATE_TS_READY_WAIT;
 
@@ -176,7 +177,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         // TODO status_t result =
         // trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
         // config_ptr->ts_ready_timeout_ticks);
-        LOG_ERROR(log_h, "TS READY WAIT DISABLED\n");
+        LOG_ERROR(log_h,
+                  "TS READY WAIT DISABLED =================================\n");
         status_t result = STATUS_OK;
 
         if (result == STATUS_OK)
@@ -235,7 +237,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                  "Waiting for R2D from dash (brake required: %d)\n",
                  config_ptr->r2d_requires_brake);
         // TODO dash_wait_for_r2d(dash_ptr);
-        LOG_ERROR(log_h, "R2D WAIT DISABLED\n");
+        LOG_ERROR(log_h,
+                  "R2D WAIT DISABLED =================================\n");
 
         if (config_ptr->r2d_requires_brake)
         {
@@ -253,7 +256,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
             rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-            LOG_ERROR(log_h, "R2DS DISABLED\n");
+            LOG_ERROR(log_h,
+                      "R2DS DISABLED =================================\n");
 
             next_state = CTRL_STATE_TS_ON;
 
@@ -297,6 +301,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             }
             else
             {
+                LOG_ERROR(log_h, "APPS SCS fault\n");
                 next_state = CTRL_STATE_APPS_SCS_FAULT;
             }
         }
@@ -310,15 +315,21 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     case (CTRL_STATE_TS_RUN_FAULT):
     {
+        LOG_ERROR(log_h, "TS fault during activation or runtime\n");
         ctrl_handle_ts_fault(ctrl_ptr);
         break;
     }
 
     // SCS fault
     // this is recoverable, if the signal becomes plausible again
-    case (CTRL_STATE_APPS_SCS_FAULT): //!
+    case (CTRL_STATE_APPS_SCS_FAULT):
     {
-        // TODO: request zero torque repeatedly
+        status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+
+        if (pm100_status != STATUS_OK)
+        {
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
 
         if (apps_check_plausibility(&ctrl_ptr->apps))
         {
