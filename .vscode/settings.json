@@ -48,7 +48,8 @@
     "can_database.h": "c",
     "status.h": "c",
     "torque_map_funcs.h": "c",
-    "rtds.h": "c"
+    "rtds.h": "c",
+    "pm100.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": true,
   "C_Cpp.errorSquiggles": "Enabled",

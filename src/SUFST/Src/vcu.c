@@ -1,6 +1,8 @@
 /******************************************************************************
  * @file    vcu.h
  * @author  Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
+ * @author  Toby Godfrey (@_tg03, tmag1g21@soton.ac.uk)
+ * @author  George Peppard (@inventor02, gjp1g21@soton.ac.uk)
  * @brief   Top level VCU implementation
  *****************************************************************************/
 
