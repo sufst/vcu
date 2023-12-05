@@ -1,6 +1,7 @@
 #include "pm100.h"
 
 #include <can_c.h>
+#include <can_s.h>
 
 #define PM100_NO_FAULTS                    0x00
 
@@ -234,12 +235,17 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
  */
 status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
 {
-    // TODO: change the name of the pin
-    HAL_GPIO_WritePin(STATUS_GPIO_Port, STATUS_Pin, GPIO_PIN_SET);
+    rtcan_msg_t msg = {.identifier = CAN_S_VCU_TS_ON_FRAME_ID,
+                       .length = CAN_S_VCU_TS_ON_LENGTH};
+    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
+    status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 
-    UINT status = tx_thread_resume(&pm100_ptr->thread);
+    if (status != STATUS_OK)
+        return status;
 
-    return (status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
+
+    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 }
 
 /**
