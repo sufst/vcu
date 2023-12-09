@@ -151,7 +151,8 @@ typedef struct
     UART_HandleTypeDef *uart;
 } config_log_t;
 
-typedef struct{
+typedef struct
+{
     uint8_t rtcan_s_priority;
     uint8_t rtcan_c_priority;
     uint8_t ts_ctrl_thread_priority;
@@ -159,7 +160,8 @@ typedef struct{
     uint16_t driver_ctrl_tick_rate;
 } config_rtos_t;
 
-typedef struct{
+typedef struct
+{
     bool run_apps_testbench;
     bool run_fault_state_testbench;
     uint8_t apps_testbench_laps;
