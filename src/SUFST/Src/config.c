@@ -95,7 +95,9 @@ static const config_t config_instance = {
             .priority = 3,
             .stack_size = 1024
         },
-        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10)
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
+        .torque_request_timeout_ms = 100,
+        .speed_mode = 0
     },
     .canbc = {
         .thread = {
@@ -104,6 +106,14 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
+    },
+    .heartbeat = {
+        .thread = {
+            .name = "HEARTBEAT",
+            .priority = 10,
+            .stack_size = 512
+        },
+        .blink_period_ticks = SECONDS_TO_TICKS(0.25)
     },
     .log = {
         .thread = {
@@ -114,13 +124,17 @@ static const config_t config_instance = {
         .min_level = LOG_LEVEL_DEBUG,
         .uart = &huart3
     },
-    .heartbeat = {
-        .thread = {
-            .name = "HEARTBEAT",
-            .priority = 10,
-            .stack_size = 512
-        },
-        .blink_period_ticks = SECONDS_TO_TICKS(0.25)
+    .rtos = {
+        .rtcan_s_priority = 3,
+        .rtcan_c_priority = 2,
+        .ts_ctrl_thread_priority = 2,
+        .tracex_enable = false,
+        .driver_ctrl_tick_rate = 100
+    },
+    .testbenches = {
+        .run_apps_testbench = false,
+        .run_fault_state_testbench = false,
+        .apps_testbench_laps = 1
     }
 };
 

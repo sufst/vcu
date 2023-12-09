@@ -44,8 +44,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
     CAN_HandleTypeDef* can_handles[] = {can_s_h, can_c_h};
-    ULONG rtcan_priorities[]
-        = {RTCAN_S_PRIORITY, RTCAN_C_PRIORITY}; // TODO: update with config
+    ULONG rtcan_priorities[] = {vcu_ptr->config_ptr->rtos.rtcan_s_priority,
+                                vcu_ptr->config_ptr->rtos.rtcan_c_priority};
 
     for (uint32_t i = 0; i < 2; i++)
     {
