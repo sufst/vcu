@@ -96,7 +96,8 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
-        .torque_request_timeout_ms = 100,
+        .torque_request_timeout_ticks = SECONDS_TO_TICKS(0.1), // 100 ms
+        .precharge_timeout_ticks = SECONDS_TO_TICKS(1),
         .speed_mode = 0
     },
     .canbc = {

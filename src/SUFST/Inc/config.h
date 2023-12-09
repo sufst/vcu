@@ -110,7 +110,8 @@ typedef struct {
 typedef struct {
     config_thread_t thread;                 // service thread config
     uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
-    uint32_t torque_request_timeout_ms;
+    uint32_t torque_request_timeout_ticks;
+    uint32_t precharge_timeout_ticks;
     uint8_t speed_mode;
 } config_pm100_t;
 

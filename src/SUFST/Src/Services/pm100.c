@@ -255,8 +255,9 @@ status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
  */
 bool pm100_is_precharged(pm100_context_t* pm100_ptr)
 {
-    // TODO: consider adding a sensible timeout
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, TX_WAIT_FOREVER);
+    UINT tx_status
+        = tx_mutex_get(&pm100_ptr->state_mutex,
+                       pm100_ptr->config_ptr->precharge_timeout_ticks);
 
     bool broadcasts_valid = false;
     uint8_t vsm_state = PM100_VSM_STATE_FAULT; // assume something safe
@@ -316,8 +317,9 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
         pm100_ptr); // do this before getting mutex to avoid deadlock
     const bool no_errors = (pm100_ptr->error == PM100_ERROR_NONE);
 
-    // TODO: consider adding a sensible timeout
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, TX_WAIT_FOREVER);
+    UINT tx_status
+        = tx_mutex_get(&pm100_ptr->state_mutex,
+                       pm100_ptr->config_ptr->torque_request_timeout_ticks);
 
     if (no_errors && is_precharged && tx_status == TX_SUCCESS)
     {
