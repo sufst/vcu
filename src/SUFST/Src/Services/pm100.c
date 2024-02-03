@@ -240,8 +240,12 @@ status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
                       PRECHARGE_RELAY_Pin,
                       GPIO_PIN_SET);
 
-    rtcan_msg_t msg = {.identifier = CAN_S_VCU_TS_ON_FRAME_ID,
-                       .length = CAN_S_VCU_TS_ON_LENGTH};
+    rtcan_msg_t msg
+        = {.identifier
+           = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
+                                       // power on the PDM. Don't need this and
+                                       // the PRECHARGE_RELAY pin
+           .length = CAN_S_VCU_TS_ON_LENGTH};
     rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
     status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 
