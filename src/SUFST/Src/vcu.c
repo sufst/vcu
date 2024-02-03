@@ -160,7 +160,8 @@ status_t vcu_handle_can_tx_mailbox_callback(vcu_context_t* vcu_ptr,
         Error_Handler();
     }
 
-    return STATUS_OK; // TODO: errors
+    return STATUS_OK; //? Error_Handler() never returns so this can only return
+                      // STATUS_OK
 }
 
 /**
