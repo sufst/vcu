@@ -110,9 +110,10 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     }
 
     // turn off power
-    HAL_GPIO_WritePin(PRECHARGE_RELAY_GPIO_Port,
-                      PRECHARGE_RELAY_Pin,
-                      GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(
+        PRECHARGE_RELAY_GPIO_Port, // This pin used to be called STATUS
+        PRECHARGE_RELAY_Pin,
+        GPIO_PIN_RESET);
 
     return status;
 }
