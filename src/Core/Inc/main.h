@@ -92,8 +92,8 @@ void Error_Handler(void);
 #define TS_ON_GPIO_Port GPIOF
 #define R2D_SIREN_Pin GPIO_PIN_15
 #define R2D_SIREN_GPIO_Port GPIOF
-#define STATUS_Pin GPIO_PIN_9
-#define STATUS_GPIO_Port GPIOE
+#define PRECHARGE_RELAY_Pin GPIO_PIN_9
+#define PRECHARGE_RELAY_GPIO_Port GPIOE
 #define BRAKE_PRESSED_Pin GPIO_PIN_11
 #define BRAKE_PRESSED_GPIO_Port GPIOE
 #define RED_LED_Pin GPIO_PIN_14
