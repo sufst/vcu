@@ -152,6 +152,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     switch (ctrl_ptr->state)
     {
+
     // wait for TS button to be held and released
     // then begin activating the TS
     // LED flashes until activation is complete
@@ -168,9 +169,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // wait for TS ready from TSAC relay controller
     case (CTRL_STATE_TS_READY_WAIT):
     {
-        dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
-        trc_set_ts_on(GPIO_PIN_SET);
-
         LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
         status_t result
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
@@ -178,6 +176,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (result == STATUS_OK)
         {
+            dash_blink_ts_on_led(dash_ptr,
+                                 config_ptr->ready_wait_led_toggle_ticks);
+            trc_set_ts_on(GPIO_PIN_SET);
+
             LOG_INFO(log_h, "Waiting - AIRs\n");
             tx_thread_sleep(
                 5 * TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
