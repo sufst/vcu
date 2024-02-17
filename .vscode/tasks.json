@@ -63,6 +63,9 @@
       "osx": {
         "command": "/Applications/STMicroelectronics/STM32CubeMX.app/Contents/MacOs/STM32CubeMX"
       },
+      "linux": {
+        "command": "~/STM32CubeMX/STM32CubeMX"
+      },
       "args": ["${workspaceRoot}/src/VCU.ioc"]
     }
   ]

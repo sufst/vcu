@@ -1,6 +1,8 @@
 /******************************************************************************
  * @file    vcu.h
  * @author  Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
+ * @author  Toby Godfrey (@_tg03, tmag1g21@soton.ac.uk)
+ * @author  George Peppard (@inventor02, gjp1g21@soton.ac.uk)
  * @brief   Top level VCU implementation
  *****************************************************************************/
 
@@ -42,8 +44,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
     CAN_HandleTypeDef* can_handles[] = {can_s_h, can_c_h};
-    ULONG rtcan_priorities[]
-        = {RTCAN_S_PRIORITY, RTCAN_C_PRIORITY}; // TODO: update with config
+    ULONG rtcan_priorities[] = {vcu_ptr->config_ptr->rtos.rtcan_s_priority,
+                                vcu_ptr->config_ptr->rtos.rtcan_c_priority};
 
     for (uint32_t i = 0; i < 2; i++)
     {
@@ -109,9 +111,18 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     if (status == STATUS_OK)
     {
         status = pm100_init(&vcu_ptr->pm100,
+                            &vcu_ptr->log,
                             app_mem_pool,
                             &vcu_ptr->rtcan_c,
                             &vcu_ptr->config_ptr->pm100);
+    }
+
+    // heartbeat
+    if (status == STATUS_OK)
+    {
+        status = heartbeat_init(&vcu_ptr->heartbeat,
+                                app_mem_pool,
+                                &vcu_ptr->config_ptr->heartbeat);
     }
 
     if (status != STATUS_OK)
@@ -149,7 +160,8 @@ status_t vcu_handle_can_tx_mailbox_callback(vcu_context_t* vcu_ptr,
         Error_Handler();
     }
 
-    return STATUS_OK; // TODO: errors
+    return STATUS_OK; //? Error_Handler() never returns so this can only return
+                      // STATUS_OK
 }
 
 /**

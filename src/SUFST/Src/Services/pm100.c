@@ -1,6 +1,7 @@
 #include "pm100.h"
 
 #include <can_c.h>
+#include <can_s.h>
 
 #define PM100_NO_FAULTS                    0x00
 
@@ -29,6 +30,8 @@
 #define PM100_DIRECTION_FORWARD            0x1
 #define PM100_DIRECTION_REVERSE            0x0
 
+static log_context_t* log_h;
+
 /*
  * internal function prototypes
  */
@@ -45,6 +48,7 @@ static void process_broadcast(pm100_context_t* pm100_ptr,
  * @param[in]   config_ptr      Configuration
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
+                    log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     rtcan_handle_t* rtcan_ptr,
                     const config_pm100_t* config_ptr)
@@ -53,6 +57,7 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     pm100_ptr->rtcan_ptr = rtcan_ptr;
     pm100_ptr->error = PM100_ERROR_NONE;
     pm100_ptr->broadcasts_valid = false;
+    log_h = log_ptr;
 
     status_t status = STATUS_OK;
 
@@ -74,7 +79,7 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
                                      config_ptr->thread.priority,
                                      config_ptr->thread.priority,
                                      TX_NO_TIME_SLICE,
-                                     TX_DONT_START);
+                                     TX_AUTO_START);
     }
 
     // create CAN receive queue
@@ -105,8 +110,10 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     }
 
     // turn off power
-    // TODO: rename 'status' pin
-    HAL_GPIO_WritePin(STATUS_GPIO_Port, STATUS_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(
+        PRECHARGE_RELAY_GPIO_Port, // This pin used to be called STATUS
+        PRECHARGE_RELAY_Pin,
+        GPIO_PIN_RESET);
 
     return status;
 }
@@ -230,12 +237,25 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
  */
 status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
 {
-    // TODO: change the name of the pin
-    HAL_GPIO_WritePin(STATUS_GPIO_Port, STATUS_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(PRECHARGE_RELAY_GPIO_Port,
+                      PRECHARGE_RELAY_Pin,
+                      GPIO_PIN_SET);
 
-    UINT status = tx_thread_resume(&pm100_ptr->thread);
+    rtcan_msg_t msg
+        = {.identifier
+           = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
+                                       // power on the PDM. Don't need this and
+                                       // the PRECHARGE_RELAY pin
+           .length = CAN_S_VCU_TS_ON_LENGTH};
+    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
+    status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 
-    return (status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    if (status != STATUS_OK)
+        return status;
+
+    UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
+
+    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 }
 
 /**
@@ -245,8 +265,9 @@ status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
  */
 bool pm100_is_precharged(pm100_context_t* pm100_ptr)
 {
-    // TODO: consider adding a sensible timeout
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, TX_WAIT_FOREVER);
+    UINT tx_status
+        = tx_mutex_get(&pm100_ptr->state_mutex,
+                       pm100_ptr->config_ptr->precharge_timeout_ticks);
 
     bool broadcasts_valid = false;
     uint8_t vsm_state = PM100_VSM_STATE_FAULT; // assume something safe
@@ -275,6 +296,7 @@ bool pm100_is_precharged(pm100_context_t* pm100_ptr)
  */
 status_t pm100_disable(pm100_context_t* pm100_ptr)
 {
+    LOG_INFO(log_h, "Sending PM100 Disable command\n");
     rtcan_msg_t msg = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
@@ -305,8 +327,9 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
         pm100_ptr); // do this before getting mutex to avoid deadlock
     const bool no_errors = (pm100_ptr->error == PM100_ERROR_NONE);
 
-    // TODO: consider adding a sensible timeout
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, TX_WAIT_FOREVER);
+    UINT tx_status
+        = tx_mutex_get(&pm100_ptr->state_mutex,
+                       pm100_ptr->config_ptr->torque_request_timeout_ticks);
 
     if (no_errors && is_precharged && tx_status == TX_SUCCESS)
     {
@@ -328,6 +351,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
                 can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
+                LOG_INFO(log_h, "Sending torque request\n");
                 rtcan_status_t rtcan_status
                     = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
                 status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
@@ -335,6 +359,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
             else
             {
                 // to get out of lockout, need to send a disable command
+                LOG_WARN(log_h, "Still in lockout at torque request\n");
                 status = pm100_disable(pm100_ptr);
             }
         }
@@ -343,6 +368,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
     }
     else
     {
+        LOG_ERROR(log_h, "Failed to send torque request\n");
         (void) pm100_disable(pm100_ptr); // just in case
         status = STATUS_ERROR;
     }

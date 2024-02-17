@@ -1,6 +1,7 @@
 /*****************************************************************************
  * @file   driver_control.c
  * @author Tim Brewis (@t-bre, tab1g19@soton.ac.uk)
+ * @author Toby Godfrey (@_tg03, tmag1g21@soton.ac.uk)
  * @brief  Driver control
  ****************************************************************************/
 
@@ -151,6 +152,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     switch (ctrl_ptr->state)
     {
+
     // wait for TS button to be held and released
     // then begin activating the TS
     // LED flashes until activation is complete
@@ -167,9 +169,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // wait for TS ready from TSAC relay controller
     case (CTRL_STATE_TS_READY_WAIT):
     {
-        dash_blink_ts_on_led(dash_ptr, config_ptr->ready_wait_led_toggle_ticks);
-        trc_set_ts_on(GPIO_PIN_SET);
-
         LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
         status_t result
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
@@ -177,10 +176,16 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (result == STATUS_OK)
         {
+            dash_blink_ts_on_led(dash_ptr,
+                                 config_ptr->ready_wait_led_toggle_ticks);
+            trc_set_ts_on(GPIO_PIN_SET);
+
+            LOG_INFO(log_h, "Waiting - AIRs\n");
             tx_thread_sleep(
                 5 * TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
                                                 // current of AIRs before
                                                 // turning on inverter
+            LOG_INFO(log_h, "Waited - AIRs\n");
 
             next_state = CTRL_STATE_PRECHARGE_WAIT;
             pm100_start_precharge(ctrl_ptr->pm100_ptr);
@@ -245,12 +250,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         if (r2d)
         {
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
-            rtds_activate(ctrl_ptr->rtds_config_ptr);
+            rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
 
             next_state = CTRL_STATE_TS_ON;
 
-            // TODO: enable inverter
-            LOG_ERROR(log_h, "NEED TO ENABLE PM100\n");
             LOG_INFO(log_h, "R2D active\n");
         }
         else
@@ -265,26 +268,35 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         // read from the APPS
         status_t apps_status
             = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+        status_t pm100_status;
 
         if (apps_status == STATUS_OK)
         {
             uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
                                                        ctrl_ptr->apps_reading);
-            // TODO: send torque request to inverter
-            (void) torque_request;
-            __ASM("NOP");
-            // status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr,
-            // torque_request);
 
-            // if (pm100_status != STATUS_OK)
-            // {
-            //     next_state = CTRL_STATE_TS_RUN_FAULT;
-            // }
+            pm100_status
+                = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
+
+            if (pm100_status != STATUS_OK)
+            {
+                next_state = CTRL_STATE_TS_RUN_FAULT;
+            }
         }
         else
         {
-            // TODO: disable inverter
-            next_state = CTRL_STATE_APPS_SCS_FAULT;
+            LOG_ERROR(log_h, "APPS error\n");
+            pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
+
+            if (pm100_status != STATUS_OK)
+            {
+                next_state = CTRL_STATE_TS_RUN_FAULT;
+            }
+            else
+            {
+                LOG_ERROR(log_h, "APPS SCS fault\n");
+                next_state = CTRL_STATE_APPS_SCS_FAULT;
+            }
         }
 
         // TODO: check for inverter fault, or TRC fault
@@ -296,6 +308,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     case (CTRL_STATE_TS_RUN_FAULT):
     {
+        LOG_ERROR(log_h, "TS fault during activation or runtime\n");
         ctrl_handle_ts_fault(ctrl_ptr);
         break;
     }
@@ -304,7 +317,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // this is recoverable, if the signal becomes plausible again
     case (CTRL_STATE_APPS_SCS_FAULT):
     {
-        // TODO: request zero torque repeatedly
+        status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+
+        if (pm100_status != STATUS_OK)
+        {
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
 
         if (apps_check_plausibility(&ctrl_ptr->apps))
         {

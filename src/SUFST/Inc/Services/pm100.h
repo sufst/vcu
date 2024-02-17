@@ -1,6 +1,7 @@
 /******************************************************************************
  * @file    pm100.h
  * @author  Tim Brewis (@t-bre)
+ * @author  Toby Godfrey (@_tg03, tmag1g21@soton.ac.uk)
  * @brief   PM100 service
  * @details This service is responsible for handling communications with the
  *          PM100DZ inverter over CAN. This includes initiating the pre-charge
@@ -17,6 +18,7 @@
 #include <tx_api.h>
 
 #include "config.h"
+#include "log.h"
 #include "status.h"
 
 /*
@@ -51,6 +53,7 @@ typedef struct
  * public functions
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
+                    log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     rtcan_handle_t* rtcan_ptr,
                     const config_pm100_t* config_ptr);

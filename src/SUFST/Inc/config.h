@@ -110,6 +110,9 @@ typedef struct {
 typedef struct {
     config_thread_t thread;                 // service thread config
     uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
+    uint32_t torque_request_timeout_ticks;
+    uint32_t precharge_timeout_ticks;
+    uint8_t speed_mode;
 } config_pm100_t;
 
 /**
@@ -119,6 +122,12 @@ typedef struct {
     config_thread_t thread;                 // CANBC thread config
     uint32_t broadcast_period_ticks;        // ticks between broadcasts
 } config_canbc_t;
+
+typedef struct
+{
+    config_thread_t thread;                 // thread config
+    uint32_t blink_period_ticks;            // period to blink the LED
+} config_heartbeat_t;
 
 /**
  * @brief log level
@@ -143,6 +152,22 @@ typedef struct
     UART_HandleTypeDef *uart;
 } config_log_t;
 
+typedef struct
+{
+    uint8_t rtcan_s_priority;
+    uint8_t rtcan_c_priority;
+    uint8_t ts_ctrl_thread_priority;
+    bool tracex_enable;
+    uint16_t driver_ctrl_tick_rate;
+} config_rtos_t;
+
+typedef struct
+{
+    bool run_apps_testbench;
+    bool run_fault_state_testbench;
+    uint8_t apps_testbench_laps;
+} config_testbenches;
+
 /**
  * @brief   VCU configuration
  * 
@@ -160,7 +185,10 @@ typedef struct {
     config_torque_map_t torque_map;
     config_pm100_t pm100;
     config_canbc_t canbc;
+    config_heartbeat_t heartbeat;
     config_log_t log;
+    config_rtos_t rtos;
+    config_testbenches testbenches;
 } config_t;
 
 /*
@@ -184,16 +212,16 @@ const config_t* config_get();
 
 /***************************************************************************
  * RTOS
- ***************************************************************************/
+//  ***************************************************************************/
 
-#define RTCAN_S_PRIORITY                    3   
-#define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
-#define TS_CTRL_THREAD_PRIORITY		        2
+// #define RTCAN_S_PRIORITY                    3   
+// #define RTCAN_C_PRIORITY                    2   // critical systems more important than sensors
+// #define TS_CTRL_THREAD_PRIORITY		        2
 
-#define TRACEX_ENABLE                       0
-       // enable TraceX logging
+// #define TRACEX_ENABLE                       0
+//        // enable TraceX logging
 
-#define DRIVER_CTRL_TICK_RATE               100 // times per second
+// #define DRIVER_CTRL_TICK_RATE               100 // times per second
 
 /***************************************************************************
  * CAN / inverter
@@ -201,19 +229,19 @@ const config_t* config_get();
 
 #define SELECTED_DRIVER_PROFILE                 DRIVER_PROFILE_DEFAULT
 
-#define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
-#define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
+// #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
+// #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
 
 
-/***************************************************************************
- * testbenches
- ***************************************************************************/
+// /***************************************************************************
+//  * testbenches
+//  ***************************************************************************/
 
-// enable flags
-#define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
-#define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
+// // enable flags
+// #define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
+// #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
 
-// testbench parameters
-#define APPS_TESTBENCH_LAPS 	            1		// 1 for standing start only, 2+ to add flying laps
+// // testbench parameters
+// #define APPS_TESTBENCH_LAPS 	            1		// 1 for standing start only, 2+ to add flying laps
 
 #endif

@@ -154,7 +154,6 @@ src/Drivers/CMSIS/*
 /scripts/*.c
 
 # cppcheck
-/cppcheck
 misra.txt
 
 # TraceX
