@@ -244,7 +244,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (r2d)
         {
-            if (bps_zero(&ctrl_ptr->bps)){
+            if (!bps_valid(&ctrl_ptr->bps)){
                 next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
                 LOG_ERROR(log_h, "BPS is zero\n");
                 break;
@@ -271,7 +271,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         status_t apps_status
             = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
         // check brake is not zero
-        if (bps_zero(&ctrl_ptr->bps)){
+        if (!bps_valid(&ctrl_ptr->bps)){
                 next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
                 LOG_ERROR(log_h, "BPS is zero\n");
                 break;
@@ -305,10 +305,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // activation or runtime failure
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
-    {
-        ctrl_handle_ts_fault(ctrl_ptr); // should be the same implementation
-        break;
-    }
     case (CTRL_STATE_TS_RUN_FAULT):
     {
         ctrl_handle_ts_fault(ctrl_ptr);
