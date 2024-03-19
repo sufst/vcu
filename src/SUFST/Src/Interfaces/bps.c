@@ -53,3 +53,23 @@ bool bps_fully_pressed(bps_context_t* bps_ptr)
 
     return (status == STATUS_OK) && above_threshold;
 }
+
+/**
+ * @brief
+ *
+ * @param[in]   bps_ptr     BPS context
+ *
+ * @retval  true    BPS not pressed, or SCS fault
+ * @retval  false   BPS is pressed
+ */
+bool bps_zero(bps_context_t* bps_ptr)  
+{
+    uint16_t reading = 0;
+    status_t status = bps_read(bps_ptr, &reading);
+    if (status == STATUS_OK){
+        if (reading != 0){
+            return false;
+        }
+    }
+    return true ;
+}

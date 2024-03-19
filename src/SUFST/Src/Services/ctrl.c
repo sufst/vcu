@@ -244,6 +244,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         if (r2d)
         {
+            if (bps_zero(&ctrl_ptr->bps)){
+                next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+                LOG_ERROR(log_h, "BPS is zero\n");
+                break;
+            }
             dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
             rtds_activate(ctrl_ptr->rtds_config_ptr);
 
@@ -265,6 +270,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         // read from the APPS
         status_t apps_status
             = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+        // check brake is not zero
+        if (bps_zero(&ctrl_ptr->bps)){
+                next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+                LOG_ERROR(log_h, "BPS is zero\n");
+                break;
+            }
 
         if (apps_status == STATUS_OK)
         {
@@ -294,6 +305,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // activation or runtime failure
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
+    {
+        ctrl_handle_ts_fault(ctrl_ptr); // should be the same implementation
+        break;
+    }
     case (CTRL_STATE_TS_RUN_FAULT):
     {
         ctrl_handle_ts_fault(ctrl_ptr);
