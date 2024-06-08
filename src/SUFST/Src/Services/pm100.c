@@ -110,10 +110,9 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     }
 
     // turn off power
-    HAL_GPIO_WritePin(
-        PRECHARGE_RELAY_GPIO_Port, // This pin used to be called STATUS
-        PRECHARGE_RELAY_Pin,
-        GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(STATUS_GPIO_Port, // This pin used to be called STATUS
+                      STATUS_Pin,
+                      GPIO_PIN_RESET);
 
     return status;
 }
@@ -237,15 +236,13 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
  */
 status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
 {
-    HAL_GPIO_WritePin(PRECHARGE_RELAY_GPIO_Port,
-                      PRECHARGE_RELAY_Pin,
-                      GPIO_PIN_SET);
+    HAL_GPIO_WritePin(STATUS_GPIO_Port, STATUS_Pin, GPIO_PIN_SET);
 
     rtcan_msg_t msg
         = {.identifier
            = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
                                        // power on the PDM. Don't need this and
-                                       // the PRECHARGE_RELAY pin
+                                       // the STATUS pin
            .length = CAN_S_VCU_TS_ON_LENGTH};
     rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
     status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;

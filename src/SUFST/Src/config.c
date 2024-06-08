@@ -123,7 +123,7 @@ static const config_t config_instance = {
             .stack_size = 1024,
         },
         .min_level = LOG_LEVEL_DEBUG,
-        .uart = &huart3
+        .uart = &huart1
     },
     .rtos = {
         .rtcan_s_priority = 3,
