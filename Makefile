@@ -113,7 +113,6 @@ src/Core/Src/adc.c \
 src/Core/Src/can.c \
 src/Core/Src/gpio.c \
 src/Core/Src/usart.c \
-src/Core/Src/usb_otg.c \
 src/Core/Src/stm32f7xx_it.c \
 src/Core/Src/stm32f7xx_hal_msp.c \
 src/Core/stm32f7xx_hal_timebase_tim.c \
