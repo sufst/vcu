@@ -38,7 +38,8 @@
 typedef struct
 {
     TX_THREAD thread;
-    rtcan_handle_t* rtcan_ptr;
+    rtcan_handle_t* rtcan_c_ptr;
+    rtcan_handle_t* rtcan_s_ptr;
     TX_QUEUE can_rx_queue;
     ULONG can_rx_queue_mem[PM100_RX_QUEUE_SIZE];
     TX_MUTEX state_mutex;
@@ -55,7 +56,8 @@ typedef struct
 status_t pm100_init(pm100_context_t* pm100_ptr,
                     log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
-                    rtcan_handle_t* rtcan_ptr,
+                    rtcan_handle_t* rtcan_c_ptr,
+                    rtcan_handle_t* rtcan_s_ptr,
                     const config_pm100_t* config_ptr);
 status_t pm100_start_precharge(pm100_context_t* pm100_ptr);
 bool pm100_is_precharged(pm100_context_t* pm100_ptr);

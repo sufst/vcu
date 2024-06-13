@@ -44,17 +44,20 @@ static void process_broadcast(pm100_context_t* pm100_ptr,
  *
  * @param[in]   pm100_ptr       PM100 context
  * @param[in]   stack_pool_ptr  Memory pool for service thread stack
- * @param[in]   rtcan_ptr       RTCAN instance for receiving broadcasts
+ * @param[in]   rtcan_c_ptr     RTCAN C instance for receiving broadcasts
+ * @param[in]   rtcan_s_ptr     RTCAN S instance for sending precharge cmd
  * @param[in]   config_ptr      Configuration
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
                     log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
-                    rtcan_handle_t* rtcan_ptr,
+                    rtcan_handle_t* rtcan_c_ptr,
+                    rtcan_handle_t* rtcan_s_ptr,
                     const config_pm100_t* config_ptr)
 {
     pm100_ptr->config_ptr = config_ptr;
-    pm100_ptr->rtcan_ptr = rtcan_ptr;
+    pm100_ptr->rtcan_c_ptr = rtcan_c_ptr;
+    pm100_ptr->rtcan_s_ptr = rtcan_s_ptr;
     pm100_ptr->error = PM100_ERROR_NONE;
     pm100_ptr->broadcasts_valid = false;
     log_h = log_ptr;
@@ -135,7 +138,7 @@ void pm100_thread_entry(ULONG input)
     for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
          i++)
     {
-        rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_ptr,
+        rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_c_ptr,
                                                 subscriptions[i],
                                                 &pm100_ptr->can_rx_queue);
 
@@ -164,7 +167,7 @@ void pm100_thread_entry(ULONG input)
         {
             pm100_ptr->broadcasts_valid = true;
             process_broadcast(pm100_ptr, msg_ptr);
-            rtcan_msg_consumed(pm100_ptr->rtcan_ptr, msg_ptr);
+            rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
         }
         else
         {
@@ -244,7 +247,7 @@ status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
                                        // power on the PDM. Don't need this and
                                        // the STATUS pin
            .length = CAN_S_VCU_TS_ON_LENGTH};
-    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
+    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_s_ptr, &msg);
     status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 
     if (status != STATUS_OK)
@@ -298,7 +301,7 @@ status_t pm100_disable(pm100_context_t* pm100_ptr)
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-    rtcan_status_t status = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
+    rtcan_status_t status = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
 
     return (status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 }
@@ -350,7 +353,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
                 LOG_INFO(log_h, "Sending torque request\n");
                 rtcan_status_t rtcan_status
-                    = rtcan_transmit(pm100_ptr->rtcan_ptr, &msg);
+                    = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
                 status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
             }
             else
