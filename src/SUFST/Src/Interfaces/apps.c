@@ -41,11 +41,15 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     static uint64_t count = 0;
 
-    *reading_ptr = (uint16_t) (100 / 3000)
-                   * count; // 500 is the max acc to reach. At 100Hz, 6000
-                            // spreads it over 1 minute.
+    uint8_t max_torque_percentage = 10;
+    uint8_t time_s = 30;
 
-    count++;
+    *reading_ptr
+        = (uint16_t) ((1000 * (max_torque_percentage / 100)) / (time_s * 100))
+          * count; // 500 is the max acc to reach. At 100Hz, 6000
+                   // spreads it over 1 minute.
+
+    count = (count >= (time_s * 100)) ? count : count + 1;
 
     // read both signals
     // status_t status_1 = scs_read(&apps_ptr->apps_1_signal, &reading_1);
