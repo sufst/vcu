@@ -46,8 +46,8 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     *reading_ptr
         = (uint16_t) ((1000 * (max_torque_percentage / 100)) / (time_s * 100))
-          * count; // 500 is the max acc to reach. At 100Hz, 6000
-                   // spreads it over 1 minute.
+          * count; // At 100Hz
+                   // 1000 is the max mapped value for APPS (config.c)
 
     count = (count >= (time_s * 100)) ? count : count + 1;
 
