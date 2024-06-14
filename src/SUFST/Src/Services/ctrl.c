@@ -268,13 +268,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         // read from the APPS
 
         //* Auto APPS
-        status_t apps_status
-            = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+        // status_t apps_status
+        //     = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
         //*
 
         // //* BPS for APPS
-        // status_t apps_status
-        //     = apps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
+        status_t apps_status
+            = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
         //*
 
         status_t pm100_status;
