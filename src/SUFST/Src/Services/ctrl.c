@@ -266,16 +266,23 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_ON):
     {
         // read from the APPS
-        // status_t apps_status
-        //     = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+
+        //* Auto APPS
         status_t apps_status
-            = apps_read(&ctrl_ptr->bps, &ctrl_ptr->bps_reading);
+            = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+        //*
+
+        // //* BPS for APPS
+        // status_t apps_status
+        //     = apps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
+        //*
+
         status_t pm100_status;
 
         if (apps_status == STATUS_OK)
         {
             uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-                                                       ctrl_ptr->bps_reading);
+                                                       ctrl_ptr->apps_reading);
 
             pm100_status
                 = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);

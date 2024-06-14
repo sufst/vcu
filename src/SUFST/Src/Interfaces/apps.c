@@ -41,7 +41,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     static uint64_t count = 0;
 
-    *reading_ptr = (uint16_t) (500 / 6000)
+    *reading_ptr = (uint16_t) (100 / 3000)
                    * count; // 500 is the max acc to reach. At 100Hz, 6000
                             // spreads it over 1 minute.
 
