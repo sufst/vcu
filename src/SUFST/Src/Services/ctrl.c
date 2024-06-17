@@ -159,7 +159,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_OFF):
     {
         LOG_INFO(log_h, "Waiting for ts_on\n");
-        dash_wait_for_ts_on(dash_ptr);
+        //dash_wait_for_ts_on(dash_ptr);
         LOG_INFO(log_h, "ts_on received\n");
         next_state = CTRL_STATE_TS_READY_WAIT;
 
@@ -169,7 +169,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // wait for TS ready from TSAC relay controller
     case (CTRL_STATE_TS_READY_WAIT):
     {
-        LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
+	 /*LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
         status_t result
             = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
                                  config_ptr->ts_ready_timeout_ticks);
@@ -197,8 +197,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
             LOG_ERROR(log_h, "Timeout reached waiting for TS ready\n");
-        }
-
+	    }*/
+	 next_state = CTRL_STATE_PRECHARGE_WAIT;
         break;
     }
 
