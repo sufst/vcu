@@ -206,21 +206,21 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // TS on LED turns solid
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
-        const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
+	 /*const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
         if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
-        {
+        {*/
             pm100_disable(ctrl_ptr->pm100_ptr);
             dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
             next_state = CTRL_STATE_R2D_WAIT;
             LOG_INFO(log_h, "Precharge complete\n");
-        }
+	    /*}
         else if (charge_time >= config_ptr->precharge_timeout_ticks)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
             LOG_ERROR(log_h, "Precharge timeout reached\n");
-        }
+	    }*/
 
         break;
     }
@@ -233,8 +233,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         LOG_INFO(log_h,
                  "Waiting for R2D from dash (brake required: %d)\n",
                  config_ptr->r2d_requires_brake);
-        dash_wait_for_r2d(dash_ptr);
-
+	while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
+	     LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
+	     tx_thread_sleep(100);
+	}
+	//dash_wait_for_r2d(dash_ptr);
+	LOG_INFO(log_h, "R2D Pressed\n");
         if (config_ptr->r2d_requires_brake)
         {
             if (bps_fully_pressed(&ctrl_ptr->bps))
@@ -258,7 +262,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         }
         else
             LOG_ERROR(log_h, "R2D failed to activate\n");
-
         break;
     }
 
@@ -279,23 +282,29 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
         status_t pm100_status;
 
+	//while (1) {
+	//     LOG_INFO(log_h, "Pedal: %d\n", ctrl_ptr->apps_reading);
+	//     tx_thread_sleep(100);
+	//     apps_status = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
+	//}
         if (apps_status == STATUS_OK)
         {
             uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
                                                        ctrl_ptr->apps_reading);
-
+	    LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
+	    tx_thread_sleep(100);
             pm100_status
                 = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
 
             if (pm100_status != STATUS_OK)
             {
                 next_state = CTRL_STATE_TS_RUN_FAULT;
-            }
+	    }
         }
         else
         {
             LOG_ERROR(log_h, "APPS error\n");
-            pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
+            //pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
 
             if (pm100_status != STATUS_OK)
             {

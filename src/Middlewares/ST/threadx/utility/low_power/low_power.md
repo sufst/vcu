@@ -14,13 +14,12 @@ ms.service: rtos
 
 There are additional API functions available for low power, as follows:
 
-- **_tx_low_power_enter_** - _Enter low power mode_
-- **_tx_low_power_exit_** - _Exit low power mode_
-- **_tx_time_increment_** - _Increment ThreadX timers by specific amount_
-- **_tx_timer_get_next_** - _Get next ThreadX timer expiration_
+- ***tx_low_power_enter*** - *Enter low power mode*
+- ***tx_low_power_exit*** - *Exit low power mode*
+- ***tx_time_increment*** - *Increment ThreadX timers by specific amount*
+- ***tx_timer_get_next*** - *Get next ThreadX timer expiration*
 
 ---
-
 ## User-defined Macros
 
 - **TX_LOW_POWER_TIMER_SETUP** - an optional macro to a user routine that sets up a low power clock. To set up a low power timer or operate ticklessly in low power mode, this must be defined. This is called in **tx_low_power_enter**.
@@ -44,16 +43,15 @@ VOID tx_low_power_enter(VOID);
 This service enters low power mode.
 For keeping track of time while in low power mode, there are two possibilities:
 
-1. A ThreadX timer is active. Function **tx_timer_get_next** returns **TX_TRUE**. Note that in this situation, a low power clock must be used in order to wake up the CPU for the next ThreadX timer expiration. Therefore an alternative clock must be programmed. Program the hardware timer source such that the next timer interrupt is equal to: _tx_low_power_next_expiration \* tick_frequency_. The _tick_frequency_ is application-specific and typically set up in **tx_low_level_initialize**.
+1. A ThreadX timer is active. Function **tx_timer_get_next** returns **TX_TRUE**. Note that in this situation, a low power clock must be used in order to wake up the CPU for the next ThreadX timer expiration. Therefore an alternative clock must be programmed. Program the hardware timer source such that the next timer interrupt is equal to: *tx_low_power_next_expiration \* tick_frequency*. The *tick_frequency* is application-specific and typically set up in **tx_low_level_initialize**.
 
 2. There are no ThreadX timers active. Function **tx_timer_get_next** returns **TX_FALSE**.
+    1. The application may choose not to keep the ThreadX internal
+   tick count updated (define **TX_LOW_POWER_TICKLESS**), therefore there is no need
+   to set up a low power clock.
 
-   1. The application may choose not to keep the ThreadX internal
-      tick count updated (define **TX_LOW_POWER_TICKLESS**), therefore there is no need
-      to set up a low power clock.
-
-   2. The application still needs to keep the ThreadX tick up-to-date. In this case
-      a low power clock needs to be set up.
+    2. The application still needs to keep the ThreadX tick up-to-date. In this case
+   a low power clock needs to be set up.
 
 ### Input parameters
 
@@ -70,7 +68,6 @@ Internal ThreadX code, application
 ### Example
 
 ARM assembly
-
 ```c
 #ifdef TX_LOW_POWER
     PUSH    {r0-r3}
@@ -90,7 +87,6 @@ ARM assembly
     POP     {r0-r3}
 #endif
 ```
-
 ### See also
 
 - tx_low_power_exit
@@ -217,7 +213,7 @@ ULONG tx_timer_get_next(ULONG *next_timer_tick_ptr);
 
 ### Description
 
-This service gets the next ThreadX timer expiration, in ticks.
+This service gets the next ThreadX timer expiration, in ticks. 
 
 ### Input parameters
 
