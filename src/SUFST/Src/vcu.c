@@ -78,7 +78,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     if (status == STATUS_OK)
     {
         status = canbc_init(&vcu_ptr->canbc,
-                            &vcu_ptr->rtcan_c,
+                            &vcu_ptr->rtcan_s,
                             app_mem_pool,
                             &vcu_ptr->config_ptr->canbc);
     }
