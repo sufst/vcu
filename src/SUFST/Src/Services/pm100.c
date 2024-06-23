@@ -331,13 +331,13 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
         = tx_mutex_get(&pm100_ptr->state_mutex,
                        pm100_ptr->config_ptr->torque_request_timeout_ticks);
 
-    /*if (no_errors && is_precharged && tx_status == TX_SUCCESS)
+    if (no_errors && is_precharged && tx_status == TX_SUCCESS)
     {
         if (pm100_ptr->broadcasts_valid)
         {
             if (pm100_ptr->states.pm100_inverter_enable_lockout
                 == PM100_LOCKOUT_DISABLED)
-		{*/
+		{
                 rtcan_msg_t msg
                     = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
@@ -345,7 +345,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
                 struct can_c_pm100_command_message_t cmd
                     = {.pm100_torque_command = torque,
-                       .pm100_direction_command = PM100_DIRECTION_FORWARD,
+                       .pm100_direction_command = PM100_DIRECTION_REVERSE,
                        .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
                        .pm100_inverter_enable = PM100_INVERTER_ON};
 
@@ -355,7 +355,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
                 rtcan_status_t rtcan_status
                     = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
                 status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
-		/*}
+		}
             else
             {
                 // to get out of lockout, need to send a disable command
@@ -371,7 +371,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
         LOG_ERROR(log_h, "Failed to send torque request\n");
         (void) pm100_disable(pm100_ptr); // just in case
         status = STATUS_ERROR;
-	}*/
+    }
 
     return status;
 }

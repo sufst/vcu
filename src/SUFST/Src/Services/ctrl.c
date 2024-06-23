@@ -206,16 +206,16 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     // TS on LED turns solid
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
-	 /*const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
+	 //const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
         if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
-        {*/
+        {
             pm100_disable(ctrl_ptr->pm100_ptr);
             dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
             next_state = CTRL_STATE_R2D_WAIT;
             LOG_INFO(log_h, "Precharge complete\n");
-	    /*}
-        else if (charge_time >= config_ptr->precharge_timeout_ticks)
+	}
+        /*else if (charge_time >= config_ptr->precharge_timeout_ticks)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
