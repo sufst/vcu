@@ -223,30 +223,29 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
 }
 
 /**
- * @brief       Initiates the precharge sequence
+ * @brief       Gives power to PM100 & initiates the precharge sequence
  *
  * @details     When operating in CAN mode, the precharge sequence begins as
  *              soon as the PM100 receives power. There is no way to change
  *              this functionality, other than to disable the precharge function
  *              and implement a custom precharge controller.
  *
- *              This function enables an output pin which activates a relay that
- *              provides 12V power to the PM100. When the PM100 is powered, it
- *              starts broadcasting onto the CAN bus so the broadcast processing
- *              thread is also started.
+ *              This function tells the PDM to provide 12V power to
+ *              the PM100. When the PM100 is powered, it starts
+ *              broadcasting onto the CAN bus so the broadcast
+ *              processing thread is also started.
  *
  * @param[in]   pm100_ptr   PM100 context
  */
-status_t pm100_start_precharge(pm100_context_t* pm100_ptr)
+status_t pm100_lvs_on(pm100_context_t* pm100_ptr)
 {
-    HAL_GPIO_WritePin(STATUS_GPIO_Port, STATUS_Pin, GPIO_PIN_SET);
-
     rtcan_msg_t msg
         = {.identifier
            = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
                                        // power on the PDM. Don't need this and
                                        // the STATUS pin
-           .length = CAN_S_VCU_TS_ON_LENGTH};
+	 .length = CAN_S_VCU_TS_ON_LENGTH,
+	 .data = {1,0,0,0,0,0,0,0} };
     rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_s_ptr, &msg);
     status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
 
@@ -285,6 +284,27 @@ bool pm100_is_precharged(pm100_context_t* pm100_ptr)
                || vsm_state == PM100_VSM_STATE_READY
                || vsm_state == PM100_VSM_STATE_RUNNING);
 }
+
+status_t pm100_lvs_off(pm100_context_t* pm100_ptr)
+{
+    rtcan_msg_t msg
+        = {.identifier
+           = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
+                                       // power on the PDM. Don't need this and
+                                       // the STATUS pin
+	 .length = CAN_S_VCU_TS_ON_LENGTH,
+	 .data = {0,0,0,0,0,0,0,0} };
+    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_s_ptr, &msg);
+    status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
+
+    if (status != STATUS_OK)
+        return status;
+
+    UINT tx_status = tx_thread_suspend(&pm100_ptr->thread);
+
+    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+}
+
 
 /**
  * @brief       Disables the inverter

@@ -48,74 +48,74 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    const config_rtds_t* rtds_config_ptr,
                    const config_torque_map_t* torque_map_config_ptr)
 {
-    ctrl_ptr->state = CTRL_STATE_TS_OFF;
-    ctrl_ptr->dash_ptr = dash_ptr;
-    ctrl_ptr->pm100_ptr = pm100_ptr;
-    ctrl_ptr->canbc_ptr = canbc_ptr;
-    ctrl_ptr->config_ptr = config_ptr;
-    ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
-    ctrl_ptr->error = CTRL_ERROR_NONE;
-    ctrl_ptr->apps_reading = 0;
-    ctrl_ptr->bps_reading = 0;
-    ctrl_ptr->sagl_reading = 0;
-    ctrl_ptr->torque_request = 0;
-    ctrl_ptr->precharge_start = 0;
+     ctrl_ptr->state = CTRL_STATE_TS_OFF;
+     ctrl_ptr->dash_ptr = dash_ptr;
+     ctrl_ptr->pm100_ptr = pm100_ptr;
+     ctrl_ptr->canbc_ptr = canbc_ptr;
+     ctrl_ptr->config_ptr = config_ptr;
+     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
+     ctrl_ptr->error = CTRL_ERROR_NONE;
+     ctrl_ptr->apps_reading = 0;
+     ctrl_ptr->bps_reading = 0;
+     ctrl_ptr->sagl_reading = 0;
+     ctrl_ptr->torque_request = 0;
+     ctrl_ptr->precharge_start = 0;
 
-    log_h = log_ptr;
+     log_h = log_ptr;
 
-    // create the thread
-    void* stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr,
-                                      &stack_ptr,
-                                      config_ptr->thread.stack_size,
-                                      TX_NO_WAIT);
+     // create the thread
+     void* stack_ptr = NULL;
+     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
+				       &stack_ptr,
+				       config_ptr->thread.stack_size,
+				       TX_NO_WAIT);
 
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status = tx_thread_create(&ctrl_ptr->thread,
-                                     (CHAR*) config_ptr->thread.name,
-                                     ctrl_thread_entry,
-                                     (ULONG) ctrl_ptr,
-                                     stack_ptr,
-                                     config_ptr->thread.stack_size,
-                                     config_ptr->thread.priority,
-                                     config_ptr->thread.priority,
-                                     TX_NO_TIME_SLICE,
-                                     TX_AUTO_START);
-    }
+     if (tx_status == TX_SUCCESS)
+     {
+	  tx_status = tx_thread_create(&ctrl_ptr->thread,
+				       (CHAR*) config_ptr->thread.name,
+				       ctrl_thread_entry,
+				       (ULONG) ctrl_ptr,
+				       stack_ptr,
+				       config_ptr->thread.stack_size,
+				       config_ptr->thread.priority,
+				       config_ptr->thread.priority,
+				       TX_NO_TIME_SLICE,
+				       TX_AUTO_START);
+     }
 
-    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+     status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 
-    // initialise the APPS, BPS and torque map
-    if (status == STATUS_OK)
-    {
-        status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
-    }
+     // initialise the APPS, BPS and torque map
+     if (status == STATUS_OK)
+     {
+	  status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
+     }
 
-    if (status == STATUS_OK)
-    {
-        status = bps_init(&ctrl_ptr->bps, bps_config_ptr);
-    }
+     if (status == STATUS_OK)
+     {
+	  status = bps_init(&ctrl_ptr->bps, bps_config_ptr);
+     }
 
-    if (status == STATUS_OK)
-    {
-        status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
-    }
+     if (status == STATUS_OK)
+     {
+	  status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
+     }
 
-    // make sure TS is disabled
-    trc_set_ts_on(GPIO_PIN_RESET);
+     // make sure TS is disabled
+     trc_set_ts_on(GPIO_PIN_RESET);
 
-    // check all ok before starting
-    if (status != STATUS_OK)
-    {
-        tx_thread_terminate(&ctrl_ptr->thread);
-        ctrl_ptr->error |= CTRL_ERROR_INIT;
-    }
+     // check all ok before starting
+     if (status != STATUS_OK)
+     {
+	  tx_thread_terminate(&ctrl_ptr->thread);
+	  ctrl_ptr->error |= CTRL_ERROR_INIT;
+     }
 
-    // send initial state update
-    ctrl_update_canbc_states(ctrl_ptr);
+     // send initial state update
+     ctrl_update_canbc_states(ctrl_ptr);
 
-    return status;
+     return status;
 }
 
 /**
@@ -125,16 +125,16 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
  */
 void ctrl_thread_entry(ULONG input)
 {
-    ctrl_context_t* ctrl_ptr = (ctrl_context_t*) input;
+     ctrl_context_t* ctrl_ptr = (ctrl_context_t*) input;
 
-    while (1)
-    {
-        // uint32_t start_time = tx_time_get();
-        ctrl_state_machine_tick(ctrl_ptr);
-        ctrl_update_canbc_states(ctrl_ptr);
-        // uint32_t run_time = tx_time_get() - start_time;
-        // tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks - run_time);
-    }
+     while (1)
+     {
+	  uint32_t start_time = tx_time_get();
+	  ctrl_state_machine_tick(ctrl_ptr);
+	  ctrl_update_canbc_states(ctrl_ptr);
+	  uint32_t run_time = tx_time_get() - start_time;
+	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks); // - run_time);
+     }
 }
 
 /**
@@ -144,217 +144,211 @@ void ctrl_thread_entry(ULONG input)
  */
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 {
-    // reduce typing...
-    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+     // reduce typing...
+     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
-    ctrl_state_t next_state = ctrl_ptr->state;
+     ctrl_state_t next_state = ctrl_ptr->state;
 
-    switch (ctrl_ptr->state)
-    {
+     switch (ctrl_ptr->state)
+     {
 
-    // wait for TS button to be held and released
-    // then begin activating the TS
-    // LED flashes until activation is complete
-    case (CTRL_STATE_TS_OFF):
-    {
-        LOG_INFO(log_h, "Waiting for ts_on\n");
-        //dash_wait_for_ts_on(dash_ptr);
-        LOG_INFO(log_h, "ts_on received\n");
-        next_state = CTRL_STATE_TS_READY_WAIT;
+	  // wait for TS button to be held and released
+	  // then begin activating the TS
+	  // LED flashes until activation is complete
+     case (CTRL_STATE_TS_OFF):
+     {
+	  LOG_INFO(log_h, "Waiting for ts_on\n");
+	  dash_wait_for_ts_on(dash_ptr);
+	  LOG_INFO(log_h, "ts_on received\n");
+	  next_state = CTRL_STATE_TS_READY_WAIT;
 
-        break;
-    }
+	  break;
+     }
 
-    // wait for TS ready from TSAC relay controller
-    case (CTRL_STATE_TS_READY_WAIT):
-    {
-	 /*LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
-        status_t result
-            = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
-                                 config_ptr->ts_ready_timeout_ticks);
+     // wait for TS ready from TSAC relay controller
+     case (CTRL_STATE_TS_READY_WAIT):
+     {
+	  LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
+	  status_t result
+	       = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
+	  	    config_ptr->ts_ready_timeout_ticks);
+	  //tx_thread_sleep(100);
+	  if (result == STATUS_OK)
+	  {
+	       dash_blink_ts_on_led(dash_ptr,
+				    config_ptr->ready_wait_led_toggle_ticks);
+	       trc_set_ts_on(GPIO_PIN_SET);
 
-        if (result == STATUS_OK)
-        {
-            dash_blink_ts_on_led(dash_ptr,
-                                 config_ptr->ready_wait_led_toggle_ticks);
-            trc_set_ts_on(GPIO_PIN_SET);
-
-            LOG_INFO(log_h, "Waiting - AIRs\n");
-            tx_thread_sleep(
-                5 * TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
+	       LOG_INFO(log_h, "Waiting - AIRs\n");
+	       tx_thread_sleep(
+		    TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
                                                 // current of AIRs before
                                                 // turning on inverter
-            LOG_INFO(log_h, "Waited - AIRs\n");
+	       LOG_INFO(log_h, "Waited - AIRs\n");
 
-            next_state = CTRL_STATE_PRECHARGE_WAIT;
-            pm100_start_precharge(ctrl_ptr->pm100_ptr);
-            ctrl_ptr->precharge_start = tx_time_get();
-            LOG_INFO(log_h, "TS ready & precharge started\n");
-        }
-        else
-        {
-            ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
-            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-            LOG_ERROR(log_h, "Timeout reached waiting for TS ready\n");
-	    }*/
-	 next_state = CTRL_STATE_PRECHARGE_WAIT;
-        break;
-    }
+	       next_state = CTRL_STATE_PRECHARGE_WAIT;
+	       status_t pdm_res = pm100_lvs_on(ctrl_ptr->pm100_ptr);
+	       LOG_INFO(log_h, "Start precharge status: %d\n", pdm_res);
+	       tx_thread_sleep(100); // REMOVE???
+	       ctrl_ptr->precharge_start = tx_time_get();
+	       LOG_INFO(log_h, "TS ready & precharge started\n");
+	  }
+	  else
+	  {
+	       ctrl_ptr->error |= CTRL_ERROR_TS_READY_TIMEOUT;
+	       next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+	       LOG_ERROR(log_h, "Timeout reached waiting for TS ready\n");
+	  }
+	  next_state = CTRL_STATE_PRECHARGE_WAIT;
+	  break;
+     }
 
-    // TS is ready, can initiate pre-charge sequence
-    // TS on LED turns solid
-    case (CTRL_STATE_PRECHARGE_WAIT):
-    {
-	 //const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
+     // TS is ready, can initiate pre-charge sequence
+     // TS on LED turns solid
+     case (CTRL_STATE_PRECHARGE_WAIT):
+     {
+	  const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
+	  //tx_thread_sleep(100); // REMOVE???
+	
+	  if (true) //pm100_is_precharged(ctrl_ptr->pm100_ptr)) FIXME
+	  {
+	       next_state = CTRL_STATE_R2D_WAIT;
+	       LOG_INFO(log_h, "Precharge complete\n");
+	  }
+	  else if (charge_time >= config_ptr->precharge_timeout_ticks)
+	  {
+	       ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
+	       next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+	       LOG_ERROR(log_h, "Precharge timeout reached\n");
+	  }
 
-        if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
-        {
-            pm100_disable(ctrl_ptr->pm100_ptr);
-            dash_set_ts_on_led_state(dash_ptr, GPIO_PIN_SET);
-            next_state = CTRL_STATE_R2D_WAIT;
-            LOG_INFO(log_h, "Precharge complete\n");
-	}
-        /*else if (charge_time >= config_ptr->precharge_timeout_ticks)
-        {
-            ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
-            next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-            LOG_ERROR(log_h, "Precharge timeout reached\n");
-	    }*/
+	  break;
+     }
 
-        break;
-    }
-
-    // pre-charge is complete, wait for R2D signal
-    // also wait for brake to be fully pressed (if enabled)
-    case (CTRL_STATE_R2D_WAIT):
-    {
-        bool r2d = false;
-        LOG_INFO(log_h,
-                 "Waiting for R2D from dash (brake required: %d)\n",
-                 config_ptr->r2d_requires_brake);
-	while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
-	     LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
-	     tx_thread_sleep(100);
-	}
-	//dash_wait_for_r2d(dash_ptr);
-	LOG_INFO(log_h, "R2D Pressed\n");
-        if (config_ptr->r2d_requires_brake)
-        {
-            if (bps_fully_pressed(&ctrl_ptr->bps))
-            {
-                r2d = true;
-            }
-        }
-        else
-        {
-            r2d = true;
-        }
-
-        if (r2d)
-        {
-            dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
-            rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-
-            next_state = CTRL_STATE_TS_ON;
-
-            LOG_INFO(log_h, "R2D active\n");
-        }
-        else
-            LOG_ERROR(log_h, "R2D failed to activate\n");
-        break;
-    }
-
-    // the TS is on
-    case (CTRL_STATE_TS_ON):
-    {
-        // read from the APPS
-
-        //* Auto APPS
-        // status_t apps_status
-        //     = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
-        //*
-
-        // //* BPS for APPS
-        status_t apps_status
-            = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
-        //*
-
-        status_t pm100_status;
-
-	//while (1) {
-	//     LOG_INFO(log_h, "Pedal: %d\n", ctrl_ptr->apps_reading);
-	//     tx_thread_sleep(100);
-	//     apps_status = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
-	//}
-        if (apps_status == STATUS_OK)
-        {
-            uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-                                                       ctrl_ptr->apps_reading);
-	    LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
+     // pre-charge is complete, wait for R2D signal
+     // also wait for brake to be fully pressed (if enabled)
+     case (CTRL_STATE_R2D_WAIT):
+     {
+	  bool r2d = false;
+	  LOG_INFO(log_h,
+		   "Waiting for R2D from dash (brake required: %d)\n",
+		   config_ptr->r2d_requires_brake);
+	  /*while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
+	    LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
 	    tx_thread_sleep(100);
-            pm100_status
-                = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
+	    }*/
+	  dash_wait_for_r2d(dash_ptr);
+	  LOG_INFO(log_h, "R2D Pressed\n");
+	  if (config_ptr->r2d_requires_brake)
+	  {
+	       if (bps_fully_pressed(&ctrl_ptr->bps))
+	       {
+		    r2d = true;
+	       }
+	  }
+	  else
+	  {
+	       r2d = true;
+	  }
 
-            if (pm100_status != STATUS_OK)
-            {
-                next_state = CTRL_STATE_TS_RUN_FAULT;
-	    }
-        }
-        else
-        {
-            LOG_ERROR(log_h, "APPS error\n");
-            //pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
+	  if (r2d)
+	  {
+	       dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+	       pm100_disable(ctrl_ptr->pm100_ptr);
+	       rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
 
-            if (pm100_status != STATUS_OK)
-            {
-                next_state = CTRL_STATE_TS_RUN_FAULT;
-            }
-            else
-            {
-                LOG_ERROR(log_h, "APPS SCS fault\n");
-                next_state = CTRL_STATE_APPS_SCS_FAULT;
-            }
-        }
+	       next_state = CTRL_STATE_TS_ON;
 
-        // TODO: check for inverter fault, or TRC fault
+	       LOG_INFO(log_h, "R2D active\n");
+	  }
+	  else
+	       LOG_ERROR(log_h, "R2D failed to activate\n");
+	  break;
+     }
 
-        break;
-    }
+     // the TS is on
+     case (CTRL_STATE_TS_ON):
+     {
+	  // read from the APPS
+	  status_t apps_status
+	       = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
 
-    // activation or runtime failure
-    case (CTRL_STATE_TS_ACTIVATION_FAILURE):
-    case (CTRL_STATE_TS_RUN_FAULT):
-    {
-        LOG_ERROR(log_h, "TS fault during activation or runtime\n");
-        ctrl_handle_ts_fault(ctrl_ptr);
-        break;
-    }
+	  status_t pm100_status;
 
-    // SCS fault
-    // this is recoverable, if the signal becomes plausible again
-    case (CTRL_STATE_APPS_SCS_FAULT):
-    {
-        status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+	  //while (1) {
+	  //     LOG_INFO(log_h, "Pedal: %d\n", ctrl_ptr->apps_reading);
+	  //     tx_thread_sleep(100);
+	  //     apps_status = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
+	  //}
+	  if (apps_status == STATUS_OK)
+	  {
+	       uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
+							  ctrl_ptr->apps_reading);
+	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
+	       //tx_thread_sleep(100);//REMOVE??
+	       pm100_status
+		    = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
 
-        if (pm100_status != STATUS_OK)
-        {
-            next_state = CTRL_STATE_TS_RUN_FAULT;
-        }
+	       if (pm100_status != STATUS_OK)
+	       {
+		    next_state = CTRL_STATE_TS_RUN_FAULT;
+	       }
+	  }
+	  else
+	  {
+	       LOG_ERROR(log_h, "APPS error\n");
+	       //pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
 
-        if (apps_check_plausibility(&ctrl_ptr->apps))
-        {
-            next_state = CTRL_STATE_TS_ON;
-        }
+	       if (pm100_status != STATUS_OK)
+	       {
+		    next_state = CTRL_STATE_TS_RUN_FAULT;
+	       }
+	       else
+	       {
+		    LOG_ERROR(log_h, "APPS SCS fault\n");
+		    next_state = CTRL_STATE_APPS_SCS_FAULT;
+	       }
+	  }
 
-        break;
-    }
+	  // TODO: check for inverter fault, or TRC fault
 
-    default:
-        break;
-    }
+	  break;
+     }
 
-    ctrl_ptr->state = next_state;
+     // activation or runtime failure
+     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
+     case (CTRL_STATE_TS_RUN_FAULT):
+     {
+	  LOG_ERROR(log_h, "TS fault during activation or runtime\n");
+	  ctrl_handle_ts_fault(ctrl_ptr);
+	  break;
+     }
+
+     // SCS fault
+     // this is recoverable, if the signal becomes plausible again
+     case (CTRL_STATE_APPS_SCS_FAULT):
+     {
+	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+
+	  if (pm100_status != STATUS_OK)
+	  {
+	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	  }
+
+	  if (apps_check_plausibility(&ctrl_ptr->apps))
+	  {
+	       next_state = CTRL_STATE_TS_ON;
+	  }
+
+	  break;
+     }
+
+     default:
+	  break;
+     }
+
+     ctrl_ptr->state = next_state;
 }
 
 /**
@@ -365,15 +359,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
  */
 void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
 {
-    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
-    pm100_disable(ctrl_ptr->pm100_ptr);
-    trc_set_ts_on(GPIO_PIN_RESET);
-    dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
-    ctrl_update_canbc_states(ctrl_ptr);
-
-    tx_thread_suspend(&ctrl_ptr->thread);
+     pm100_lvs_off(ctrl_ptr->pm100_ptr);
+     trc_set_ts_on(GPIO_PIN_RESET);
+     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
+     ctrl_update_canbc_states(ctrl_ptr);
 }
 
 /**
@@ -383,17 +375,17 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
  */
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 {
-    canbc_states_t* states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
+     canbc_states_t* states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
 
-    if (states != NULL)
-    {
-        // TODO: add ready to drive state?
-        states->sensors.vcu_apps = ctrl_ptr->apps_reading;
-        states->sensors.vcu_bps = ctrl_ptr->bps_reading;
-        states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
-        states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
-        states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
-        states->errors.vcu_ctrl_error = ctrl_ptr->error;
-        canbc_unlock_state(ctrl_ptr->canbc_ptr);
-    }
+     if (states != NULL)
+     {
+	  // TODO: add ready to drive state?
+	  states->sensors.vcu_apps = ctrl_ptr->apps_reading;
+	  states->sensors.vcu_bps = ctrl_ptr->bps_reading;
+	  states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
+	  states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
+	  states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
+	  states->errors.vcu_ctrl_error = ctrl_ptr->error;
+	  canbc_unlock_state(ctrl_ptr->canbc_ptr);
+     }
 }
