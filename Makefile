@@ -312,7 +312,8 @@ src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
 src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_c.c
+src/Middlewares/SUFST/can-defs/out/can_c.c \
+src/Middlewares/SUFST/can-defs/out/can_s.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
@@ -434,7 +435,7 @@ $(BUILD_DIR)/%.bin: $(BUILD_DIR)/%.elf | $(BUILD_DIR) prebuild
 	tput setaf 5; tput bold; echo "Creating binary..."; tput sgr0
 	$(BIN) $< $@	
 	tput setaf 2;  echo "$@"; echo; tput sgr0
-	
+
 # create build directory
 $(BUILD_DIR):
 	mkdir -p $@	
@@ -455,7 +456,7 @@ ccd:
 	tput setaf 5; tput bold; echo "Generating compile commands database..."; tput sgr0
 	${PYTHON} -m ccdgen --extensions .c .s .S --compiler arm-none-eabi-gcc -- ${MAKE}
 	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
-  
+
 ###############################################################################
 # dependencies
 ###############################################################################

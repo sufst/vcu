@@ -95,10 +95,10 @@ static void send_bc_messages(canbc_context_t* canbc_h)
     {
         // states
         {
-            rtcan_msg_t message = {.identifier = CAN_C_VCU_STATE_FRAME_ID,
-                                   .length = CAN_C_VCU_STATE_LENGTH};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_STATE_FRAME_ID,
+                                   .length = CAN_S_VCU_STATE_LENGTH};
 
-            can_c_vcu_state_pack(message.data,
+            can_s_vcu_state_pack(message.data,
                                  &canbc_h->states.state,
                                  message.length);
             rtcan_transmit(canbc_h->rtcan_h, &message);
@@ -106,10 +106,10 @@ static void send_bc_messages(canbc_context_t* canbc_h)
 
         // sensors
         {
-            rtcan_msg_t message = {.identifier = CAN_C_VCU_SENSORS_FRAME_ID,
-                                   .length = CAN_C_VCU_SENSORS_LENGTH};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_SENSORS_FRAME_ID,
+                                   .length = CAN_S_VCU_SENSORS_LENGTH};
 
-            can_c_vcu_sensors_pack(message.data,
+            can_s_vcu_sensors_pack(message.data,
                                    &canbc_h->states.sensors,
                                    message.length);
             rtcan_transmit(canbc_h->rtcan_h, &message);
@@ -117,11 +117,21 @@ static void send_bc_messages(canbc_context_t* canbc_h)
 
         // errors
         {
-            rtcan_msg_t message = {.identifier = CAN_C_VCU_ERROR_FRAME_ID,
-                                   .length = CAN_C_VCU_ERROR_LENGTH};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_ERROR_FRAME_ID,
+                                   .length = CAN_S_VCU_ERROR_LENGTH};
 
-            can_c_vcu_error_pack(message.data,
+            can_s_vcu_error_pack(message.data,
                                  &canbc_h->states.errors,
+                                 message.length);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
+
+	{
+	     rtcan_msg_t message = {.identifier = CAN_S_VCU_PDM_FRAME_ID,
+                                   .length = CAN_S_VCU_PDM_LENGTH};
+
+            can_s_vcu_error_pack(message.data,
+                                 &canbc_h->states.pdm,
                                  message.length);
             rtcan_transmit(canbc_h->rtcan_h, &message);
         }

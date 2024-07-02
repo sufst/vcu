@@ -239,22 +239,9 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
  */
 status_t pm100_lvs_on(pm100_context_t* pm100_ptr)
 {
-    rtcan_msg_t msg
-        = {.identifier
-           = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
-                                       // power on the PDM. Don't need this and
-                                       // the STATUS pin
-	 .length = CAN_S_VCU_TS_ON_LENGTH,
-	 .data = {1,0,0,0,0,0,0,0} };
-    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_s_ptr, &msg);
-    status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
+     //UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
 
-    if (status != STATUS_OK)
-        return status;
-
-    UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
-
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    return STATUS_OK;
 }
 
 /**
@@ -287,22 +274,7 @@ bool pm100_is_precharged(pm100_context_t* pm100_ptr)
 
 status_t pm100_lvs_off(pm100_context_t* pm100_ptr)
 {
-    rtcan_msg_t msg
-        = {.identifier
-           = CAN_S_VCU_TS_ON_FRAME_ID, // This message was added to trigger
-                                       // power on the PDM. Don't need this and
-                                       // the STATUS pin
-	 .length = CAN_S_VCU_TS_ON_LENGTH,
-	 .data = {0,0,0,0,0,0,0,0} };
-    rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_s_ptr, &msg);
-    status_t status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
-
-    if (status != STATUS_OK)
-        return status;
-
-    UINT tx_status = tx_thread_suspend(&pm100_ptr->thread);
-
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+     return STATUS_OK;
 }
 
 

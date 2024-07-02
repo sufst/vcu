@@ -133,7 +133,7 @@ void ctrl_thread_entry(ULONG input)
 	  ctrl_state_machine_tick(ctrl_ptr);
 	  ctrl_update_canbc_states(ctrl_ptr);
 	  uint32_t run_time = tx_time_get() - start_time;
-	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks); // - run_time);
+	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
 }
 
@@ -150,6 +150,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
      ctrl_state_t next_state = ctrl_ptr->state;
 
+     status_t bps_status
+	       = bps_read(&ctrl_ptr->bps, &ctrl_ptr->bps_reading);
+
+     ctrl_ptr->brakelight_pwr = (bps_status > 3);
+
      switch (ctrl_ptr->state)
      {
 
@@ -162,7 +167,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  dash_wait_for_ts_on(dash_ptr);
 	  LOG_INFO(log_h, "ts_on received\n");
 	  next_state = CTRL_STATE_TS_READY_WAIT;
-
+	  ctrl_ptr->inverter_pwr = false;
+	  ctrl_ptr->pump_pwr = false;
+	  ctrl_ptr->fan_pwr = false;
 	  break;
      }
 
@@ -188,9 +195,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       LOG_INFO(log_h, "Waited - AIRs\n");
 
 	       next_state = CTRL_STATE_PRECHARGE_WAIT;
-	       status_t pdm_res = pm100_lvs_on(ctrl_ptr->pm100_ptr);
-	       LOG_INFO(log_h, "Start precharge status: %d\n", pdm_res);
-	       tx_thread_sleep(100); // REMOVE???
+	       //status_t pdm_res = pm100_lvs_on(ctrl_ptr->pm100_ptr);
+	       ctrl_ptr->inverter_pwr = true;
+	       
 	       ctrl_ptr->precharge_start = tx_time_get();
 	       LOG_INFO(log_h, "TS ready & precharge started\n");
 	  }
@@ -362,7 +369,11 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
      dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
      const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
-     pm100_lvs_off(ctrl_ptr->pm100_ptr);
+     //pm100_lvs_off(ctrl_ptr->pm100_ptr);
+     ctrl_ptr->inverter_pwr = false;
+     ctrl_ptr->pump_pwr = false;
+     ctrl_ptr->fan_pwr = false;
+     
      trc_set_ts_on(GPIO_PIN_RESET);
      dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
      ctrl_update_canbc_states(ctrl_ptr);
@@ -386,6 +397,10 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 	  states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
 	  states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
 	  states->errors.vcu_ctrl_error = ctrl_ptr->error;
+	  states->pdm.inverter = ctrl_ptr->inverter_pwr;
+	  states->pdm.brakelight = ctrl_ptr->brakelight_pwr;
+	  states->pdm.pump = ctrl_ptr->pump_pwr;
+	  states->pdm.fan = ctrl_ptr->fan_pwr;
 	  canbc_unlock_state(ctrl_ptr->canbc_ptr);
      }
 }

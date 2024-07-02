@@ -37,14 +37,14 @@
  */
 typedef enum
 {
-    CTRL_STATE_TS_OFF,
-    CTRL_STATE_TS_READY_WAIT,
-    CTRL_STATE_PRECHARGE_WAIT,
-    CTRL_STATE_R2D_WAIT,
-    CTRL_STATE_TS_ON,
-    CTRL_STATE_TS_ACTIVATION_FAILURE,
-    CTRL_STATE_TS_RUN_FAULT,
-    CTRL_STATE_APPS_SCS_FAULT
+     CTRL_STATE_TS_OFF,
+     CTRL_STATE_TS_READY_WAIT,
+     CTRL_STATE_PRECHARGE_WAIT,
+     CTRL_STATE_R2D_WAIT,
+     CTRL_STATE_TS_ON,
+     CTRL_STATE_TS_ACTIVATION_FAILURE,
+     CTRL_STATE_TS_RUN_FAULT,
+     CTRL_STATE_APPS_SCS_FAULT
 } ctrl_state_t;
 
 /**
@@ -52,26 +52,31 @@ typedef enum
  */
 typedef struct
 {
-    ctrl_state_t state;      // state machine state
-    TX_THREAD thread;        // service thread
-    uint16_t apps_reading;   // APPS reading (% * 10)
-    uint16_t bps_reading;    // BPS reading (% * 10)
-    int16_t sagl_reading;    // steering angle reading (deg * 10)
-    uint16_t torque_request; // last torque request
+     ctrl_state_t state;      // state machine state
+     TX_THREAD thread;        // service thread
+     uint16_t apps_reading;   // APPS reading (% * 10)
+     uint16_t bps_reading;    // BPS reading (% * 10)
+     int16_t sagl_reading;    // steering angle reading (deg * 10)
+     uint16_t torque_request; // last torque request
 
-    uint32_t precharge_start; // precharge start time in ticks
+     bool inverter_pwr;
+     bool brakelight_pwr;
+     bool pump_pwr;
+     bool fan_pwr;
+     
+     uint32_t precharge_start; // precharge start time in ticks
 
-    dash_context_t* dash_ptr;   // dash service
-    pm100_context_t* pm100_ptr; // PM100 service
-    canbc_context_t* canbc_ptr; // CANBC service
-    apps_context_t apps;        // APPS interface instance
-    bps_context_t bps;          // BPS interface instance
-    torque_map_t torque_map;    // torque map (APPS -> torque request)
+     dash_context_t* dash_ptr;   // dash service
+     pm100_context_t* pm100_ptr; // PM100 service
+     canbc_context_t* canbc_ptr; // CANBC service
+     apps_context_t apps;        // APPS interface instance
+     bps_context_t bps;          // BPS interface instance
+     torque_map_t torque_map;    // torque map (APPS -> torque request)
 
-    const config_ctrl_t* config_ptr;      // config
-    const config_rtds_t* rtds_config_ptr; // RTDS config
+     const config_ctrl_t* config_ptr;      // config
+     const config_rtds_t* rtds_config_ptr; // RTDS config
 
-    uint8_t error; // error code
+     uint8_t error; // error code
 
 } ctrl_context_t;
 

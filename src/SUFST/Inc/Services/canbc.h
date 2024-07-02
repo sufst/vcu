@@ -10,6 +10,7 @@
 
 #include <can.h>
 #include <can_c.h>
+#include <can_s.h>
 #include <rtcan.h>
 #include <stdint.h>
 #include <tx_api.h>
@@ -27,10 +28,10 @@
  */
 typedef struct
 {
-    struct can_c_vcu_sensors_t sensors;
-    struct can_c_vcu_state_t state;
-    struct can_c_vcu_error_t errors;
-
+     struct can_s_vcu_sensors_t sensors;
+     struct can_s_vcu_state_t state;
+     struct can_s_vcu_error_t errors;
+     struct can_s_vcu_pdm_t pdm;
 } canbc_states_t;
 
 /**
