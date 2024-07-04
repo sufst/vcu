@@ -153,8 +153,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      status_t bps_status
 	       = bps_read(&ctrl_ptr->bps, &ctrl_ptr->bps_reading);
 
-     ctrl_ptr->brakelight_pwr = (bps_status > 3);
+     ctrl_ptr->brakelight_pwr = (ctrl_ptr->bps_reading > 3);
+     LOG_INFO(log_h, "BPS: %d\n", ctrl_ptr->bps_reading);
 
+     status_t apps_status
+	  = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+	  LOG_INFO(log_h, "APPS: %d   status: %d\n", ctrl_ptr->apps_reading, apps_status);
      switch (ctrl_ptr->state)
      {
 
@@ -218,7 +222,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 	  //tx_thread_sleep(100); // REMOVE???
 	
-	  if (true) //pm100_is_precharged(ctrl_ptr->pm100_ptr)) FIXME
+	  if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
 	  {
 	       next_state = CTRL_STATE_R2D_WAIT;
 	       LOG_INFO(log_h, "Precharge complete\n");
@@ -241,10 +245,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  LOG_INFO(log_h,
 		   "Waiting for R2D from dash (brake required: %d)\n",
 		   config_ptr->r2d_requires_brake);
-	  /*while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
-	    LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
-	    tx_thread_sleep(100);
-	    }*/
+	  //while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
+	    //LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
+	    //tx_thread_sleep(100);
+	    //}
 	  dash_wait_for_r2d(dash_ptr);
 	  LOG_INFO(log_h, "R2D Pressed\n");
 	  if (config_ptr->r2d_requires_brake)
@@ -278,8 +282,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      case (CTRL_STATE_TS_ON):
      {
 	  // read from the APPS
-	  status_t apps_status
-	       = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
+	  //status_t apps_status
+	  //     = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
 
 	  status_t pm100_status;
 
@@ -291,11 +295,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  if (apps_status == STATUS_OK)
 	  {
 	       uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-							  ctrl_ptr->apps_reading);
+	       					  ctrl_ptr->apps_reading);
 	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
-	       //tx_thread_sleep(100);//REMOVE??
+	       tx_thread_sleep(100);//REMOVE??
 	       pm100_status
-		    = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
+	           = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
 
 	       if (pm100_status != STATUS_OK)
 	       {

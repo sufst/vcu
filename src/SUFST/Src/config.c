@@ -37,21 +37,21 @@ static const config_t config_instance = {
     .apps = {
         .apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 0x600,
-            .max_adc = 0x900,
+            .min_adc = 30,
+            .max_adc = 450,
             .min_mapped = 0,
-            .max_mapped = 1000,
+            .max_mapped = 100,
             .outside_bounds_fraction = 0.05f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 0x600,
-            .max_adc = 0x900,
+            .min_adc = 170,
+            .max_adc = 480,
             .min_mapped = 0,
-            .max_mapped = 1000,
+            .max_mapped = 100,
             .outside_bounds_fraction = 0.05f
         },
-        .max_discrepancy = 100, // 10% of range
+        .max_discrepancy = 10,
     },
     .bps = {
         .scs = {
@@ -85,9 +85,9 @@ static const config_t config_instance = {
     },
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
-        .input_max = 1000,
-        .output_max = 50,
-        .deadzone_fraction = 0.5f
+        .input_max = 100,
+        .output_max = 300,
+        .deadzone_fraction = 0.3f
     },
     .pm100 = {
         .thread = {
