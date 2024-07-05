@@ -347,6 +347,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
      case (CTRL_STATE_APPS_BPS_FAULT):
      {
+	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+
+	  if (pm100_status != STATUS_OK)
+	  {
+	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	  }
+	  
 	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
 						       &ctrl_ptr->apps_reading);
 	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
