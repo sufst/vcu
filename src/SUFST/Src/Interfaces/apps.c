@@ -55,6 +55,8 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     status_t status_1 = scs_read(&apps_ptr->apps_1_signal, &reading_1);
     status_t status_2 = scs_read(&apps_ptr->apps_2_signal, &reading_2);
 
+    //return reading_2;
+
     if (status_1 != STATUS_OK)
     {
         status = STATUS_ERROR;

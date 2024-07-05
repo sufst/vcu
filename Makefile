@@ -104,6 +104,7 @@ src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Services/pm100.c \
+src/SUFST/Src/Services/tick.c \
 src/SUFST/Src/Services/log.c \
 src/SUFST/Src/Services/heartbeat.c \
 src/SUFST/Src/Test/testbench.c \

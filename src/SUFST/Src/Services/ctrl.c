@@ -39,18 +39,18 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    pm100_context_t* pm100_ptr,
+		   tick_context_t *tick_ptr,
                    canbc_context_t* canbc_ptr,
                    log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
-                   const config_apps_t* apps_config_ptr,
-                   const config_bps_t* bps_config_ptr,
                    const config_rtds_t* rtds_config_ptr,
                    const config_torque_map_t* torque_map_config_ptr)
 {
      ctrl_ptr->state = CTRL_STATE_TS_OFF;
      ctrl_ptr->dash_ptr = dash_ptr;
      ctrl_ptr->pm100_ptr = pm100_ptr;
+     ctrl_ptr->tick_ptr = tick_ptr;
      ctrl_ptr->canbc_ptr = canbc_ptr;
      ctrl_ptr->config_ptr = config_ptr;
      ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
@@ -86,17 +86,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
 
      status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
 
-     // initialise the APPS, BPS and torque map
-     if (status == STATUS_OK)
-     {
-	  status = apps_init(&ctrl_ptr->apps, apps_config_ptr);
-     }
-
-     if (status == STATUS_OK)
-     {
-	  status = bps_init(&ctrl_ptr->bps, bps_config_ptr);
-     }
-
+     // initialise the torque map
      if (status == STATUS_OK)
      {
 	  status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
@@ -150,15 +140,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
      ctrl_state_t next_state = ctrl_ptr->state;
 
-     status_t bps_status
-	       = bps_read(&ctrl_ptr->bps, &ctrl_ptr->bps_reading);
-
-     ctrl_ptr->brakelight_pwr = (ctrl_ptr->bps_reading > 3);
-     LOG_INFO(log_h, "BPS: %d\n", ctrl_ptr->bps_reading);
-
-     status_t apps_status
-	  = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
-	  LOG_INFO(log_h, "APPS: %d   status: %d\n", ctrl_ptr->apps_reading, apps_status);
      switch (ctrl_ptr->state)
      {
 
@@ -183,8 +164,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  LOG_INFO(log_h, "Waiting for TS ready from TSAC relay controller\n");
 	  status_t result
 	       = trc_wait_for_ready(config_ptr->ts_ready_poll_ticks,
-	  	    config_ptr->ts_ready_timeout_ticks);
-	  //tx_thread_sleep(100);
+				    config_ptr->ts_ready_timeout_ticks);
+
 	  if (result == STATUS_OK)
 	  {
 	       dash_blink_ts_on_led(dash_ptr,
@@ -192,14 +173,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       trc_set_ts_on(GPIO_PIN_SET);
 
 	       LOG_INFO(log_h, "Waiting - AIRs\n");
-	       tx_thread_sleep(
-		    TX_TIMER_TICKS_PER_SECOND); // sleep to allow the inrush
-                                                // current of AIRs before
-                                                // turning on inverter
+	       tx_thread_sleep(TX_TIMER_TICKS_PER_SECOND / 4);
 	       LOG_INFO(log_h, "Waited - AIRs\n");
 
 	       next_state = CTRL_STATE_PRECHARGE_WAIT;
-	       //status_t pdm_res = pm100_lvs_on(ctrl_ptr->pm100_ptr);
+
 	       ctrl_ptr->inverter_pwr = true;
 	       
 	       ctrl_ptr->precharge_start = tx_time_get();
@@ -245,36 +223,46 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  LOG_INFO(log_h,
 		   "Waiting for R2D from dash (brake required: %d)\n",
 		   config_ptr->r2d_requires_brake);
-	  //while (!HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin)) {
-	    //LOG_INFO(log_h, "Button: %d\n", HAL_GPIO_ReadPin(R2D_BTN_GPIO_Port, R2D_BTN_Pin));
-	    //tx_thread_sleep(100);
-	    //}
+
 	  dash_wait_for_r2d(dash_ptr);
 	  LOG_INFO(log_h, "R2D Pressed\n");
-	  if (config_ptr->r2d_requires_brake)
-	  {
-	       if (bps_fully_pressed(&ctrl_ptr->bps))
+	  
+	  status_t result = tick_get_bps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->bps_reading);
+
+	  if (result == STATUS_OK)
+	  {      
+	       if (config_ptr->r2d_requires_brake)
+	       {
+		    if (ctrl_ptr->bps_reading > 0)
+		    {
+			 r2d = true;
+		    }
+	       }
+	       else
 	       {
 		    r2d = true;
+	       }
+	       
+	       if (r2d)
+	       {
+		    dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+		    pm100_disable(ctrl_ptr->pm100_ptr);
+		    rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
+		    
+		    next_state = CTRL_STATE_TS_ON;
+		    
+		    LOG_INFO(log_h, "R2D active\n");
+	       }
+	       else
+	       {
+		    LOG_ERROR(log_h, "R2D failed to activate\n");
 	       }
 	  }
 	  else
 	  {
-	       r2d = true;
+	       LOG_ERROR(log_h, "BPS reading failed\n");
+	       next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
 	  }
-
-	  if (r2d)
-	  {
-	       dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
-	       pm100_disable(ctrl_ptr->pm100_ptr);
-	       rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-
-	       next_state = CTRL_STATE_TS_ON;
-
-	       LOG_INFO(log_h, "R2D active\n");
-	  }
-	  else
-	       LOG_ERROR(log_h, "R2D failed to activate\n");
 	  break;
      }
 
@@ -282,44 +270,44 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      case (CTRL_STATE_TS_ON):
      {
 	  // read from the APPS
-	  //status_t apps_status
-	  //     = apps_read(&ctrl_ptr->apps, &ctrl_ptr->apps_reading);
-
 	  status_t pm100_status;
+	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+						       &ctrl_ptr->apps_reading);
+	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
+						     &ctrl_ptr->bps_reading);
+	  
 
-	  //while (1) {
-	  //     LOG_INFO(log_h, "Pedal: %d\n", ctrl_ptr->apps_reading);
-	  //     tx_thread_sleep(100);
-	  //     apps_status = bps_read(&ctrl_ptr->bps, &ctrl_ptr->apps_reading);
-	  //}
-	  if (apps_status == STATUS_OK)
+	  if (apps_status == STATUS_OK && bps_status == STATUS_OK)
 	  {
 	       uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
 	       					  ctrl_ptr->apps_reading);
-	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
-	       tx_thread_sleep(100);//REMOVE??
-	       pm100_status
-	           = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
 
-	       if (pm100_status != STATUS_OK)
+	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
+	       
+	       // Check for brake + accel pedal pressed
+	       if ((ctrl_ptr->apps_reading >=
+		    ctrl_ptr->config_ptr->apps_bps_high_threshold) &&
+		   ctrl_ptr->bps_reading > 3)
 	       {
-		    next_state = CTRL_STATE_TS_RUN_FAULT;
+		    LOG_ERROR(log_h, "BP and AP pressed\n");
+		    next_state = CTRL_STATE_APPS_BPS_FAULT;
+	       }
+	       else
+	       {
+		    tx_thread_sleep(100);//REMOVE??
+		    pm100_status
+			 = pm100_request_torque(ctrl_ptr->pm100_ptr, torque_request);
+		    
+		    if (pm100_status != STATUS_OK)
+		    {
+			 next_state = CTRL_STATE_TS_RUN_FAULT;
+		    }
 	       }
 	  }
 	  else
 	  {
-	       LOG_ERROR(log_h, "APPS error\n");
-	       //pm100_status = pm100_disable(ctrl_ptr->pm100_ptr);
-
-	       if (pm100_status != STATUS_OK)
-	       {
-		    next_state = CTRL_STATE_TS_RUN_FAULT;
-	       }
-	       else
-	       {
-		    LOG_ERROR(log_h, "APPS SCS fault\n");
-		    next_state = CTRL_STATE_APPS_SCS_FAULT;
-	       }
+	       LOG_ERROR(log_h, "APPS / BPS fault\n");
+	       next_state = CTRL_STATE_APPS_SCS_FAULT;
 	  }
 
 	  // TODO: check for inverter fault, or TRC fault
@@ -333,6 +321,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      {
 	  LOG_ERROR(log_h, "TS fault during activation or runtime\n");
 	  ctrl_handle_ts_fault(ctrl_ptr);
+	  while(1)
+	       tx_thread_sleep(100);
 	  break;
      }
 
@@ -347,9 +337,33 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       next_state = CTRL_STATE_TS_RUN_FAULT;
 	  }
 
-	  if (apps_check_plausibility(&ctrl_ptr->apps))
+	  if (tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading) == STATUS_OK)
 	  {
 	       next_state = CTRL_STATE_TS_ON;
+	  }
+
+	  break;
+     }
+
+     case (CTRL_STATE_APPS_BPS_FAULT):
+     {
+	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+						       &ctrl_ptr->apps_reading);
+	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
+						     &ctrl_ptr->bps_reading);
+	  
+
+	  if (apps_status == STATUS_OK && bps_status == STATUS_OK)
+	  {	  
+	       if ((ctrl_ptr->apps_reading < ctrl_ptr->config_ptr->apps_bps_low_threshold) &&
+		   (ctrl_ptr->bps_reading == 0))
+	       {
+		    next_state = CTRL_STATE_TS_ON;
+	       }
+	  }
+	  else
+	  {
+	       next_state = CTRL_STATE_APPS_SCS_FAULT;
 	  }
 
 	  break;
@@ -402,7 +416,6 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 	  states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
 	  states->errors.vcu_ctrl_error = ctrl_ptr->error;
 	  states->pdm.inverter = ctrl_ptr->inverter_pwr;
-	  states->pdm.brakelight = ctrl_ptr->brakelight_pwr;
 	  states->pdm.pump = ctrl_ptr->pump_pwr;
 	  states->pdm.fan = ctrl_ptr->fan_pwr;
 	  canbc_unlock_state(ctrl_ptr->canbc_ptr);

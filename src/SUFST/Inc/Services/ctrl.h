@@ -19,6 +19,7 @@
 #include "dash.h"
 #include "log.h"
 #include "pm100.h"
+#include "tick.h"
 #include "status.h"
 #include "torque_map.h"
 
@@ -44,7 +45,8 @@ typedef enum
      CTRL_STATE_TS_ON,
      CTRL_STATE_TS_ACTIVATION_FAILURE,
      CTRL_STATE_TS_RUN_FAULT,
-     CTRL_STATE_APPS_SCS_FAULT
+     CTRL_STATE_APPS_SCS_FAULT,
+     CTRL_STATE_APPS_BPS_FAULT
 } ctrl_state_t;
 
 /**
@@ -60,7 +62,6 @@ typedef struct
      uint16_t torque_request; // last torque request
 
      bool inverter_pwr;
-     bool brakelight_pwr;
      bool pump_pwr;
      bool fan_pwr;
      
@@ -69,8 +70,7 @@ typedef struct
      dash_context_t* dash_ptr;   // dash service
      pm100_context_t* pm100_ptr; // PM100 service
      canbc_context_t* canbc_ptr; // CANBC service
-     apps_context_t apps;        // APPS interface instance
-     bps_context_t bps;          // BPS interface instance
+     tick_context_t *tick_ptr; // tick thread (reads certain sensors)
      torque_map_t torque_map;    // torque map (APPS -> torque request)
 
      const config_ctrl_t* config_ptr;      // config
@@ -86,12 +86,11 @@ typedef struct
 status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    dash_context_t* dash_ptr,
                    pm100_context_t* pm100_ptr,
+		   tick_context_t *tick_ptr,
                    canbc_context_t* canbc_ptr,
                    log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
-                   const config_apps_t* apps_config_ptr,
-                   const config_bps_t* bps_config_ptr,
                    const config_rtds_t* rtds_config_ptr,
                    const config_torque_map_t* torque_map_config_ptr);
 

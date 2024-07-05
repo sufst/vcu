@@ -27,7 +27,7 @@ static const config_t config_instance = {
             .priority = 4,
             .stack_size = 1024
         },
-        .btn_active_ticks = SECONDS_TO_TICKS(1),
+        .btn_active_ticks = SECONDS_TO_TICKS(0.5),
         .btn_sample_ticks = SECONDS_TO_TICKS(0.1),
         .vc_run_check = true,     
         .vc_all_leds_on = true,
@@ -37,7 +37,7 @@ static const config_t config_instance = {
     .apps = {
         .apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 30,
+            .min_adc = 10,
             .max_adc = 450,
             .min_mapped = 0,
             .max_mapped = 100,
@@ -71,7 +71,9 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
-        .r2d_requires_brake = false,
+        .r2d_requires_brake = true,
+	.apps_bps_low_threshold = 5,
+	.apps_bps_high_threshold = 20,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
@@ -87,7 +89,7 @@ static const config_t config_instance = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
         .output_max = 300,
-        .deadzone_fraction = 0.3f
+        .deadzone_fraction = 0.15f
     },
     .pm100 = {
         .thread = {
@@ -99,6 +101,14 @@ static const config_t config_instance = {
         .torque_request_timeout_ticks = SECONDS_TO_TICKS(0.1), // 100 ms
         .precharge_timeout_ticks = SECONDS_TO_TICKS(1),
         .speed_mode = 0
+    },
+    .tick = {
+        .thread = {
+            .name = "TICK",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .period = SECONDS_TO_TICKS(0.05)
     },
     .canbc = {
         .thread = {
