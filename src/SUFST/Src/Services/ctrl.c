@@ -277,7 +277,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 						     &ctrl_ptr->bps_reading);
 	  
 
-	  if (apps_status == STATUS_OK && bps_status == STATUS_OK)
+	  if (apps_status == STATUS_OK) // && bps_status == STATUS_OK)
 	  {
 	       uint16_t torque_request = torque_map_apply(&ctrl_ptr->torque_map,
 	       					  ctrl_ptr->apps_reading);
@@ -285,9 +285,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, torque_request);
 	       
 	       // Check for brake + accel pedal pressed
-	       if ((ctrl_ptr->apps_reading >=
+	       if (0) /*(ctrl_ptr->apps_reading >=
 		    ctrl_ptr->config_ptr->apps_bps_high_threshold) &&
-		   ctrl_ptr->bps_reading > 3)
+		    ctrl_ptr->bps_reading > 3)*/
 	       {
 		    LOG_ERROR(log_h, "BP and AP pressed\n");
 		    next_state = CTRL_STATE_APPS_BPS_FAULT;

@@ -71,7 +71,7 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
-        .r2d_requires_brake = true,
+        .r2d_requires_brake = false,
 	.apps_bps_low_threshold = 5,
 	.apps_bps_high_threshold = 20,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
@@ -88,7 +88,7 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 300,
+        .output_max = 600,
         .deadzone_fraction = 0.15f
     },
     .pm100 = {
