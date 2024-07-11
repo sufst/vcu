@@ -13,7 +13,7 @@ static void tick_thread_entry(ULONG input)
      {
 	  lock_tick_sensors(tick_ptr, 100);
 	  tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
-	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > 3);
+	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > 284);
 
 	  tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 	  

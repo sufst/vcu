@@ -57,9 +57,9 @@ static const config_t config_instance = {
         .scs = {
             .hadc = &hadc3,
             .min_adc = 0,
-            .max_adc = 1200,
+            .max_adc = 0xFFF,
             .min_mapped = 0,
-            .max_mapped = 100,
+            .max_mapped = 0xFFF,
             .outside_bounds_fraction = 0.05f
         },
         .fully_pressed_fraction = 0.8f
