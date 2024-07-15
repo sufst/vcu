@@ -37,17 +37,20 @@
  */
 typedef struct
 {
-    TX_THREAD thread;
-    rtcan_handle_t* rtcan_c_ptr;
-    rtcan_handle_t* rtcan_s_ptr;
-    TX_QUEUE can_rx_queue;
-    ULONG can_rx_queue_mem[PM100_RX_QUEUE_SIZE];
-    TX_MUTEX state_mutex;
-    bool broadcasts_valid;
-    struct can_c_pm100_internal_states_t states;
-    struct can_c_pm100_fault_codes_t faults;
-    uint16_t error;
-    const config_pm100_t* config_ptr;
+     TX_THREAD thread;
+     rtcan_handle_t* rtcan_c_ptr;
+     rtcan_handle_t* rtcan_s_ptr;
+     TX_QUEUE can_rx_queue;
+     ULONG can_rx_queue_mem[PM100_RX_QUEUE_SIZE];
+     TX_MUTEX state_mutex;
+     bool broadcasts_valid;
+     struct can_c_pm100_internal_states_t states;
+     struct can_c_pm100_fault_codes_t faults;
+     struct can_c_pm100_temperature_set_1_t temp1;
+     struct can_c_pm100_temperature_set_2_t temp2;
+     struct can_c_pm100_temperature_set_3_t temp3;
+     uint16_t error;
+     const config_pm100_t* config_ptr;
 } pm100_context_t;
 
 /*
@@ -62,6 +65,8 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
 status_t pm100_lvs_on(pm100_context_t* pm100_ptr);
 status_t pm100_lvs_off(pm100_context_t* pm100_ptr);
 bool pm100_is_precharged(pm100_context_t* pm100_ptr);
+int16_t pm100_motor_temp(pm100_context_t *pm100_ptr);
+int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr);
 status_t pm100_disable(pm100_context_t* pm100_ptr);
 status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque);
 

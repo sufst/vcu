@@ -38,13 +38,16 @@
  */
 typedef enum
 {
-     CTRL_STATE_TS_OFF,
-     CTRL_STATE_TS_READY_WAIT,
+     CTRL_STATE_TS_BUTTON_WAIT,
+     CTRL_STATE_WAIT_NEG_AIR,
      CTRL_STATE_PRECHARGE_WAIT,
      CTRL_STATE_R2D_WAIT,
      CTRL_STATE_TS_ON,
+     CTRL_STATE_R2D_OFF,
+     CTRL_STATE_R2D_OFF_WAIT,
      CTRL_STATE_TS_ACTIVATION_FAILURE,
      CTRL_STATE_TS_RUN_FAULT,
+     CTRL_STATE_SPIN,
      CTRL_STATE_APPS_SCS_FAULT,
      CTRL_STATE_APPS_BPS_FAULT
 } ctrl_state_t;
@@ -60,12 +63,17 @@ typedef struct
      uint16_t bps_reading;    // BPS reading (% * 10)
      int16_t sagl_reading;    // steering angle reading (deg * 10)
      uint16_t torque_request; // last torque request
-
+     uint8_t shdn_reading;
+     int16_t motor_temp;
+     int16_t inv_temp;
+     
      bool inverter_pwr;
      bool pump_pwr;
      bool fan_pwr;
-     
+
+     uint32_t neg_air_start;
      uint32_t precharge_start; // precharge start time in ticks
+     uint32_t motor_torque_zero_start;
 
      dash_context_t* dash_ptr;   // dash service
      pm100_context_t* pm100_ptr; // PM100 service

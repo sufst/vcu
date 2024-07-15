@@ -132,8 +132,13 @@ void pm100_thread_entry(ULONG input)
     const config_pm100_t* config_ptr = pm100_ptr->config_ptr;
 
     // set up RTCAN subscriptions
-    uint32_t subscriptions[] = {CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
-                                CAN_C_PM100_FAULT_CODES_FRAME_ID};
+    uint32_t subscriptions[] = {
+	 CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
+	 CAN_C_PM100_FAULT_CODES_FRAME_ID,
+	 CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
+	 CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
+	 CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID
+    };
 
     for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
          i++)
@@ -217,6 +222,34 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         break;
     }
 
+    case CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID:
+    {
+	 LOG_INFO(log_h, "TEMP%d\n", 1);
+	 can_c_pm100_temperature_set_1_unpack(&pm100_ptr->temp1,
+					      msg_ptr->data,
+					      msg_ptr->length);
+	 
+	 break;
+    }
+
+    case CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID:
+    {
+	 can_c_pm100_temperature_set_2_unpack(&pm100_ptr->temp2,
+					      msg_ptr->data,
+					      msg_ptr->length);
+	 
+	 break;
+    }
+
+    case CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID:
+    {
+	 can_c_pm100_temperature_set_3_unpack(&pm100_ptr->temp3,
+					      msg_ptr->data,
+					      msg_ptr->length);
+	 
+	 break;
+    }   
+
     default:
         break;
     }
@@ -270,6 +303,47 @@ bool pm100_is_precharged(pm100_context_t* pm100_ptr)
                || vsm_state == PM100_VSM_STATE_WAIT
                || vsm_state == PM100_VSM_STATE_READY
                || vsm_state == PM100_VSM_STATE_RUNNING);
+}
+
+int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr)
+{
+     int16_t max_temp = 0;
+
+     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
+
+     if (tx_status == TX_SUCCESS)
+     {
+	  if (pm100_ptr->temp1.pm100_module_a > max_temp)
+	       max_temp = pm100_ptr->temp1.pm100_module_a;
+	  if (pm100_ptr->temp1.pm100_module_b > max_temp)
+	       max_temp = pm100_ptr->temp1.pm100_module_b;
+	  if (pm100_ptr->temp1.pm100_module_c > max_temp)
+	       max_temp = pm100_ptr->temp1.pm100_module_c;
+	  if (pm100_ptr->temp1.pm100_gate_driver_board > max_temp)
+	       max_temp = pm100_ptr->temp1.pm100_gate_driver_board;
+	  if (pm100_ptr->temp2.pm100_control_board_temperature > max_temp)
+	       max_temp = pm100_ptr->temp2.pm100_control_board_temperature;
+
+	  tx_mutex_put(&pm100_ptr->state_mutex);
+     }
+
+     return max_temp;
+}
+
+int16_t pm100_motor_temp(pm100_context_t *pm100_ptr)
+{
+     int16_t motor_temp = 0;
+
+     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
+
+     if (tx_status == TX_SUCCESS)
+     {
+	  motor_temp = pm100_ptr->temp3.pm100_motor_temperature;
+
+	  tx_mutex_put(&pm100_ptr->state_mutex);
+     }
+
+     return motor_temp;
 }
 
 status_t pm100_lvs_off(pm100_context_t* pm100_ptr)

@@ -18,15 +18,30 @@
 #include "config.h"
 #include "status.h"
 
+typedef struct
+{
+    bool active_state;       // state considered active
+    bool require_release;    // check for active then not active
+    bool last_state;         // state memory
+    uint32_t active_start;   // start tick of being active
+    uint32_t required_ticks; // number of ticks for which must be active
+    uint32_t sample_ticks;   // sleep ticks between samples
+    GPIO_TypeDef* port;      // input GPIO port
+    uint16_t pin;            // input GPIO pin
+} input_context_t;
+
+
 /**
  * @brief   Dash service context
  */
 typedef struct
 {
-    TX_THREAD thread;                // dash service thread
-    TX_TIMER ts_on_toggle_timer;     // timer for toggling TS on LED
-    const config_dash_t* config_ptr; // configuration
+     TX_THREAD thread;                // dash service thread
+     TX_TIMER ts_on_toggle_timer;     // timer for toggling TS on LED
+     const config_dash_t* config_ptr; // configuration
 
+     input_context_t r2d, tson;
+     uint8_t r2d_flag, tson_flag;
 } dash_context_t;
 
 /*
@@ -42,6 +57,9 @@ status_t dash_set_ts_on_led_state(dash_context_t* dash_ptr,
 status_t dash_wait_for_ts_on(dash_context_t* dash_ptr);
 status_t dash_wait_for_r2d(dash_context_t* dash_ptr);
 status_t dash_set_r2d_led_state(dash_context_t* dash_ptr, GPIO_PinState state);
+
+void dash_update_buttons(dash_context_t *dash_ptr);
+void dash_clear_buttons(dash_context_t *dash_ptr);
 
 // void dash_set_r2d_led_state(GPIO_PinState state);
 // void dash_set_drs_led_state(GPIO_PinState state);

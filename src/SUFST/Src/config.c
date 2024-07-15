@@ -56,13 +56,13 @@ static const config_t config_instance = {
     .bps = {
         .scs = {
             .hadc = &hadc3,
-            .min_adc = 0,
-            .max_adc = 0xFFF,
+            .min_adc = 50,
+            .max_adc = 450,
             .min_mapped = 0,
-            .max_mapped = 0xFFF,
+            .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
         },
-        .fully_pressed_fraction = 0.8f
+        .fully_pressed_fraction = 0.1f
     },
     .ctrl = {
         .thread = {
@@ -108,7 +108,7 @@ static const config_t config_instance = {
             .priority = 3,
             .stack_size = 1024
         },
-        .period = SECONDS_TO_TICKS(0.05)
+        .period = SECONDS_TO_TICKS(0.01)
     },
     .canbc = {
         .thread = {

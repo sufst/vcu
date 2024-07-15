@@ -13,13 +13,14 @@ static void tick_thread_entry(ULONG input)
      {
 	  lock_tick_sensors(tick_ptr, 100);
 	  tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
-	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > 284);
+	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > 3);
 
 	  tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 	  
-	  //LOG_INFO(tick_ptr->log_ptr, "Brake pressed: %d\n", tick_ptr->brakelight_pwr);
-	  //LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
-	  //	   tick_ptr->apps_reading, tick_ptr->apps_status);
+	  /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
+		   tick_ptr->bps_reading, tick_ptr->bps_status);
+	  LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
+	  tick_ptr->apps_reading, tick_ptr->apps_status);*/
 
 	  tick_update_canbc_states(tick_ptr);
 	  unlock_tick_sensors(tick_ptr);
@@ -102,6 +103,8 @@ void tick_update_canbc_states(tick_context_t* tick_ptr)
      if (states != NULL)
      {
 	  states->pdm.brakelight = tick_ptr->brakelight_pwr;
+	  states->sensors.vcu_apps = tick_ptr->apps_reading;
+	  states->sensors.vcu_bps = tick_ptr->bps_reading;
 	  canbc_unlock_state(tick_ptr->canbc_ptr);
      }
 }

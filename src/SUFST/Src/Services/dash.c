@@ -1,25 +1,10 @@
 #include "dash.h"
 
 /*
- * internal types
- */
-typedef struct
-{
-    bool active_state;       // state considered active
-    bool require_release;    // check for active then not active
-    bool last_state;         // state memory
-    uint32_t active_start;   // start tick of being active
-    uint32_t required_ticks; // number of ticks for which must be active
-    uint32_t sample_ticks;   // sleep ticks between samples
-    GPIO_TypeDef* port;      // input GPIO port
-    uint16_t pin;            // input GPIO pin
-} input_context_t;
-
-/*
  * internal functions
  */
 static void dash_thread_entry(ULONG input);
-static void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger);
+static void run_visual_check(uint32_t ticks);
 static void toggle_ts_on_callback(ULONG input);
 static status_t input_wait(input_context_t* input_ptr);
 
@@ -37,7 +22,29 @@ status_t dash_init(dash_context_t* dash_ptr,
     status_t status = STATUS_OK;
 
     dash_ptr->config_ptr = config_ptr;
+    dash_ptr->r2d_flag = false;
+    dash_ptr->tson_flag = false;
 
+    dash_ptr->r2d = (input_context_t){
+	 .port = R2D_BTN_GPIO_Port,
+	 .pin = R2D_BTN_Pin,
+	 .active_state = true,
+	 .last_state = false,
+	 .require_release = true,
+	 .active_start = 0,
+	 .required_ticks = dash_ptr->config_ptr->btn_active_ticks,
+	 .sample_ticks = dash_ptr->config_ptr->btn_sample_ticks};
+
+    dash_ptr->tson = (input_context_t){
+	 .port = TS_ON_BTN_GPIO_Port,
+	 .pin = TS_ON_BTN_Pin,
+	 .active_state = true,
+	 .last_state = false,
+	 .require_release = true,
+	 .active_start = 0,
+	 .required_ticks = dash_ptr->config_ptr->btn_active_ticks,
+	 .sample_ticks = dash_ptr->config_ptr->btn_sample_ticks};
+    
     // create the thread
     void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
@@ -47,21 +54,21 @@ status_t dash_init(dash_context_t* dash_ptr,
 
     if (tx_status == TX_SUCCESS)
     {
-        tx_status = tx_thread_create(&dash_ptr->thread,
-                                     (CHAR*) config_ptr->thread.name,
-                                     dash_thread_entry,
-                                     (ULONG) dash_ptr,
-                                     stack_ptr,
-                                     config_ptr->thread.stack_size,
-                                     config_ptr->thread.priority,
-                                     config_ptr->thread.priority,
-                                     TX_NO_TIME_SLICE,
-                                     TX_AUTO_START);
+	 tx_status = tx_thread_create(&dash_ptr->thread,
+				      (CHAR*) config_ptr->thread.name,
+				      dash_thread_entry,
+				      (ULONG) dash_ptr,
+				      stack_ptr,
+				      config_ptr->thread.stack_size,
+				      config_ptr->thread.priority,
+				      config_ptr->thread.priority,
+				      TX_NO_TIME_SLICE,
+				      TX_AUTO_START);
     }
 
     if (tx_status != TX_SUCCESS)
     {
-        status = STATUS_ERROR;
+	 status = STATUS_ERROR;
     }
 
     // create timer for toggling TS on LED
@@ -75,7 +82,7 @@ status_t dash_init(dash_context_t* dash_ptr,
 
     if (tx_status != TX_SUCCESS)
     {
-        status = STATUS_ERROR;
+	 status = STATUS_ERROR;
     }
 
     // CubeMX will auto-generate code which sets initial pin states
@@ -100,9 +107,7 @@ void dash_thread_entry(ULONG input)
     // see 'visible check' rule
     if (dash_ptr->config_ptr->vc_run_check)
     {
-        run_visual_check(dash_ptr->config_ptr->vc_led_on_ticks,
-                         dash_ptr->config_ptr->vc_all_leds_on,
-                         dash_ptr->config_ptr->vc_stagger_ticks);
+	 run_visual_check(dash_ptr->config_ptr->vc_led_on_ticks);
     }
 }
 
@@ -115,28 +120,11 @@ void dash_thread_entry(ULONG input)
  * @param[in]   all_leds        Turn on all LEDs (rather than just VC_LEDS pin)
  * @param[in]   stagger_ticks   Delay between turning on each LED
  */
-void run_visual_check(uint32_t ticks, bool all_leds, uint32_t stagger_ticks)
+void run_visual_check(uint32_t ticks)
 {
-    if (all_leds)
-    {
-        HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, GPIO_PIN_SET);
-        tx_thread_sleep(stagger_ticks);
-        HAL_GPIO_WritePin(R2D_LED_GPIO_Port, R2D_LED_Pin, GPIO_PIN_SET);
-        tx_thread_sleep(stagger_ticks);
-        HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, GPIO_PIN_SET);
-        tx_thread_sleep(stagger_ticks);
-    }
-
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_SET);
 
     tx_thread_sleep(ticks);
-
-    if (all_leds)
-    {
-        HAL_GPIO_WritePin(TS_ON_LED_GPIO_Port, TS_ON_LED_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(R2D_LED_GPIO_Port, R2D_LED_Pin, GPIO_PIN_RESET);
-        HAL_GPIO_WritePin(DRS_LED_GPIO_Port, DRS_LED_Pin, GPIO_PIN_RESET);
-    }
 
     HAL_GPIO_WritePin(VC_LEDS_GPIO_Port, VC_LEDS_Pin, GPIO_PIN_RESET);
 }
@@ -215,7 +203,7 @@ status_t dash_set_ts_on_led_state(dash_context_t* dash_ptr, GPIO_PinState state)
 status_t dash_wait_for_ts_on(dash_context_t* dash_ptr)
 {
     input_context_t ts_on_input
-        = {.port = TS_ON_BTN_GPIO_Port,
+	 = {.port = TS_ON_BTN_GPIO_Port,
            .pin = TS_ON_BTN_Pin,
            .active_state = true,
            .last_state = false,
@@ -297,6 +285,58 @@ status_t input_wait(input_context_t* input_ptr)
     }
 
     return status;
+}
+
+/* Update button detection routine. Returns 0 if button hasn't been
+   pressed, 1 if it has. After a press, the function returns 1 only once.
+   This function should be called periodically and does not block */
+bool input_update(input_context_t* input_ptr)
+{
+     bool pressed = false;
+     bool state = (HAL_GPIO_ReadPin(input_ptr->port, input_ptr->pin)
+		   == GPIO_PIN_SET);
+     
+     // rising edge (active, previously inactive)
+     if (state == input_ptr->active_state
+	 && (input_ptr->last_state != input_ptr->active_state))
+     {
+	  input_ptr->active_start = tx_time_get();
+     }
+     
+     // held
+     bool active_no_release_check
+	  = !input_ptr->require_release && (state == input_ptr->active_state);
+     
+     bool held_and_released
+	  = (state != input_ptr->active_state)
+	  && (input_ptr->last_state == input_ptr->active_state);
+     
+     if (active_no_release_check || held_and_released)
+     {
+	  uint32_t active_ticks = tx_time_get() - input_ptr->active_start;
+	  
+	  if (active_ticks > input_ptr->required_ticks)
+	  {
+	       pressed = true;
+	  }
+     }
+     
+     // update state and sleep
+     input_ptr->last_state = state;
+     
+     return pressed;
+}
+
+void dash_update_buttons(dash_context_t *dash_ptr)
+{
+     dash_ptr->tson_flag = input_update(&dash_ptr->tson);
+     dash_ptr->r2d_flag = input_update(&dash_ptr->r2d);
+}
+
+void dash_clear_buttons(dash_context_t *dash_ptr)
+{
+     dash_ptr->tson_flag = false;
+     dash_ptr->r2d_flag = false;
 }
 
 /**

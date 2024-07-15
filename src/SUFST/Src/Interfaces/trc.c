@@ -18,6 +18,11 @@ status_t trc_set_ts_on(GPIO_PinState state)
     return STATUS_OK;
 }
 
+bool trc_ready(void)
+{
+     return HAL_GPIO_ReadPin(TS_READY_GPIO_Port, TS_READY_Pin);
+}
+
 /**
  * @brief       Waits for the TRC to enter the ready state or a timeout
  *
