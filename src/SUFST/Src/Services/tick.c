@@ -18,9 +18,9 @@ static void tick_thread_entry(ULONG input)
 	  tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 	  
 	  /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
-		   tick_ptr->bps_reading, tick_ptr->bps_status);
+	    tick_ptr->bps_reading, tick_ptr->bps_status);*/
 	  LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
-	  tick_ptr->apps_reading, tick_ptr->apps_status);*/
+		   tick_ptr->apps_reading, tick_ptr->apps_status);
 
 	  tick_update_canbc_states(tick_ptr);
 	  unlock_tick_sensors(tick_ptr);

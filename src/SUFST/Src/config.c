@@ -35,23 +35,42 @@ static const config_t config_instance = {
         .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
     },
     .apps = {
-        .apps_1_scs = {
+	 /*.apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 10,
-            .max_adc = 450,
+            .min_adc = 0,
+            .max_adc = 0xFFF,
             .min_mapped = 0,
-            .max_mapped = 100,
-            .outside_bounds_fraction = 0.05f
+            .max_mapped = 0xFFF,
+            .outside_bounds_fraction = 0.02f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 170,
-            .max_adc = 480,
+            .min_adc = 0,
+            .max_adc = 0xFFF,
+            .min_mapped = 0,
+            .max_mapped = 0xFFF,
+            .outside_bounds_fraction = 0.02f
+        },
+        .max_discrepancy = 100000, */
+	
+	 .apps_1_scs = {
+            .hadc = &hadc1,
+            .min_adc = 30, // 36
+            .max_adc = 370, // 362
             .min_mapped = 0,
             .max_mapped = 100,
-            .outside_bounds_fraction = 0.05f
+            .outside_bounds_fraction = 0.02f
         },
-        .max_discrepancy = 10,
+        .apps_2_scs = {
+            .hadc = &hadc2,
+            .min_adc = 182, // 188
+            .max_adc = 428, // 420
+            .min_mapped = 0,
+            .max_mapped = 100,
+            .outside_bounds_fraction = 0.02f
+        },
+        .max_discrepancy = 5,
+	
     },
     .bps = {
         .scs = {
@@ -71,7 +90,7 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
-        .r2d_requires_brake = false,
+        .r2d_requires_brake = true,
 	.apps_bps_low_threshold = 5,
 	.apps_bps_high_threshold = 20,
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),

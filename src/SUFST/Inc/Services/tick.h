@@ -20,6 +20,7 @@ typedef struct
      
      bps_context_t bps;
      bool brakelight_pwr;
+     bool pump_pwr, fan_pwr;
      apps_context_t apps;
      status_t bps_status, apps_status;
      uint16_t bps_reading, apps_reading;

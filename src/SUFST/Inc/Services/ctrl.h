@@ -74,7 +74,8 @@ typedef struct
      uint32_t neg_air_start;
      uint32_t precharge_start; // precharge start time in ticks
      uint32_t motor_torque_zero_start;
-
+     uint32_t apps_bps_start;
+     
      dash_context_t* dash_ptr;   // dash service
      pm100_context_t* pm100_ptr; // PM100 service
      canbc_context_t* canbc_ptr; // CANBC service
