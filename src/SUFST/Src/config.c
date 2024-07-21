@@ -51,25 +51,25 @@ static const config_t config_instance = {
             .max_mapped = 0xFFF,
             .outside_bounds_fraction = 0.02f
         },
-        .max_discrepancy = 100000, */
-	
+        .max_discrepancy = 100000,*/
+	 
 	 .apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 30, // 36
-            .max_adc = 370, // 362
+            .min_adc = 8,
+            .max_adc = 416,
             .min_mapped = 0,
             .max_mapped = 100,
-            .outside_bounds_fraction = 0.02f
+            .outside_bounds_fraction = 0.005f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 182, // 188
-            .max_adc = 428, // 420
+            .min_adc = 176,
+            .max_adc = 465,
             .min_mapped = 0,
             .max_mapped = 100,
-            .outside_bounds_fraction = 0.02f
+            .outside_bounds_fraction = 0.005f
         },
-        .max_discrepancy = 5,
+        .max_discrepancy = 8,
 	
     },
     .bps = {
@@ -107,7 +107,7 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 600,
+        .output_max = 1500,
         .deadzone_fraction = 0.15f
     },
     .pm100 = {

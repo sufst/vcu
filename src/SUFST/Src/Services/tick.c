@@ -1,5 +1,7 @@
 #include "tick.h"
 
+#define BPS_LIGHT_THRESH 5
+
 static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout);
 static void unlock_tick_sensors(tick_context_t *tick_ptr);
 void tick_update_canbc_states(tick_context_t* tick_ptr);
@@ -13,14 +15,14 @@ static void tick_thread_entry(ULONG input)
      {
 	  lock_tick_sensors(tick_ptr, 100);
 	  tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
-	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > 3);
+	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > BPS_LIGHT_THRESH);
 
 	  tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 	  
 	  /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
 	    tick_ptr->bps_reading, tick_ptr->bps_status);*/
-	  LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
-		   tick_ptr->apps_reading, tick_ptr->apps_status);
+	  /*LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
+	    tick_ptr->apps_reading, tick_ptr->apps_status);*/
 
 	  tick_update_canbc_states(tick_ptr);
 	  unlock_tick_sensors(tick_ptr);
@@ -61,7 +63,7 @@ status_t tick_init(tick_context_t *tick_ptr,
      // initialise the APPS and BPS
      if (status == STATUS_OK)
      {
-	  status = apps_init(&tick_ptr->apps, apps_config_ptr);
+	  status = apps_init(&tick_ptr->apps, log_ptr, apps_config_ptr);
      }
 
      if (status == STATUS_OK)

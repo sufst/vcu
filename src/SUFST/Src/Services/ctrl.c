@@ -14,6 +14,8 @@
 
 static log_context_t* log_h;
 
+#define BPS_ON_THRESH 5
+
 /*
  * internal function prototypes
  */
@@ -131,8 +133,10 @@ void ctrl_thread_entry(ULONG input)
 	  //ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
 	  //LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
 	  //	   ctrl_ptr->inv_temp);
-	  //ctrl_ptr->fan_pwr = ctrl_ptr->pump_pwr = (ctrl_ptr->motor_temp >= 100 ||
-	  //					    ctrl_ptr->inv_temp >= 100);
+	  
+	  ctrl_ptr->fan_pwr = 0;
+	  ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+	  
 	  ctrl_state_machine_tick(ctrl_ptr);
 	  ctrl_update_canbc_states(ctrl_ptr);
 	  uint32_t run_time = tx_time_get() - start_time;
@@ -245,7 +249,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
 	       if (result == STATUS_OK)
 	       {
-		    r2d = (config_ptr->r2d_requires_brake) ? (ctrl_ptr->bps_reading > 3) : 1;
+		    r2d = (config_ptr->r2d_requires_brake) ?
+			 (ctrl_ptr->bps_reading > BPS_ON_THRESH) : 1;
 	       
 		    if (r2d)
 		    {
@@ -289,7 +294,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       // Check for brake + accel pedal pressed
 	       if (ctrl_ptr->apps_reading >=
 		    ctrl_ptr->config_ptr->apps_bps_high_threshold &&
-		    ctrl_ptr->bps_reading > 3)
+		    ctrl_ptr->bps_reading > BPS_ON_THRESH)
 	       {
 		    LOG_ERROR(log_h, "BP and AP pressed\n");
 
@@ -419,7 +424,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  if (apps_status == STATUS_OK && bps_status == STATUS_OK)
 	  {	  
 	       if ((ctrl_ptr->apps_reading < ctrl_ptr->config_ptr->apps_bps_low_threshold) &&
-		   (ctrl_ptr->bps_reading == 0))
+		   (ctrl_ptr->bps_reading < BPS_ON_THRESH))
 	       {
 		    next_state = CTRL_STATE_TS_ON;
 	       }
@@ -478,8 +483,8 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 	  states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
 	  states->errors.vcu_ctrl_error = ctrl_ptr->error;
 	  states->pdm.inverter = ctrl_ptr->inverter_pwr;
-	  //states->pdm.pump = ctrl_ptr->pump_pwr;
-	  //states->pdm.fan = ctrl_ptr->fan_pwr;
+	  states->pdm.pump = ctrl_ptr->pump_pwr;
+	  states->pdm.fan = ctrl_ptr->fan_pwr;
 	  canbc_unlock_state(ctrl_ptr->canbc_ptr);
      }
 }

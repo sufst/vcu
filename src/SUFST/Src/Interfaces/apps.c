@@ -5,11 +5,13 @@
  *
  * @param[in]   apps_ptr    APPS context
  */
-status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr)
+status_t apps_init(apps_context_t* apps_ptr,
+		   log_context_t *log_ptr, const config_apps_t* config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
     apps_ptr->scs_error = SCS_ERROR_NONE;
-
+    apps_ptr->log_ptr = log_ptr;
+    
     // initialise both SCS instances
     status_t status
         = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
@@ -55,19 +57,23 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     status_t status_1 = scs_read(&apps_ptr->apps_1_signal, &reading_1);
     status_t status_2 = scs_read(&apps_ptr->apps_2_signal, &reading_2);
 
-    //return reading_2;
-
     if (status_1 != STATUS_OK)
     {
+	 LOG_INFO(apps_ptr->log_ptr, "APPS1 error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS1;
     }
 
+    LOG_INFO(apps_ptr->log_ptr, "APPS1 reading: %d; ", reading_1);
+
     if (status_2 != STATUS_OK)
     {
+	 LOG_INFO(apps_ptr->log_ptr, "APPS2 error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS2;
     }
+
+    LOG_INFO(apps_ptr->log_ptr, "APPS2 reading: %d; ", reading_2);
 
     // // check for discrepancy
     uint16_t diff = (reading_1 > reading_2) ? (reading_1 - reading_2)
@@ -75,6 +81,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     if (diff > apps_ptr->config_ptr->max_discrepancy)
     {
+	 LOG_INFO(apps_ptr->log_ptr, "DIFF error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS_DISCREPANCY;
     }
@@ -89,6 +96,8 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
         *reading_ptr = 0;
     }
 
+    LOG_INFO(apps_ptr->log_ptr, "\n");
+    
     return status;
 }
 
