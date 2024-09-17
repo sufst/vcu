@@ -289,6 +289,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
 						     &ctrl_ptr->bps_reading);
 
+		if (!bps_valid(&ctrl_ptr->bps_reading)){
+				next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+				LOG_ERROR(log_h, "BPS is zero\n");
+				break;
+		}
+
 	  if (dash_ptr->r2d_flag)
 	  {
 	       dash_clear_buttons(dash_ptr);
