@@ -129,13 +129,27 @@ void ctrl_thread_entry(ULONG input)
 	  dash_update_buttons(ctrl_ptr->dash_ptr);
 
 	  ctrl_ptr->shdn_reading = trc_ready();
-	  //ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-	  //ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-	  //LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
-	  //	   ctrl_ptr->inv_temp);
-	  
-	  ctrl_ptr->fan_pwr = 0;
-	  ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+	  ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+	  ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+	  LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
+	  	   ctrl_ptr->inv_temp);
+
+		if (ctrl_fan_passed_threshold(ctrl_ptr))
+		{
+			ctrl_ptr->fan_pwr = 1;
+		}
+		else
+		{
+			ctrl_ptr->fan_pwr = 0;
+		}
+
+		if (ctrl_pump_passed_threshold(ctrl_ptr))
+		{
+			ctrl_ptr->pump_pwr = true; // To be discussed
+		}
+		else{
+	  	ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+		}
 	  
 	  ctrl_state_machine_tick(ctrl_ptr);
 	  ctrl_update_canbc_states(ctrl_ptr);
@@ -143,6 +157,30 @@ void ctrl_thread_entry(ULONG input)
 	  
 	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
+}
+
+/**
+ * @brief       Checks the motor and inverter temperatures to determine if the fan should be turned on
+ *
+ * @param[in]   ctrl_ptr    Control service pointer
+ * 
+ * @return      True if the fan should be turned on
+ */
+bool ctrl_fan_passed_threshold(ctrl_context_t* ctrl_ptr)
+{
+		 return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+}
+
+/**
+ * @brief       Checks the motor and inverter temperatures to determine if the pump should be turned on
+ *
+ * @param[in]   ctrl_ptr    Control service pointer
+ * 
+ * @return      True if the pump should be turned on
+ */
+bool ctrl_pump_passed_threshold(ctrl_context_t* ctrl_ptr)
+{
+		 return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->pump_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->pump_on_threshold;
 }
 
 /**
