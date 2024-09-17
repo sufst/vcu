@@ -254,6 +254,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       
 		    if (r2d)
 		    {
+            if (!bps_valid(&ctrl_ptr->bps_reading)){
+                next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+                LOG_ERROR(log_h, "BPS is zero\n");
+                break;
+            }
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 			 pm100_disable(ctrl_ptr->pm100_ptr);
 			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
