@@ -125,36 +125,38 @@ void ctrl_thread_entry(ULONG input)
 
      while (1)
      {
-	  uint32_t start_time = tx_time_get();
-	  dash_update_buttons(ctrl_ptr->dash_ptr);
+			uint32_t start_time = tx_time_get();
+			dash_update_buttons(ctrl_ptr->dash_ptr);
 
-	  ctrl_ptr->shdn_reading = trc_ready();
-	  ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-	  ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-	  LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
-	  	   ctrl_ptr->inv_temp);
+			ctrl_ptr->shdn_reading = trc_ready();
+			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
+					ctrl_ptr->inv_temp);
 
-		if (ctrl_fan_passed_threshold(ctrl_ptr))
-		{
-			ctrl_ptr->fan_pwr = 1;
-		}
-		else if(ctrl_ptr->fan_pwr) {
-			if (ctrl_fan_passed_off_threshold(ctrl_ptr)) {
+			if (ctrl_fan_passed_threshold(ctrl_ptr))
+			{
+				ctrl_ptr->fan_pwr = 1;
+			}
+			else if(ctrl_ptr->fan_pwr)
+			{
+				if (ctrl_fan_passed_off_threshold(ctrl_ptr))
+				{
+					ctrl_ptr->fan_pwr = 0;
+				}
+			}
+			else
+			{
 				ctrl_ptr->fan_pwr = 0;
 			}
-		}
-		else
-		{
-			ctrl_ptr->fan_pwr = 0;
-		}
 
-		ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+			ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
 
-	  ctrl_state_machine_tick(ctrl_ptr);
-	  ctrl_update_canbc_states(ctrl_ptr);
-	  uint32_t run_time = tx_time_get() - start_time;
-	  
-	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
+			ctrl_state_machine_tick(ctrl_ptr);
+			ctrl_update_canbc_states(ctrl_ptr);
+			uint32_t run_time = tx_time_get() - start_time;
+
+			tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
 }
 
@@ -167,7 +169,7 @@ void ctrl_thread_entry(ULONG input)
  */
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
-	return ctrl_ptr->motor_temp >= ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp >= ctrl_ptr->config_ptr->fan_on_threshold;
+	return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
 }
 
 /**
@@ -178,7 +180,7 @@ bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
  * @return      True if the fan should be turned off
  */
 bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
-	return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold && ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+	return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
 }
 
 /**
