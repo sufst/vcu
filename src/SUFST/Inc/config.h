@@ -134,6 +134,11 @@ typedef struct
 typedef struct
 {
      config_thread_t thread;
+} config_error_handler_t;
+
+typedef struct
+{
+     config_thread_t thread;
      uint16_t period;
 } config_tick_t;
 
