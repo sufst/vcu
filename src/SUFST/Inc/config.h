@@ -54,7 +54,7 @@ typedef struct {
      uint16_t apps_bps_high_threshold;       // apps reading to fault when brake also pressed
      uint16_t apps_bps_low_threshold;        // apps reading to recover from fault
      uint16_t fan_on_threshold;              // temperature at which to turn on the fan
-     uint16_t pump_on_threshold;             // temperature at which to turn on pumps
+     uint16_t fan_off_threshold;              // temperature at which to turn off the fan
 } config_ctrl_t;
 
 /**
