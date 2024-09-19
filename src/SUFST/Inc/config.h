@@ -200,6 +200,7 @@ typedef struct {
      config_tick_t tick;
      config_canbc_t canbc;
      config_heartbeat_t heartbeat;
+     config_error_handler_t error_handler;
      config_log_t log;
      config_rtos_t rtos;
      config_testbenches testbenches;

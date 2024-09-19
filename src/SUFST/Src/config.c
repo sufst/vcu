@@ -145,6 +145,13 @@ static const config_t config_instance = {
         },
         .blink_period_ticks = SECONDS_TO_TICKS(0.25)
     },
+    .error_handler = {
+        .thread = {
+            .name = "ERROR",
+            .priority = 5,
+            .stack_size = 1024
+        }
+    },
     .log = {
         .thread = {
             .name = "LOG",
