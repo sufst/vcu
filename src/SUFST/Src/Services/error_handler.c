@@ -7,6 +7,9 @@
 #include "error_handler.h"
 #include "trc.h"
 
+
+static log_context_t* log_h;
+
 /*
  * internal function prototypes
  */
@@ -17,6 +20,9 @@ static void error_handler_thread_entry(ULONG input);
  *
  * @param[in]   error_handler_ptr     Error Handler pointer
  * @param[in]   stack_pool_ptr  Application memory pool
+ * @param[in]   canbc_ptr       CANBC context
+ * @param[in]   ctrl_ptr        Control context
+ * @param[in]   log_ptr         Logger context
  * @param[in]   config_ptr      Configuration
  */
 status_t error_handler_init(error_handler_context_t* error_handler_ptr,
@@ -29,7 +35,7 @@ status_t error_handler_init(error_handler_context_t* error_handler_ptr,
     error_handler_ptr->config_ptr = config_ptr;
     error_handler_ptr->canbc_ptr = canbc_ptr;
     error_handler_ptr->ctrl_ptr = ctrl_ptr;
-    error_handler_ptr->log_ptr = log_ptr;
+    log_h = log_ptr;
 
     // create service thread
     void* stack_ptr = NULL;
@@ -71,14 +77,12 @@ static void error_handler_thread_entry(ULONG input)
  * @param[in]   error_handler_ptr     Error Handler pointer
  * @param[in]   error_code          Error code
  */
-status_t handle_error(error_handler_context_t* error_handler_ptr,
+void handle_error(error_handler_context_t* error_handler_ptr,
                       const uint32_t error_code)
 {
-  // TODO: split error for critical and non-critical
-  // if critical, broadcast error and shutdown system
-  // if non-critical, log error and broadcast error
-  // if multiple non-critical errors - shutdown system
-  return STATUS_OK;
+  LOG_ERROR(log_h, "Error code: %d", error_code);
+  // ?? restart RTCAN before broadcasting??
+  broadcast_error(error_handler_ptr, error_code);
 }
 
 /**
@@ -88,16 +92,12 @@ status_t handle_error(error_handler_context_t* error_handler_ptr,
  */
 status_t shutdown_system(ctrl_context_t* ctrl_ptr)
 {
-  dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-  const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+  // ??Put ctrl in CTRL_STATE_TS_RUN_FAULT??
+  // OR
+  // ?? Shutdown control thread and broadcast needed states??
+  // OR
+  // ?? Spin ctrl state forever in a loop without destroing no thread and broadcast needed states ??
 
-  ctrl_ptr->inverter_pwr = false;
-  ctrl_ptr->pump_pwr = false;
-  ctrl_ptr->fan_pwr = false;
-
-  trc_set_ts_on(GPIO_PIN_RESET);
-  dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
-  ctrl_update_canbc_states(ctrl_ptr);
   return STATUS_OK;
 }
 
@@ -115,6 +115,17 @@ status_t broadcast_error(error_handler_context_t* error_handler_ptr,
   {
     // TODO: update broadcast states with error
     // Do a switch case on error_code and update the vcu error states accordingly to service
+    switch (error_code)
+    {
+    case ERROR_CODE_RTCAN_C:
+      // Do smth
+      break;
+    case ERROR_CODE_RTCAN_S:
+      // Do smth
+      break;
+    default:
+      break;
+    }
     canbc_unlock_state(error_handler_ptr->canbc_ptr);
   }
   return STATUS_OK;
