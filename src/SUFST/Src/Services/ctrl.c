@@ -369,7 +369,24 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 		   
 	  break;
      }
-     
+		//  In case of noncritical failure listen to the NITRO button and reset the system
+		// Reset the system should have same the same effect as turning off the TS
+		// but should not enter in spin state to allow the system to recover
+     case(CTRL_STATE_FAILURE_RESET):
+		 {
+			LOG_ERROR(log_h, "Non-critical TS fault, listening for Nitro button\n");
+			ctrl_handle_ts_fault(ctrl_ptr);
+			break;
+		 }
+		 case(CTRL_STATE_NITRO_WAIT):
+		 {
+			 if (dash_ptr->nitro_flag)
+			 {
+				 dash_clear_buttons(dash_ptr);
+				 next_state = CTRL_STATE_TS_BUTTON_WAIT;
+			 }
+			break;
+		 }
      // activation or runtime failure
      case (CTRL_STATE_TS_ACTIVATION_FAILURE):
      case (CTRL_STATE_TS_RUN_FAULT):
