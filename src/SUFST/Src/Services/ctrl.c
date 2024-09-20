@@ -322,7 +322,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       
 	       if (pm100_status != STATUS_OK)
 	       {
-		    next_state = CTRL_STATE_TS_RUN_FAULT;
+		    next_state = CTRL_STATE_FAILURE_RESET;
 	       }
 	  }
 	  else
@@ -342,7 +342,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  
 	  if (pm100_status != STATUS_OK)
 	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	       next_state = CTRL_STATE_FAILURE_RESET;
 	  }
 	  else
 	  {
@@ -358,7 +358,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  
 	  if (pm100_status != STATUS_OK)
 	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	       next_state = CTRL_STATE_FAILURE_RESET;
 	  }
 	  else if (tx_time_get() >= ctrl_ptr->motor_torque_zero_start +
 		   TX_TIMER_TICKS_PER_SECOND/2)
@@ -411,7 +411,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
 	  if (pm100_status != STATUS_OK)
 	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	       next_state = CTRL_STATE_FAILURE_RESET;
 	  }
 
 	  if (tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading) == STATUS_OK)
@@ -429,7 +429,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
 	  if (pm100_status != STATUS_OK)
 	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
+	       next_state = CTRL_STATE_FAILURE_RESET;
 	  }
 	  
 	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
