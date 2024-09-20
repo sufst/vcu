@@ -14,8 +14,6 @@
 
 static log_context_t* log_h;
 
-#define BPS_ON_THRESH 5
-
 /*
  * internal function prototypes
  */
@@ -155,6 +153,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      // reduce typing...
      dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
      const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+		 const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
 
      ctrl_state_t next_state = ctrl_ptr->state;
 
@@ -254,9 +253,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       
 		    if (r2d)
 		    {
-            if (!bps_valid(&ctrl_ptr->bps_reading)){
+            if (!bps_valid(&ctrl_ptr->bps_reading) && config_ptr->r2d_requires_brake){
                 next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-                LOG_ERROR(log_h, "BPS is zero\n");
+                LOG_ERROR(log_h, "BPS is zero, hold it longer\n");
                 break;
             }
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
@@ -289,11 +288,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
 						     &ctrl_ptr->bps_reading);
 
-		if (!bps_valid(&ctrl_ptr->bps_reading)){
-				next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-				LOG_ERROR(log_h, "BPS is zero\n");
-				break;
-		}
+		// if (!bps_valid(&ctrl_ptr->bps_reading)){
+		// 		next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+		// 		LOG_ERROR(log_h, "BPS is zero\n");
+		// 		break;
+		// }
 
 	  if (dash_ptr->r2d_flag)
 	  {
