@@ -24,6 +24,8 @@ void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
 void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
+bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr);
+bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr);
 
 /**
  * @brief       Initialises control service
@@ -332,11 +334,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       
 		    if (r2d)
 		    {
-            if (!bps_valid(&ctrl_ptr->bps_reading) && config_ptr->r2d_requires_brake){
-                next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-                LOG_ERROR(log_h, "BPS is zero, hold it longer\n");
-                break;
-            }
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 			 pm100_disable(ctrl_ptr->pm100_ptr);
 			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
@@ -366,12 +363,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 						       &ctrl_ptr->apps_reading);
 	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
 						     &ctrl_ptr->bps_reading);
-
-		// if (!bps_valid(&ctrl_ptr->bps_reading)){
-		// 		next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-		// 		LOG_ERROR(log_h, "BPS is zero\n");
-		// 		break;
-		// }
 
 	  if (dash_ptr->r2d_flag)
 	  {
