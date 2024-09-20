@@ -12,6 +12,9 @@
 #include "rtds.h"
 #include "trc.h"
 
+// Testing definitions
+#define FAN_TEST
+
 static log_context_t* log_h;
 
 /*
@@ -127,19 +130,23 @@ void ctrl_thread_entry(ULONG input)
 			dash_update_buttons(ctrl_ptr->dash_ptr);
 
 			ctrl_ptr->shdn_reading = trc_ready();
-			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
-					ctrl_ptr->inv_temp);
+			#ifndef FAN_TEST
+				ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+				ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+				LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
+						ctrl_ptr->inv_temp);
+			#endif
 
 			if (ctrl_fan_passed_threshold(ctrl_ptr))
 			{
+				LOG_INFO(log_h, "Turning fan on\n");
 				ctrl_ptr->fan_pwr = 1;
 			}
 			else if(ctrl_ptr->fan_pwr)
 			{
 				if (ctrl_fan_passed_off_threshold(ctrl_ptr))
 				{
+					LOG_INFO(log_h, "Turning fan off\n");
 					ctrl_ptr->fan_pwr = 0;
 				}
 			}
@@ -148,7 +155,11 @@ void ctrl_thread_entry(ULONG input)
 				ctrl_ptr->fan_pwr = 0;
 			}
 
-			ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+			#ifdef FAN_TEST
+				ctrl_ptr->pump_pwr = 1;
+			#else
+				ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
+			#endif
 
 			ctrl_state_machine_tick(ctrl_ptr);
 			ctrl_update_canbc_states(ctrl_ptr);
@@ -167,7 +178,22 @@ void ctrl_thread_entry(ULONG input)
  */
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
-	return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+	#ifdef FAN_TEST
+		status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+						       &ctrl_ptr->apps_reading);
+		if (apps_status == STATUS_OK)
+		{
+			return ctrl_ptr->apps_reading > 50;
+		}
+		else
+		{
+			LOG_ERROR(log_h, "APPS reading failed\n");
+			return false;
+		}
+
+	#else
+		return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+	#endif
 }
 
 /**
@@ -178,7 +204,22 @@ bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
  * @return      True if the fan should be turned off
  */
 bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
-	return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+	#ifdef FAN_TEST
+		status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+						       &ctrl_ptr->apps_reading);
+		if (apps_status == STATUS_OK)
+		{
+			return ctrl_ptr->apps_reading < 30;
+		}
+		else
+		{
+			LOG_ERROR(log_h, "APPS reading failed\n");
+			return false;
+		}
+
+	#else
+		return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+	#endif
 }
 
 /**
