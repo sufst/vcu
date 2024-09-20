@@ -53,6 +53,8 @@ typedef struct {
      uint32_t error_led_toggle_ticks;        // ticks between toggling TS on LED in activation error
      uint16_t apps_bps_high_threshold;       // apps reading to fault when brake also pressed
      uint16_t apps_bps_low_threshold;        // apps reading to recover from fault
+     uint16_t fan_on_threshold;              // temperature at which to turn on the fan
+     uint16_t fan_off_threshold;             // temperature at which to turn off the fan
      uint16_t bps_on_threshold;              // BPS reading to consider BPS 'on'
 } config_ctrl_t;
 
