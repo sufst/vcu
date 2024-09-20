@@ -137,7 +137,7 @@ void ctrl_thread_entry(ULONG input)
 						ctrl_ptr->inv_temp);
 			#endif
 
-			if (ctrl_fan_passed_threshold(ctrl_ptr))
+			if (ctrl_fan_passed_on_threshold(ctrl_ptr))
 			{
 				LOG_INFO(log_h, "Turning fan on\n");
 				ctrl_ptr->fan_pwr = 1;
