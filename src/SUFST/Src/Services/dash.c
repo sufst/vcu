@@ -24,6 +24,7 @@ status_t dash_init(dash_context_t* dash_ptr,
     dash_ptr->config_ptr = config_ptr;
     dash_ptr->r2d_flag = false;
     dash_ptr->tson_flag = false;
+    dash_ptr->drs_flag = false;
 
     dash_ptr->r2d = (input_context_t){
 	 .port = R2D_BTN_GPIO_Port,
@@ -38,6 +39,16 @@ status_t dash_init(dash_context_t* dash_ptr,
     dash_ptr->tson = (input_context_t){
 	 .port = TS_ON_BTN_GPIO_Port,
 	 .pin = TS_ON_BTN_Pin,
+	 .active_state = true,
+	 .last_state = false,
+	 .require_release = true,
+	 .active_start = 0,
+	 .required_ticks = dash_ptr->config_ptr->btn_active_ticks,
+	 .sample_ticks = dash_ptr->config_ptr->btn_sample_ticks};
+
+    dash_ptr->drs = (input_context_t){
+	 .port = DRS_BTN_GPIO_Port,
+	 .pin = DRS_BTN_Pin,
 	 .active_state = true,
 	 .last_state = false,
 	 .require_release = true,
@@ -331,12 +342,14 @@ void dash_update_buttons(dash_context_t *dash_ptr)
 {
      dash_ptr->tson_flag = input_update(&dash_ptr->tson);
      dash_ptr->r2d_flag = input_update(&dash_ptr->r2d);
+     dash_ptr->drs_flag = input_update(&dash_ptr->drs);
 }
 
 void dash_clear_buttons(dash_context_t *dash_ptr)
 {
      dash_ptr->tson_flag = false;
      dash_ptr->r2d_flag = false;
+     dash_ptr->drs_flag = false;
 }
 
 /**

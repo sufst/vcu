@@ -40,8 +40,8 @@ typedef struct
      TX_TIMER ts_on_toggle_timer;     // timer for toggling TS on LED
      const config_dash_t* config_ptr; // configuration
 
-     input_context_t r2d, tson, nitro;
-     uint8_t r2d_flag, tson_flag, nitro_flag;
+     input_context_t r2d, tson, drs;
+     uint8_t r2d_flag, tson_flag, drs_flag;
 } dash_context_t;
 
 /*

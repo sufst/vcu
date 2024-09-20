@@ -378,9 +378,9 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 			ctrl_handle_ts_fault(ctrl_ptr);
 			break;
 		 }
-		 case(CTRL_STATE_NITRO_WAIT):
+		 case(CTRL_STATE_DRS_WAIT):
 		 {
-			 if (dash_ptr->nitro_flag)
+			 if (dash_ptr->drs_flag)
 			 {
 				 dash_clear_buttons(dash_ptr);
 				 next_state = CTRL_STATE_TS_BUTTON_WAIT;
