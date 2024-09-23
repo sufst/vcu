@@ -139,23 +139,35 @@ void ctrl_thread_entry(ULONG input)
 						ctrl_ptr->inv_temp);
 			#endif
 
-			if (ctrl_fan_passed_on_threshold(ctrl_ptr))
+			status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+								&ctrl_ptr->apps_reading);
+			if (apps_status == STATUS_OK)
 			{
-				LOG_INFO(log_h, "Turning fan on\n");
-				ctrl_ptr->fan_pwr = 1;
-			}
-			else if(ctrl_ptr->fan_pwr)
-			{
-				if (ctrl_fan_passed_off_threshold(ctrl_ptr))
+				if (ctrl_fan_passed_on_threshold(ctrl_ptr))
 				{
-					LOG_INFO(log_h, "Turning fan off\n");
+					LOG_INFO(log_h, "Turning fan on\n");
+					ctrl_ptr->fan_pwr = 1;
+				}
+				else if(ctrl_ptr->fan_pwr)
+				{
+					if (ctrl_fan_passed_off_threshold(ctrl_ptr))
+					{
+						LOG_INFO(log_h, "Turning fan off\n");
+						ctrl_ptr->fan_pwr = 0;
+					}
+				}
+				else
+				{
 					ctrl_ptr->fan_pwr = 0;
 				}
 			}
 			else
 			{
+				LOG_ERROR(log_h, "APPS reading failed\n");
 				ctrl_ptr->fan_pwr = 0;
 			}
+
+			
 
 			#ifdef FAN_TEST
 				ctrl_ptr->pump_pwr = 1;
@@ -181,18 +193,7 @@ void ctrl_thread_entry(ULONG input)
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
 	#ifdef FAN_TEST
-		status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
-						       &ctrl_ptr->apps_reading);
-		if (apps_status == STATUS_OK)
-		{
-			return ctrl_ptr->apps_reading > 50;
-		}
-		else
-		{
-			LOG_ERROR(log_h, "APPS reading failed\n");
-			return false;
-		}
-
+		return ctrl_ptr->apps_reading > 50;
 	#else
 		return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
 	#endif
@@ -207,18 +208,7 @@ bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
  */
 bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
 	#ifdef FAN_TEST
-		status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
-						       &ctrl_ptr->apps_reading);
-		if (apps_status == STATUS_OK)
-		{
 			return ctrl_ptr->apps_reading < 30;
-		}
-		else
-		{
-			LOG_ERROR(log_h, "APPS reading failed\n");
-			return false;
-		}
-
 	#else
 		return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
 	#endif
