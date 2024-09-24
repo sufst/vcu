@@ -150,11 +150,8 @@ void ctrl_thread_entry(ULONG input)
 				ctrl_ptr->fan_pwr = 0;
 			}
 
-			ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
-
 			ctrl_state_machine_tick(ctrl_ptr);
 			ctrl_update_canbc_states(ctrl_ptr);
-			uint32_t run_time = tx_time_get() - start_time;
 
 			tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
@@ -295,6 +292,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 			 pm100_disable(ctrl_ptr->pm100_ptr);
 			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
+				ctrl_ptr->pump_pwr = 1;
 			 
 			 next_state = CTRL_STATE_TS_ON;
 			 
@@ -377,6 +375,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  ctrl_ptr->torque_request = 0;
 	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 	  ctrl_ptr->motor_torque_zero_start = tx_time_get();
+		ctrl_ptr->pump_pwr = 0;
 	  
 	  if (pm100_status != STATUS_OK)
 	  {
