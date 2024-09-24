@@ -12,8 +12,6 @@
 #include "rtds.h"
 #include "trc.h"
 
-// Testing definitions
-#define FAN_TEST
 
 static log_context_t* log_h;
 
@@ -132,27 +130,20 @@ void ctrl_thread_entry(ULONG input)
 			dash_update_buttons(ctrl_ptr->dash_ptr);
 
 			ctrl_ptr->shdn_reading = trc_ready();
-			#ifndef FAN_TEST
-				ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-				ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-				LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
-						ctrl_ptr->inv_temp);
-			#endif
 
-			status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
-								&ctrl_ptr->apps_reading);
-			if (apps_status == STATUS_OK)
-			{
+			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
+					ctrl_ptr->inv_temp);
+
 				if (ctrl_fan_passed_on_threshold(ctrl_ptr))
 				{
-					LOG_INFO(log_h, "Turning fan on\n");
 					ctrl_ptr->fan_pwr = 1;
 				}
 				else if(ctrl_ptr->fan_pwr)
 				{
 					if (ctrl_fan_passed_off_threshold(ctrl_ptr))
 					{
-						LOG_INFO(log_h, "Turning fan off\n");
 						ctrl_ptr->fan_pwr = 0;
 					}
 				}
@@ -160,24 +151,9 @@ void ctrl_thread_entry(ULONG input)
 				{
 					ctrl_ptr->fan_pwr = 0;
 				}
-			}
-			else
-			{
-				LOG_ERROR(log_h, "APPS reading failed\n");
-				ctrl_ptr->fan_pwr = 0;
-			}
-
-			
-
-			#ifdef FAN_TEST
-				ctrl_ptr->pump_pwr = 1;
-			#else
-				ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
-			#endif
 
 			ctrl_state_machine_tick(ctrl_ptr);
 			ctrl_update_canbc_states(ctrl_ptr);
-			uint32_t run_time = tx_time_get() - start_time;
 
 			tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
@@ -192,11 +168,7 @@ void ctrl_thread_entry(ULONG input)
  */
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
-	#ifdef FAN_TEST
-		return ctrl_ptr->apps_reading > 50;
-	#else
-		return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
-	#endif
+	return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
 }
 
 /**
@@ -207,11 +179,7 @@ bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
  * @return      True if the fan should be turned off
  */
 bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
-	#ifdef FAN_TEST
-			return ctrl_ptr->apps_reading < 30;
-	#else
-		return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
-	#endif
+	return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
 }
 
 /**
@@ -327,6 +295,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 			 pm100_disable(ctrl_ptr->pm100_ptr);
 			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
+				ctrl_ptr->pump_pwr = 1;
 			 
 			 next_state = CTRL_STATE_TS_ON;
 			 
@@ -409,6 +378,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  ctrl_ptr->torque_request = 0;
 	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 	  ctrl_ptr->motor_torque_zero_start = tx_time_get();
+		ctrl_ptr->pump_pwr = 0;
 	  
 	  if (pm100_status != STATUS_OK)
 	  {
