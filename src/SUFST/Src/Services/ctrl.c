@@ -131,12 +131,11 @@ void ctrl_thread_entry(ULONG input)
 
 			ctrl_ptr->shdn_reading = trc_ready();
 
-			// ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-			// ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-			// ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ? ctrl_ptr->motor_temp : ctrl_ptr->inv_temp;
-			// LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d   Max temp: %d\n", ctrl_ptr->motor_temp,
-			// 		ctrl_ptr->inv_temp, ctrl_ptr->max_temp);
-			ctrl_ptr->max_temp = 65;
+			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+			ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ? ctrl_ptr->motor_temp : ctrl_ptr->inv_temp;
+			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d   Max temp: %d\n", ctrl_ptr->motor_temp,
+					ctrl_ptr->inv_temp, ctrl_ptr->max_temp);
 
 				if (ctrl_fan_passed_on_threshold(ctrl_ptr))
 				{
