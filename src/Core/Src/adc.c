@@ -224,10 +224,17 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* adcHandle)
     /* ADC3 clock enable */
     __HAL_RCC_ADC3_CLK_ENABLE();
 
+    __HAL_RCC_GPIOF_CLK_ENABLE();
     __HAL_RCC_GPIOC_CLK_ENABLE();
     /**ADC3 GPIO Configuration
+    PF3     ------> ADC3_IN9
     PC0     ------> ADC3_IN10
     */
+    GPIO_InitStruct.Pin = SAGL_Pin;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(SAGL_GPIO_Port, &GPIO_InitStruct);
+
     GPIO_InitStruct.Pin = BPS_ADC_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -285,8 +292,11 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* adcHandle)
     __HAL_RCC_ADC3_CLK_DISABLE();
 
     /**ADC3 GPIO Configuration
+    PF3     ------> ADC3_IN9
     PC0     ------> ADC3_IN10
     */
+    HAL_GPIO_DeInit(SAGL_GPIO_Port, SAGL_Pin);
+
     HAL_GPIO_DeInit(BPS_ADC_GPIO_Port, BPS_ADC_Pin);
 
   /* USER CODE BEGIN ADC3_MspDeInit 1 */

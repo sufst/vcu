@@ -100,7 +100,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 			    app_mem_pool,
 			    &vcu_ptr->config_ptr->tick,
 			    &vcu_ptr->config_ptr->apps,
-			    &vcu_ptr->config_ptr->bps);
+			    &vcu_ptr->config_ptr->bps,
+                &vcu_ptr->config_ptr->sagl);
 
     }
 

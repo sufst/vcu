@@ -33,6 +33,12 @@ status_t bps_init(bps_context_t* bps_ptr, const config_bps_t* config_ptr)
  */
 status_t bps_read(bps_context_t* bps_ptr, uint16_t* reading_ptr)
 {
+    scs_t scs_ptr = bps_ptr->signal;
+    config_scs_t* config_ptr = bps_ptr->config_ptr;
+    if(HAL_ADC_ConfigChannel(&config_ptr->hadc, &config_ptr->channel_config) != HAL_OK)
+    {
+        return STATUS_ERROR;
+    }
     return scs_read(&bps_ptr->signal, reading_ptr);
 }
 
