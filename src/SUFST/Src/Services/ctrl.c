@@ -133,8 +133,9 @@ void ctrl_thread_entry(ULONG input)
 
 			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
 			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d\n", ctrl_ptr->motor_temp,
-					ctrl_ptr->inv_temp);
+			ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ? ctrl_ptr->motor_temp : ctrl_ptr->inv_temp;
+			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d   Max temp: %d\n", ctrl_ptr->motor_temp,
+					ctrl_ptr->inv_temp, ctrl_ptr->max_temp);
 
 				if (ctrl_fan_passed_on_threshold(ctrl_ptr))
 				{
@@ -168,7 +169,7 @@ void ctrl_thread_entry(ULONG input)
  */
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
-	return ctrl_ptr->motor_temp > ctrl_ptr->config_ptr->fan_on_threshold || ctrl_ptr->inv_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+	return ctrl_ptr->max_temp > ctrl_ptr->config_ptr->fan_on_threshold;
 }
 
 /**
@@ -179,7 +180,7 @@ bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
  * @return      True if the fan should be turned off
  */
 bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
-	return ctrl_ptr->motor_temp < ctrl_ptr->config_ptr->fan_off_threshold || ctrl_ptr->inv_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+	return ctrl_ptr->max_temp < ctrl_ptr->config_ptr->fan_off_threshold;
 }
 
 /**
@@ -519,6 +520,7 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 	  // TODO: add ready to drive state?
 	  states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
 	  states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
+		states->temps.vcu_max_temp = (int8_t)ctrl_ptr->max_temp;
 	  states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
 	  states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
 	  states->errors.vcu_ctrl_error = ctrl_ptr->error;

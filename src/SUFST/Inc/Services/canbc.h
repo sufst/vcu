@@ -29,6 +29,7 @@
 typedef struct
 {
      struct can_s_vcu_sensors_t sensors;
+     struct can_s_vcu_temps_t temps;
      struct can_s_vcu_state_t state;
      struct can_s_vcu_error_t errors;
      struct can_s_vcu_pdm_t pdm;

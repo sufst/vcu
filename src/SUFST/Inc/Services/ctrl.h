@@ -66,6 +66,7 @@ typedef struct
      uint8_t shdn_reading;
      int16_t motor_temp;
      int16_t inv_temp;
+     int8_t max_temp;
      
      bool inverter_pwr;
      bool pump_pwr;
