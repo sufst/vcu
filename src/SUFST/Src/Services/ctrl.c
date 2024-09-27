@@ -274,6 +274,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
 	       ctrl_ptr->inverter_pwr = false; // Turn off inverter
 	       trc_set_ts_on(GPIO_PIN_RESET); // Turn off AIRs
+				 ctrl_ptr->pump_pwr = 0;
+				 ctrl_ptr->fan_pwr = 0;
 
 	       next_state = CTRL_STATE_TS_BUTTON_WAIT;
 	  }

@@ -18,7 +18,9 @@ static void tick_thread_entry(ULONG input)
 	  tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > BPS_LIGHT_THRESH);
 
 	  tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
-	  
+
+       tick_ptr->sagl_status = sagl_read(&tick_ptr->sagl, &tick_ptr->sagl_reading);
+
 	  /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
 	    tick_ptr->bps_reading, tick_ptr->bps_status);*/
 	  /*LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
@@ -37,7 +39,8 @@ status_t tick_init(tick_context_t *tick_ptr,
 		   TX_BYTE_POOL *stack_pool_ptr,
 		   const config_tick_t *config_ptr,
 		   const config_apps_t* apps_config_ptr,
-                   const config_bps_t* bps_config_ptr)
+               const config_bps_t* bps_config_ptr,
+               const config_sagl_t * sagl_config_ptr)
 {
      tick_ptr->config_ptr = config_ptr;
      tick_ptr->canbc_ptr = canbc_ptr;
@@ -46,6 +49,7 @@ status_t tick_init(tick_context_t *tick_ptr,
      // Assume error so that it won't proceed without at least 1 reading
      tick_ptr->bps_status = STATUS_ERROR;
      tick_ptr->apps_status = STATUS_ERROR;
+     tick_ptr->sagl_status = STATUS_ERROR;
 
      status_t status = STATUS_OK;
 
@@ -70,7 +74,11 @@ status_t tick_init(tick_context_t *tick_ptr,
      {
 	  status = bps_init(&tick_ptr->bps, bps_config_ptr);
      }
-     
+     if (status == STATUS_OK)
+     {
+          status = sagl_init(&tick_ptr->sagl, sagl_config_ptr);
+     }
+
      if (tx_status == TX_SUCCESS)
      {
 	  tx_status = tx_thread_create(&tick_ptr->thread,
@@ -107,6 +115,7 @@ void tick_update_canbc_states(tick_context_t* tick_ptr)
 	  states->pdm.brakelight = tick_ptr->brakelight_pwr;
 	  states->sensors.vcu_apps = tick_ptr->apps_reading;
 	  states->sensors.vcu_bps = tick_ptr->bps_reading;
+       states->sensors.vcu_sagl = tick_ptr->sagl_reading;
 	  canbc_unlock_state(tick_ptr->canbc_ptr);
      }
 }
@@ -161,6 +170,24 @@ status_t tick_get_apps_reading(tick_context_t *tick_ptr, uint16_t *result)
      else
      {
 	  LOG_ERROR(tick_ptr->log_ptr, "APPS locking error\n");
+     }
+
+     return status;
+}
+
+status_t tick_get_sagl_reading(tick_context_t *tick_ptr, int16_t *result)
+{
+     status_t status = STATUS_ERROR;
+
+     if (lock_tick_sensors(tick_ptr, 100) == STATUS_OK)
+     {
+       *result = tick_ptr->sagl_reading;
+       status = tick_ptr->sagl_status;
+       unlock_tick_sensors(tick_ptr);
+     }
+     else
+     {
+       LOG_ERROR(tick_ptr->log_ptr, "SAGL locking error\n");
      }
 
      return status;

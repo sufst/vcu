@@ -32,6 +32,7 @@ typedef struct {
  */
 typedef struct {
      ADC_HandleTypeDef* hadc;                // ADC handle
+     ADC_ChannelConfTypeDef channel_config;  // ADC channel configuration
      uint16_t min_adc;                       // minimum expected ADC reading
      uint16_t max_adc;                       // maximum expected ADC reading
      uint16_t min_mapped;                    // minimum mapped reading
@@ -87,6 +88,13 @@ typedef struct {
      config_scs_t scs;                       // SCS configuration
      float fully_pressed_fraction;           // threshold above which considered 'fully pressed'
 } config_bps_t;
+
+/**
+ * @brief   BPS
+ */
+typedef struct {
+     config_scs_t scs;                       // SCS configuration
+} config_sagl_t;
 
 /**
  * @brief   Ready to drive speaker
@@ -191,6 +199,7 @@ typedef struct {
      config_dash_t dash;
      config_apps_t apps;
      config_bps_t bps;
+     config_sagl_t sagl;
      config_ctrl_t ctrl;
      config_rtds_t rtds;
      config_torque_map_t torque_map;

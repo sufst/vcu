@@ -55,6 +55,11 @@ static const config_t config_instance = {
 	 
 	 .apps_1_scs = {
             .hadc = &hadc1,
+            .channel_config = {
+                .Channel = ADC_CHANNEL_3,
+                .Rank = ADC_REGULAR_RANK_1,
+                .SamplingTime = ADC_SAMPLETIME_3CYCLES
+            },
             .min_adc = 8,
             .max_adc = 416,
             .min_mapped = 0,
@@ -63,6 +68,11 @@ static const config_t config_instance = {
         },
         .apps_2_scs = {
             .hadc = &hadc2,
+            .channel_config = {
+                .Channel = ADC_CHANNEL_13,
+                .Rank = ADC_REGULAR_RANK_1,
+                .SamplingTime = ADC_SAMPLETIME_3CYCLES
+            },
             .min_adc = 176,
             .max_adc = 465,
             .min_mapped = 0,
@@ -75,6 +85,11 @@ static const config_t config_instance = {
     .bps = {
         .scs = {
             .hadc = &hadc3,
+            .channel_config = {
+                .Channel = ADC_CHANNEL_10,
+                .Rank = ADC_REGULAR_RANK_1,
+                .SamplingTime = ADC_SAMPLETIME_3CYCLES
+            },
             .min_adc = 50,
             .max_adc = 450,
             .min_mapped = 0,
@@ -82,6 +97,21 @@ static const config_t config_instance = {
             .outside_bounds_fraction = 0.05f
         },
         .fully_pressed_fraction = 0.1f
+    },
+    .sagl = {
+        .scs = {
+            .hadc = &hadc3,
+            .channel_config = {
+                .Channel = ADC_CHANNEL_9,
+                .Rank = ADC_REGULAR_RANK_1,
+                .SamplingTime = ADC_SAMPLETIME_3CYCLES
+            },
+            .min_adc = 50,
+            .max_adc = 450,
+            .min_mapped = 0,
+            .max_mapped = 200,
+            .outside_bounds_fraction = 0.05f
+        },
     },
     .ctrl = {
         .thread = {
