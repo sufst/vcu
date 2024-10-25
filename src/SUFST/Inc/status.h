@@ -10,7 +10,10 @@
 typedef enum
 {
     STATUS_OK,
-    STATUS_ERROR
+    STATUS_ERROR,
+    STATUS_MISMATCH,
+    STATUS_THRESHOLD_WARNING,
+    STATUS_THRESHOLD_ERROR
 } status_t;
 
 #endif
