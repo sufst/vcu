@@ -14,10 +14,10 @@
  * internal function prototypes
  */
 static uint16_t map_adc_reading(scs_t* scs_ptr);
-static status_t validate(uint16_t adc_reading,
-                         uint16_t max_adc_reading,
-                         uint16_t min_adc_reading,
-                         uint32_t max_diff);
+static scs_status_t validate(uint16_t adc_reading,
+                             uint16_t max_adc_reading,
+                             uint16_t min_adc_reading,
+                             uint32_t max_diff);
 
 /**
  * @brief       Create new safety critical signal
@@ -161,10 +161,10 @@ uint16_t map_adc_reading(scs_t* scs_ptr)
  * @return      true                The signal is valid
  * @return      false               The signal is invalid
  */
-status_t validate(uint16_t adc_reading,
-                  uint16_t max_adc_reading,
-                  uint16_t min_adc_reading,
-                  uint32_t max_diff)
+scs_status_t validate(uint16_t adc_reading,
+                      uint16_t max_adc_reading,
+                      uint16_t min_adc_reading,
+                      uint32_t max_diff)
 {
     status_t status = STATUS_THRESHOLD_ERROR;
     uint16_t low_diff = 0;

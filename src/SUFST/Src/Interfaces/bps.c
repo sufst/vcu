@@ -37,7 +37,7 @@ status_t bps_init(bps_context_t* bps_ptr,
 status_t bps_read(bps_context_t* bps_ptr, uint16_t* reading_ptr)
 {
     status_t status = scs_read(&bps_ptr->signal, reading_ptr);
-    status_t status_verbose = bps_ptr->signal.status_verbose;
+    scs_status_t status_verbose = bps_ptr->signal.status_verbose;
 
     if (status != STATUS_OK)
     {
