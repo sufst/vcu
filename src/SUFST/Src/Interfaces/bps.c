@@ -56,7 +56,7 @@ status_t bps_read(bps_context_t* bps_ptr, uint16_t* reading_ptr)
         LOG_INFO(bps_ptr->log_ptr, "BPS threshold warning; ");
     }
 
-    LOG_INFO(bps_ptr->log_ptr, "BPS reading: %d; ", reading_ptr);
+    LOG_INFO(bps_ptr->log_ptr, "BPS reading: %d; ", *reading_ptr);
 
     return status;
 }
