@@ -129,6 +129,16 @@ static const config_t config_instance = {
         },
         .period = SECONDS_TO_TICKS(0.01)
     },
+    .remote_control = {
+        .thread = {
+            .name = "REMOTE",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .period = SECONDS_TO_TICKS(0.01),
+        .torque_limit = 1500,
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10)
+    },
     .canbc = {
         .thread = {
             .name = "CANBC",

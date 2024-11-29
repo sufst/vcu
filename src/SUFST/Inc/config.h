@@ -18,6 +18,8 @@
 
 #include "torque_map_funcs.h"
 
+#define VCU_SIMULATION_MODE
+
 /**
  * @brief  Threads
  */
@@ -137,6 +139,14 @@ typedef struct
      uint16_t period;
 } config_tick_t;
 
+typedef struct
+{
+     config_thread_t thread;
+     uint16_t period;
+     uint16_t broadcast_timeout_ticks;
+     uint16_t torque_limit; //Nm, limit torque as a precaution
+} config_remote_control_t;
+
 /**
  * @brief log level
  */
@@ -193,6 +203,7 @@ typedef struct {
      config_torque_map_t torque_map;
      config_pm100_t pm100;
      config_tick_t tick;
+     config_remote_control_t remote_control;
      config_canbc_t canbc;
      config_heartbeat_t heartbeat;
      config_log_t log;
