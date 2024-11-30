@@ -388,7 +388,27 @@ status_t pm100_disable(pm100_context_t* pm100_ptr)
  */
 status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 {
+
     status_t status = STATUS_OK;
+    #ifdef VCU_SIMULATION_MODE
+                    rtcan_msg_t msg
+                    = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
+                       .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
+                       .data = {0, 0, 0, 0, 0, 0, 0, 0}};
+
+                struct can_c_pm100_command_message_t cmd
+                    = {.pm100_torque_command = torque,
+                       .pm100_direction_command = PM100_DIRECTION_REVERSE,
+                       .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
+                       .pm100_inverter_enable = PM100_INVERTER_ON};
+
+                can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
+
+                LOG_INFO(log_h, "Sending torque request\n");
+                rtcan_status_t rtcan_status
+                    = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
+                status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
+    #else
     const bool is_precharged = pm100_is_precharged(
         pm100_ptr); // do this before getting mutex to avoid deadlock
     const bool no_errors = (pm100_ptr->error == PM100_ERROR_NONE);
@@ -438,6 +458,8 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
         (void) pm100_disable(pm100_ptr); // just in case
         status = STATUS_ERROR;
     }
+    #endif
+
 
     return status;
 }
