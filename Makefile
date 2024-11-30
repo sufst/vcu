@@ -102,6 +102,7 @@ src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/canbc.c \
 src/SUFST/Src/Services/ctrl.c \
+src/SUFST/Src/Services/remote_ctrl.c \
 src/SUFST/Src/Services/dash.c \
 src/SUFST/Src/Services/pm100.c \
 src/SUFST/Src/Services/tick.c \
