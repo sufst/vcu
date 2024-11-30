@@ -145,7 +145,7 @@ typedef struct
      uint16_t period;
      uint16_t broadcast_timeout_ticks;
      uint16_t torque_limit; //Nm, limit torque as a precaution
-} config_remote_control_t;
+} config_remote_ctrl_t;
 
 /**
  * @brief log level
@@ -203,7 +203,7 @@ typedef struct {
      config_torque_map_t torque_map;
      config_pm100_t pm100;
      config_tick_t tick;
-     config_remote_control_t remote_control;
+     config_remote_ctrl_t remote_ctrl;
      config_canbc_t canbc;
      config_heartbeat_t heartbeat;
      config_log_t log;

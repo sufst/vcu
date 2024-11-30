@@ -22,6 +22,7 @@
 #include "tick.h"
 #include "status.h"
 #include "torque_map.h"
+#include "remote_ctrl.h"
 
 /*
  * error codes
@@ -80,6 +81,7 @@ typedef struct
      pm100_context_t* pm100_ptr; // PM100 service
      canbc_context_t* canbc_ptr; // CANBC service
      tick_context_t *tick_ptr; // tick thread (reads certain sensors)
+     remote_ctrl_context_t *remote_ctrl_ptr; // tick thread (reads certain sensors)
      torque_map_t torque_map;    // torque map (APPS -> torque request)
 
      const config_ctrl_t* config_ptr;      // config
@@ -92,15 +94,16 @@ typedef struct
 /*
  * public functions
  */
-status_t ctrl_init(ctrl_context_t* ctrl_ptr,
-                   dash_context_t* dash_ptr,
-                   pm100_context_t* pm100_ptr,
-		   tick_context_t *tick_ptr,
-                   canbc_context_t* canbc_ptr,
-                   log_context_t* log_ptr,
-                   TX_BYTE_POOL* stack_pool_ptr,
-                   const config_ctrl_t* config_ptr,
-                   const config_rtds_t* rtds_config_ptr,
-                   const config_torque_map_t* torque_map_config_ptr);
+status_t ctrl_init( ctrl_context_t* ctrl_ptr,
+                    dash_context_t* dash_ptr,
+                    pm100_context_t* pm100_ptr,
+                    tick_context_t *tick_ptr,
+                    remote_ctrl_context_t *remote_ctrl_ptr,
+                    canbc_context_t* canbc_ptr,
+                    log_context_t* log_ptr,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    const config_ctrl_t* config_ptr,
+                    const config_rtds_t* rtds_config_ptr,
+                    const config_torque_map_t* torque_map_config_ptr);
 
 #endif

@@ -107,13 +107,13 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     // remote control
     if(status == STATUS_OK)
     {
-        status = remote_control_init(
-            &vcu_ptr->remote_control,
+        status = remote_ctrl_init(
+            &vcu_ptr->remote_ctrl,
             &vcu_ptr->log,
             &vcu_ptr->canbc,
             app_mem_pool,
             &vcu_ptr->rtcan_s,
-            &vcu_ptr->config_ptr->remote_control);
+            &vcu_ptr->config_ptr->remote_ctrl);
     }
 
     // control
@@ -123,7 +123,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->dash,
                            &vcu_ptr->pm100,
 			   &vcu_ptr->tick,
-               &vcu_ptr->remote_control,
+               &vcu_ptr->remote_ctrl,
                            &vcu_ptr->canbc,
                            &vcu_ptr->log,
                            app_mem_pool,

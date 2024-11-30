@@ -23,8 +23,9 @@ static void tick_thread_entry(ULONG input)
 	    tick_ptr->bps_reading, tick_ptr->bps_status);*/
 	  /*LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
 	    tick_ptr->apps_reading, tick_ptr->apps_status);*/
-
-	  tick_update_canbc_states(tick_ptr);
+     #ifndef VCU_SIMULATION_MODE
+          tick_update_canbc_states(tick_ptr);
+     #endif
 	  unlock_tick_sensors(tick_ptr);
 
 	  tx_thread_sleep(config_ptr->period);

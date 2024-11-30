@@ -129,7 +129,7 @@ static const config_t config_instance = {
         },
         .period = SECONDS_TO_TICKS(0.01)
     },
-    .remote_control = {
+    .remote_ctrl = {
         .thread = {
             .name = "REMOTE",
             .priority = 3,

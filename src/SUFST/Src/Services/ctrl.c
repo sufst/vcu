@@ -23,6 +23,8 @@ void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr);
 void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
+status_t ctrl_get_apps_reading(tick_context_t *tick_ptr, remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result);
+status_t ctrl_get_bps_reading(tick_context_t *tick_ptr, remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result);
 
 /**
  * @brief       Initialises control service
@@ -38,16 +40,17 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr);
  * @param[in]   rtds_config_ptr         RTDS configuration
  * @param[in]   torque_map_config_ptr   Torque map configuration
  */
-status_t ctrl_init(ctrl_context_t* ctrl_ptr,
-                   dash_context_t* dash_ptr,
-                   pm100_context_t* pm100_ptr,
-		   tick_context_t *tick_ptr,
-                   canbc_context_t* canbc_ptr,
-                   log_context_t* log_ptr,
-                   TX_BYTE_POOL* stack_pool_ptr,
-                   const config_ctrl_t* config_ptr,
-                   const config_rtds_t* rtds_config_ptr,
-                   const config_torque_map_t* torque_map_config_ptr)
+status_t ctrl_init( ctrl_context_t* ctrl_ptr,
+                    dash_context_t* dash_ptr,
+                    pm100_context_t* pm100_ptr,
+                    tick_context_t *tick_ptr,
+                    remote_ctrl_context_t *remote_ctrl_ptr,
+                    canbc_context_t* canbc_ptr,
+                    log_context_t* log_ptr,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    const config_ctrl_t* config_ptr,
+                    const config_rtds_t* rtds_config_ptr,
+                    const config_torque_map_t* torque_map_config_ptr)
 {
      ctrl_ptr->state = CTRL_STATE_TS_BUTTON_WAIT;
      ctrl_ptr->dash_ptr = dash_ptr;
@@ -66,6 +69,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
      ctrl_ptr->inverter_pwr = false;
      ctrl_ptr->pump_pwr = false;
      ctrl_ptr->fan_pwr = false;
+		 ctrl_ptr->remote_ctrl_ptr = remote_ctrl_ptr;
      
      log_h = log_ptr;
 
@@ -154,6 +158,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 {
      // reduce typing...
      dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+		 remote_ctrl_context_t* remote_ctrl_ptr = ctrl_ptr->remote_ctrl_ptr; //TODO: Add dash functionality to remote_ctrl
      const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
      ctrl_state_t next_state = ctrl_ptr->state;
@@ -229,7 +234,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       LOG_ERROR(log_h, "SHDN opened\n");
 	       next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
 	  }
-	  else if (dash_ptr->tson_flag) // TSON pressed, disable TS
+	  else if (dash_ptr->tson_flag || remote_get_ts_on_reading(remote_ctrl_ptr)) // TSON pressed, disable TS
 	  {
 	       dash_ptr->tson_flag = false;
 
@@ -242,7 +247,8 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  {
 	       dash_ptr->r2d_flag = false;
 
-	       status_t result = tick_get_bps_reading(ctrl_ptr->tick_ptr,
+	       status_t result = ctrl_get_bps_reading(ctrl_ptr->tick_ptr,
+				 					remote_ctrl_ptr,
 						      &ctrl_ptr->bps_reading);
 	  
 	       bool r2d = false;
@@ -279,9 +285,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  // read from the APPS
 	  status_t pm100_status;
 
-	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+	  status_t apps_status = ctrl_get_apps_reading(ctrl_ptr->tick_ptr,
+									remote_ctrl_ptr,
 						       &ctrl_ptr->apps_reading);
-	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
+	  status_t bps_status = ctrl_get_bps_reading(ctrl_ptr->tick_ptr,
+									remote_ctrl_ptr,
 						     &ctrl_ptr->bps_reading);
 
 	  if (dash_ptr->r2d_flag)
@@ -309,9 +317,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       {
 		    ctrl_ptr->apps_bps_start = tx_time_get();
 	       }
-	       
+				#ifdef VCU_SIMULATION_MODE
+            ctrl_ptr->torque_request = remote_get_torque_reading(remote_ctrl_ptr);
+				#else
 	       ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
 							   ctrl_ptr->apps_reading);
+				#endif
 	       
 	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n",
 			ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
@@ -397,7 +408,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       next_state = CTRL_STATE_TS_RUN_FAULT;
 	  }
 
-	  if (tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading) == STATUS_OK)
+	  if (ctrl_get_apps_reading(ctrl_ptr->tick_ptr, remote_ctrl_ptr,  &ctrl_ptr->apps_reading) == STATUS_OK)
 	  {
 	       next_state = CTRL_STATE_TS_ON;
 	  }
@@ -415,9 +426,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       next_state = CTRL_STATE_TS_RUN_FAULT;
 	  }
 	  
-	  status_t apps_status = tick_get_apps_reading(ctrl_ptr->tick_ptr,
+	  status_t apps_status = ctrl_get_apps_reading(ctrl_ptr->tick_ptr,
+										remote_ctrl_ptr,
 						       &ctrl_ptr->apps_reading);
-	  status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr,
+	  status_t bps_status = ctrl_get_bps_reading(ctrl_ptr->tick_ptr,
+										remote_ctrl_ptr,
 						     &ctrl_ptr->bps_reading);
 	  
 
@@ -487,4 +500,21 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 	  states->pdm.fan = ctrl_ptr->fan_pwr;
 	  canbc_unlock_state(ctrl_ptr->canbc_ptr);
      }
+}
+
+status_t ctrl_get_apps_reading(tick_context_t *tick_ptr, remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
+{
+	#ifdef VCU_SIMULATION_MODE
+		return remote_get_apps_reading(remote_ctrl_ptr, result);
+	#else
+		return tick_get_apps_reading(tick_ptr, result);
+	#endif
+}
+status_t ctrl_get_bps_reading(tick_context_t *tick_ptr, remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
+{
+	#ifdef VCU_SIMULATION_MODE
+		return remote_get_bps_reading(remote_ctrl_ptr, result);
+	#else
+		return tick_get_bps_reading(tick_ptr, result);
+	#endif
 }
