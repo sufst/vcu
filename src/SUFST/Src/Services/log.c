@@ -21,7 +21,8 @@
 static void log_thread_entry(ULONG thread_input);
 
 // log level names
-static const char* log_level_names[] = {"DEBUG", "INFO", "WARN", "ERROR"};
+static const char* log_level_names[]
+    = {"DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
 
 // Global log Context
 static log_context_t* global_log_context;
@@ -162,12 +163,18 @@ void log_thread_entry(ULONG thread_input)
                 log_ptr->error &= ~LOG_ERROR_MUTEX;
             }
 
-            // print the message
+            // print the log level
             HAL_StatusTypeDef status
                 = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                    (const uint8_t*) msg.msg,
-                                    strlen(msg.msg),
+                                    (const uint8_t*) log_level_names[msg.level],
+                                    strlen(log_level_names[msg.level]),
                                     HAL_MAX_DELAY);
+
+            // print the message
+            status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
+                                       (const uint8_t*) msg.msg,
+                                       strlen(msg.msg),
+                                       HAL_MAX_DELAY);
 
             // unlock the UART mutex
             tx_status = tx_mutex_put(&log_ptr->uart_mutex);
