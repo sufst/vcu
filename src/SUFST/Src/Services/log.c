@@ -170,6 +170,12 @@ void log_thread_entry(ULONG thread_input)
                                     strlen(log_level_names[msg.level]),
                                     HAL_MAX_DELAY);
 
+            // Send a semicolon
+            status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
+                                       (const uint8_t*) ":",
+                                       strlen(":"),
+                                       HAL_MAX_DELAY);
+
             // print the message
             status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
                                        (const uint8_t*) msg.msg,
