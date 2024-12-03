@@ -23,6 +23,9 @@ static void log_thread_entry(ULONG thread_input);
 // log level names
 static const char* log_level_names[] = {"DEBUG", "INFO", "WARN", "ERROR"};
 
+// Global log Context
+static log_context_t* global_log_context;
+
 /**
  * @brief initialises the logging service
  *
@@ -95,13 +98,10 @@ status_t log_init(log_context_t* log_ptr,
     return status;
 }
 
-status_t log_printf(log_context_t* log_ptr,
-                    const config_log_level_t level,
-                    const char* format,
-                    ...)
+status_t log_printf(const config_log_level_t level, const char* format, ...)
 {
     // check if the message should be logged
-    if (level >= log_ptr->config_ptr->min_level)
+    if (level >= global_log_context->config_ptr->min_level)
     {
         // create the message
         log_msg_t msg;
@@ -114,8 +114,9 @@ status_t log_printf(log_context_t* log_ptr,
         va_end(args);
 
         // queue the message
-        UINT tx_status
-            = tx_queue_send(&log_ptr->msg_queue, (void*) &msg, TX_NO_WAIT);
+        UINT tx_status = tx_queue_send(&global_log_context->msg_queue,
+                                       (void*) &msg,
+                                       TX_NO_WAIT);
 
         // check for errors
         if (tx_status != TX_SUCCESS)
@@ -130,6 +131,7 @@ status_t log_printf(log_context_t* log_ptr,
 void log_thread_entry(ULONG thread_input)
 {
     log_context_t* log_ptr = (log_context_t*) thread_input;
+    global_log_context = log_ptr;
     log_msg_t msg;
     UINT tx_status;
 

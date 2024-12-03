@@ -49,21 +49,18 @@ status_t log_init(log_context_t* log_ptr,
                   TX_BYTE_POOL* stack_pool_ptr,
                   const config_log_t* config_ptr);
 
-status_t log_printf(log_context_t* log_ptr,
-                    const config_log_level_t level,
-                    const char* format,
-                    ...);
+status_t log_printf(const config_log_level_t level, const char* format, ...);
 
 // Convenience macros
 #define LOG_DEBUG(log_ptr, message) \
-    log_printf(log_ptr, LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
+    log_printf(LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define LOG_INFO(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_INFO, format, ##__VA_ARGS__)
+    log_printf(LOG_LEVEL_INFO, format, ##__VA_ARGS__)
 #define LOG_WARN(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_WARN, format, ##__VA_ARGS__)
+    log_printf(LOG_LEVEL_WARN, format, ##__VA_ARGS__)
 #define LOG_ERROR(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
+    log_printf(LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 #define LOG_FATAL(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
+    log_printf(LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
 
 #endif
