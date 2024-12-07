@@ -108,23 +108,40 @@ static void remote_ctrl_thread_entry(ULONG input)
 
         if (status == TX_SUCCESS && msg_ptr != NULL)
         {
-            lock_sim_sensors(remote_ctrl_ptr, 100);
-            process_broadcast(remote_ctrl_ptr, msg_ptr);
-            rtcan_msg_consumed(remote_ctrl_ptr->rtcan_s_ptr, msg_ptr);
-            LOG_INFO(log_h, "VCU_Sim_torque %u", remote_ctrl_ptr->requests.sim_torque_request);
-            remote_ctrl_ptr->brakelight_pwr = (remote_ctrl_ptr->requests.sim_bps > BPS_LIGHT_THRESH);
-            remote_ctrl_update_canbc_states(remote_ctrl_ptr);
-            unlock_sim_sensors(remote_ctrl_ptr);
+            if(lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
+            {
+                process_broadcast(remote_ctrl_ptr, msg_ptr);
+                rtcan_msg_consumed(remote_ctrl_ptr->rtcan_s_ptr, msg_ptr);
+                LOG_INFO(log_h, "VCU_Sim_torque %u", remote_ctrl_ptr->requests.sim_torque_request);
+                remote_ctrl_ptr->brakelight_pwr = (remote_ctrl_ptr->requests.sim_bps > BPS_LIGHT_THRESH);
+                remote_ctrl_update_canbc_states(remote_ctrl_ptr);
+                unlock_sim_sensors(remote_ctrl_ptr);
+            }
+            else
+            {
+                LOG_ERROR(log_h, "Error locking sensors\n");
+            }
 	        tx_thread_sleep(config_ptr->period);
         }
-        else if (status == TX_QUEUE_EMPTY)
+        else if (status != TX_SUCCESS && msg_ptr == NULL)
+        {
+            if(status==TX_QUEUE_EMPTY)
+            {
+                LOG_ERROR(log_h, "TX Broadcast Error & Msg_ptr is null\n");
+            }
+            else {
+                LOG_ERROR(log_h, "TX Error & Msg_ptr is null\n");
+            }
+        }
+        else if(status==TX_QUEUE_EMPTY)
         {
             LOG_ERROR(log_h, "Broadcast timeout\n");
         }
         else
         {
-            LOG_ERROR(log_h, "Error in reading messages\n");
+            LOG_ERROR(log_h, "Broadcast Error\n");
         }
+
 
     }
     #endif
