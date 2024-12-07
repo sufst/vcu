@@ -6,6 +6,7 @@ static log_context_t* log_h;
 static void remote_ctrl_thread_entry(ULONG input);
 static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_t timeout);
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr);
+static void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t *msg_ptr);
 
 #define BPS_LIGHT_THRESH 5
 
@@ -19,7 +20,7 @@ status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
     remote_ctrl_ptr->config_ptr = config_ptr;
     remote_ctrl_ptr->rtcan_s_ptr = rtcan_s_prt;
     remote_ctrl_ptr->canbc_ptr = canbc_ptr;
-    remote_ctrl_ptr->requests = (struct can_s_vcu_simulation_t) {0};
+    can_s_vcu_simulate_init(&remote_ctrl_ptr->requests);
 
     log_h = log_ptr;
 
@@ -93,6 +94,7 @@ static void remote_ctrl_thread_entry(ULONG input)
 
     if (status != RTCAN_OK)
     {
+        LOG_ERROR(log_h, "Failed to subscribe to the CAN_S_VCU_SIMULATION message");
         tx_thread_terminate(&remote_ctrl_ptr->thread);
     }
 
@@ -103,32 +105,27 @@ static void remote_ctrl_thread_entry(ULONG input)
                                         &msg_ptr,
                                         config_ptr->broadcast_timeout_ticks);
 
-        bool broadcasts_valid = false;
 
-        if(status == TX_QUEUE_EMPTY)
+        if (status == TX_SUCCESS && msg_ptr != NULL)
         {
-            broadcasts_valid = false;
-        }
-        else if (status == TX_SUCCESS && msg_ptr != NULL)
-        {
-            broadcasts_valid = true;
             lock_sim_sensors(remote_ctrl_ptr, 100);
             process_broadcast(remote_ctrl_ptr, msg_ptr);
             rtcan_msg_consumed(remote_ctrl_ptr->rtcan_s_ptr, msg_ptr);
+            LOG_INFO(log_h, "VCU_Sim_torque %u", remote_ctrl_ptr->requests.sim_torque_request);
+            remote_ctrl_ptr->brakelight_pwr = (remote_ctrl_ptr->requests.sim_bps > BPS_LIGHT_THRESH);
+            remote_ctrl_update_canbc_states(remote_ctrl_ptr);
             unlock_sim_sensors(remote_ctrl_ptr);
+	        tx_thread_sleep(config_ptr->period);
+        }
+        else if (status == TX_QUEUE_EMPTY)
+        {
+            LOG_ERROR(log_h, "Broadcast timeout\n");
         }
         else
         {
             LOG_ERROR(log_h, "Error in reading messages\n");
         }
 
-        if (broadcasts_valid)
-        {
-            remote_ctrl_ptr->brakelight_pwr = (remote_ctrl_ptr->requests.sim_bps > BPS_LIGHT_THRESH);
-            remote_ctrl_update_canbc_states(remote_ctrl_ptr);
-        }
-
-        tx_thread_sleep(config_ptr->period);
     }
     #endif
 }
@@ -141,10 +138,7 @@ static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_
     {
 	 return STATUS_OK;
     }
-    else
-    {
-	 return STATUS_ERROR;
-    }
+    return STATUS_ERROR;
 }
 
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr)
@@ -258,6 +252,11 @@ void remote_ctrl_update_canbc_states(remote_ctrl_context_t *remote_ctrl_ptr)
         states->pdm.brakelight = remote_ctrl_ptr->brakelight_pwr;
         states->sensors.vcu_apps = remote_ctrl_ptr->requests.sim_apps;
         states->sensors.vcu_bps = remote_ctrl_ptr->requests.sim_bps;
+        canbc_unlock_state(remote_ctrl_ptr->canbc_ptr);
+    }
+    else
+    {
+        LOG_ERROR(log_h, "CANBC locking failure\n");
     }
 }
 
@@ -265,11 +264,12 @@ void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t
     switch (msg_ptr->identifier)
     {
     case CAN_S_VCU_SIMULATION_FRAME_ID:
+    {
         can_s_vcu_simulation_unpack(&remote_ctrl_ptr->requests,
                                     msg_ptr->data,
                                     msg_ptr->length);
         break;
-
+    }
     default:
         LOG_INFO(log_h, "Unknown message: %u\n", msg_ptr->identifier);
         break;

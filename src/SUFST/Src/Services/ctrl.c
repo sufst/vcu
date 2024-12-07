@@ -140,15 +140,11 @@ void ctrl_thread_entry(ULONG input)
 	  
 	  ctrl_ptr->fan_pwr = 0;
 	  ctrl_ptr->pump_pwr = ((tx_time_get() / TX_TIMER_TICKS_PER_SECOND / 5) % 5) == 0;
-	  // testing
-		ctrl_ptr->torque_request = remote_get_torque_reading(ctrl_ptr->remote_ctrl_ptr);
-		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, ctrl_ptr->torque_request);
-		LOG_INFO(log_h, "Status: %u", pm100_status);
-		// 
+
 	  ctrl_state_machine_tick(ctrl_ptr);
 	  ctrl_update_canbc_states(ctrl_ptr);
 	  uint32_t run_time = tx_time_get() - start_time;
-	  
+
 	  tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
      }
 }

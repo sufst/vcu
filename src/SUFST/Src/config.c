@@ -137,7 +137,7 @@ static const config_t config_instance = {
         },
         .period = SECONDS_TO_TICKS(0.01),
         .torque_limit = 1500,
-        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10)
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(0.1)
     },
     .canbc = {
         .thread = {

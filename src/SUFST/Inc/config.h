@@ -143,7 +143,7 @@ typedef struct
 {
      config_thread_t thread;
      uint16_t period;
-     uint16_t broadcast_timeout_ticks;
+     uint32_t broadcast_timeout_ticks;
      uint16_t torque_limit; //Nm, limit torque as a precaution
 } config_remote_ctrl_t;
 
