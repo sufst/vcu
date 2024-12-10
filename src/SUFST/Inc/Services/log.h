@@ -52,13 +52,10 @@ status_t log_init(log_context_t* log_ptr,
 status_t log_printf(const config_log_level_t level, const char* format, ...);
 
 // Convenience macros
-#define LOG_DEBUG(format, ...) \
-    log_printf(LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
-#define LOG_INFO(format, ...) log_printf(LOG_LEVEL_INFO, format, ##__VA_ARGS__)
-#define LOG_WARN(format, ...) log_printf(LOG_LEVEL_WARN, format, ##__VA_ARGS__)
-#define LOG_ERROR(format, ...) \
-    log_printf(LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
-#define LOG_FATAL(format, ...) \
-    log_printf(LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
+#define LOG_DEBUG(...) log_printf(LOG_LEVEL_DEBUG, ##__VA_ARGS__)
+#define LOG_INFO(...)  log_printf(LOG_LEVEL_INFO, ##__VA_ARGS__)
+#define LOG_WARN(...)  log_printf(LOG_LEVEL_WARN, ##__VA_ARGS__)
+#define LOG_ERROR(...) log_printf(LOG_LEVEL_ERROR, ##__VA_ARGS__)
+#define LOG_FATAL(...) log_printf(LOG_LEVEL_FATAL, ##__VA_ARGS__)
 
 #endif
