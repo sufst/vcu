@@ -422,7 +422,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
             else
             {
                 // to get out of lockout, need to send a disable command
-                LOG_WARN(log_h, "Still in lockout at torque request\n");
+                LOG_WARN("Still in lockout at torque request\n");
                 status = pm100_disable(pm100_ptr);
             }
         }
