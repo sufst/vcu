@@ -52,7 +52,7 @@ status_t log_init(log_context_t* log_ptr,
 status_t log_printf(const config_log_level_t level, const char* format, ...);
 
 // Convenience macros
-#define LOG_DEBUG(log_ptr, format, ...) \
+#define LOG_DEBUG(format, ...) \
     log_printf(LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define LOG_INFO(log_ptr, format, ...) \
     log_printf(LOG_LEVEL_INFO, format, ##__VA_ARGS__)
