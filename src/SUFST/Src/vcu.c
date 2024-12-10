@@ -69,7 +69,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
             }
             else
             {
-                LOG_INFO(&vcu_ptr->log, "RTCAN service %d started\n", i);
+                LOG_INFO("RTCAN service %d started\n", i);
             }
         }
     }
@@ -94,14 +94,13 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     // tick
     if (status == STATUS_OK)
     {
-	 status = tick_init(&vcu_ptr->tick,
-			    &vcu_ptr->log,
-			    &vcu_ptr->canbc,
-			    app_mem_pool,
-			    &vcu_ptr->config_ptr->tick,
-			    &vcu_ptr->config_ptr->apps,
-			    &vcu_ptr->config_ptr->bps);
-
+        status = tick_init(&vcu_ptr->tick,
+                           &vcu_ptr->log,
+                           &vcu_ptr->canbc,
+                           app_mem_pool,
+                           &vcu_ptr->config_ptr->tick,
+                           &vcu_ptr->config_ptr->apps,
+                           &vcu_ptr->config_ptr->bps);
     }
 
     // control
@@ -110,7 +109,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         status = ctrl_init(&vcu_ptr->ctrl,
                            &vcu_ptr->dash,
                            &vcu_ptr->pm100,
-			   &vcu_ptr->tick,
+                           &vcu_ptr->tick,
                            &vcu_ptr->canbc,
                            &vcu_ptr->log,
                            app_mem_pool,

@@ -136,8 +136,7 @@ void log_thread_entry(ULONG thread_input)
     log_msg_t msg;
     UINT tx_status;
 
-    LOG_INFO(log_ptr,
-             "Logging service started, min level: %s\n",
+    LOG_INFO("Logging service started, min level: %s\n",
              log_level_names[log_ptr->config_ptr->min_level]);
 
     while (true)
