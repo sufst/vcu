@@ -41,6 +41,7 @@ status_t log_init(log_context_t* log_ptr,
 {
     log_ptr->config_ptr = config_ptr;
     log_ptr->error = LOG_ERROR_NONE;
+    global_log_context = log_ptr;
 
     status_t status = STATUS_OK;
 
@@ -132,7 +133,6 @@ status_t log_printf(const config_log_level_t level, const char* format, ...)
 void log_thread_entry(ULONG thread_input)
 {
     log_context_t* log_ptr = (log_context_t*) thread_input;
-    global_log_context = log_ptr;
     log_msg_t msg;
     UINT tx_status;
 
