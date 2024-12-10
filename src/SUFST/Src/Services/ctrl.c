@@ -254,7 +254,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-            LOG_ERROR(log_h, "Precharge timeout reached\n");
+            LOG_ERROR("Precharge timeout reached\n");
         }
 
         break;
@@ -266,7 +266,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         if (!trc_ready())
         {
-            LOG_ERROR(log_h, "SHDN opened\n");
+            LOG_ERROR("SHDN opened\n");
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
         }
         else if (dash_ptr->tson_flag) // TSON pressed, disable TS
@@ -301,7 +301,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 			 
 			 next_state = CTRL_STATE_TS_ON;
 			 
-			 LOG_INFO(log_h, "R2D active\n");
+			 LOG_INFO("R2D active\n");
 		    }
 	       }
 	       else
@@ -337,12 +337,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                     >= ctrl_ptr->config_ptr->apps_bps_high_threshold
                 && ctrl_ptr->bps_reading > BPS_ON_THRESH)
             {
-                LOG_ERROR(log_h, "BP and AP pressed\n");
+                LOG_ERROR("BP and AP pressed\n");
 
                 if (tx_time_get() >= ctrl_ptr->apps_bps_start
                                          + (TX_TIMER_TICKS_PER_SECOND / 3))
                 {
-                    LOG_ERROR(log_h, "BP-AP fault\n");
+                    LOG_ERROR("BP-AP fault\n");
                     next_state = CTRL_STATE_APPS_BPS_FAULT;
                 }
             }
@@ -368,7 +368,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         }
         else
         {
-            LOG_ERROR(log_h, "APPS / BPS fault\n");
+            LOG_ERROR("APPS / BPS fault\n");
             next_state = CTRL_STATE_TS_RUN_FAULT;
         }
 

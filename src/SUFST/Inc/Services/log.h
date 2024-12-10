@@ -56,7 +56,7 @@ status_t log_printf(const config_log_level_t level, const char* format, ...);
     log_printf(LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
 #define LOG_INFO(format, ...) log_printf(LOG_LEVEL_INFO, format, ##__VA_ARGS__)
 #define LOG_WARN(format, ...) log_printf(LOG_LEVEL_WARN, format, ##__VA_ARGS__)
-#define LOG_ERROR(log_ptr, format, ...) \
+#define LOG_ERROR(format, ...) \
     log_printf(LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
 #define LOG_FATAL(log_ptr, format, ...) \
     log_printf(LOG_LEVEL_FATAL, format, ##__VA_ARGS__)

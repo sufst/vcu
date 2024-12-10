@@ -431,7 +431,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
     }
     else
     {
-        LOG_ERROR(log_h, "Failed to send torque request\n");
+        LOG_ERROR("Failed to send torque request\n");
         (void) pm100_disable(pm100_ptr); // just in case
         status = STATUS_ERROR;
     }

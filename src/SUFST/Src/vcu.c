@@ -138,7 +138,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     }
 
     if (status != STATUS_OK)
-        LOG_ERROR(&vcu_ptr->log, "Some services failed to initialise\n");
+        LOG_ERROR("Some services failed to initialise\n");
 
     return status;
 }
