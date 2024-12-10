@@ -30,8 +30,6 @@
 #define PM100_DIRECTION_FORWARD            0x1
 #define PM100_DIRECTION_REVERSE            0x0
 
-static log_context_t* log_h;
-
 /*
  * internal function prototypes
  */
@@ -49,7 +47,6 @@ static void process_broadcast(pm100_context_t* pm100_ptr,
  * @param[in]   config_ptr      Configuration
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
-                    log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     rtcan_handle_t* rtcan_c_ptr,
                     rtcan_handle_t* rtcan_s_ptr,
@@ -60,7 +57,6 @@ status_t pm100_init(pm100_context_t* pm100_ptr,
     pm100_ptr->rtcan_s_ptr = rtcan_s_ptr;
     pm100_ptr->error = PM100_ERROR_NONE;
     pm100_ptr->broadcasts_valid = false;
-    log_h = log_ptr;
 
     status_t status = STATUS_OK;
 

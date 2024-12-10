@@ -12,8 +12,7 @@
 #include "rtds.h"
 #include "trc.h"
 
-
-static log_context_t* log_h;
+#define BPS_ON_THRESH 5
 
 /*
  * internal function prototypes
@@ -44,7 +43,6 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    pm100_context_t* pm100_ptr,
                    tick_context_t* tick_ptr,
                    canbc_context_t* canbc_ptr,
-                   log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_rtds_t* rtds_config_ptr,
@@ -67,8 +65,6 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->inverter_pwr = false;
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->fan_pwr = false;
-
-    log_h = log_ptr;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -306,7 +302,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       }
 	       else
 	       {
-		    LOG_ERROR(log_h, "BPS reading failed\n");
+		    LOG_ERROR("BPS reading failed\n");
 		    next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
 	       }
 	  }

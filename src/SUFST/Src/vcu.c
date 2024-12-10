@@ -95,7 +95,6 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     if (status == STATUS_OK)
     {
         status = tick_init(&vcu_ptr->tick,
-                           &vcu_ptr->log,
                            &vcu_ptr->canbc,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->tick,
@@ -111,7 +110,6 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->pm100,
                            &vcu_ptr->tick,
                            &vcu_ptr->canbc,
-                           &vcu_ptr->log,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->ctrl,
                            &vcu_ptr->config_ptr->rtds,
@@ -122,7 +120,6 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     if (status == STATUS_OK)
     {
         status = pm100_init(&vcu_ptr->pm100,
-                            &vcu_ptr->log,
                             app_mem_pool,
                             &vcu_ptr->rtcan_c,
                             &vcu_ptr->rtcan_s,

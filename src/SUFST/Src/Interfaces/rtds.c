@@ -9,7 +9,7 @@
  *
  * @param[in]   config_ptr  RTDS configuration
  */
-status_t rtds_activate(const config_rtds_t* config_ptr, log_context_t* log_h)
+status_t rtds_activate(const config_rtds_t* config_ptr)
 {
     HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_SET);
     LOG_INFO("Waiting - RTDS\n");
