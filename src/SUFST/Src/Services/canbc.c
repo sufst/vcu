@@ -136,13 +136,13 @@ static void send_bc_messages(canbc_context_t* canbc_h)
             rtcan_transmit(canbc_h->rtcan_h, &message);
         }
 
-	{
-	     rtcan_msg_t message = {.identifier = CAN_S_VCU_PDM_FRAME_ID,
+        {
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_PDM_FRAME_ID,
                                    .length = CAN_S_VCU_PDM_LENGTH};
 
             can_s_vcu_pdm_pack(message.data,
-                                 &canbc_h->states.pdm,
-                                 message.length);
+                               &canbc_h->states.pdm,
+                               message.length);
             rtcan_transmit(canbc_h->rtcan_h, &message);
         }
 

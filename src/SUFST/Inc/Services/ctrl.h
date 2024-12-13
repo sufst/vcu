@@ -57,20 +57,20 @@ typedef enum
  */
 typedef struct
 {
-     ctrl_state_t state;      // state machine state
-     TX_THREAD thread;        // service thread
-     uint16_t apps_reading;   // APPS reading (% * 10)
-     uint16_t bps_reading;    // BPS reading (% * 10)
-     int16_t sagl_reading;    // steering angle reading (deg * 10)
-     uint16_t torque_request; // last torque request
-     uint8_t shdn_reading;
-     int16_t motor_temp;
-     int16_t inv_temp;
-     int8_t max_temp;
-     
-     bool inverter_pwr;
-     bool pump_pwr;
-     bool fan_pwr;
+    ctrl_state_t state;      // state machine state
+    TX_THREAD thread;        // service thread
+    uint16_t apps_reading;   // APPS reading (% * 10)
+    uint16_t bps_reading;    // BPS reading (% * 10)
+    int16_t sagl_reading;    // steering angle reading (deg * 10)
+    uint16_t torque_request; // last torque request
+    uint8_t shdn_reading;
+    int16_t motor_temp;
+    int16_t inv_temp;
+    int8_t max_temp;
+
+    bool inverter_pwr;
+    bool pump_pwr;
+    bool fan_pwr;
 
     uint32_t neg_air_start;
     uint32_t precharge_start; // precharge start time in ticks
