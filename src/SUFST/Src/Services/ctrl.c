@@ -12,8 +12,6 @@
 #include "rtds.h"
 #include "trc.h"
 
-#define BPS_ON_THRESH 5
-
 /*
  * internal function prototypes
  */
@@ -125,58 +123,65 @@ void ctrl_thread_entry(ULONG input)
         uint32_t start_time = tx_time_get();
         dash_update_buttons(ctrl_ptr->dash_ptr);
 
-			ctrl_ptr->shdn_reading = trc_ready();
+        ctrl_ptr->shdn_reading = trc_ready();
 
-			ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
-			ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
-			ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ? ctrl_ptr->motor_temp : ctrl_ptr->inv_temp;
-			LOG_INFO(log_h, "Motor temp: %d   Inverter temp: %d   Max temp: %d\n", ctrl_ptr->motor_temp,
-					ctrl_ptr->inv_temp, ctrl_ptr->max_temp);
+        ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
+        ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+        ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp
+                                 ? ctrl_ptr->motor_temp
+                                 : ctrl_ptr->inv_temp;
+        LOG_INFO("Motor temp: %d   Inverter temp: %d   Max temp: %d\n",
+                 ctrl_ptr->motor_temp,
+                 ctrl_ptr->inv_temp,
+                 ctrl_ptr->max_temp);
 
-				if (ctrl_fan_passed_on_threshold(ctrl_ptr))
-				{
-					ctrl_ptr->fan_pwr = 1;
-				}
-				else if(ctrl_ptr->fan_pwr)
-				{
-					if (ctrl_fan_passed_off_threshold(ctrl_ptr))
-					{
-						ctrl_ptr->fan_pwr = 0;
-					}
-				}
-				else
-				{
-					ctrl_ptr->fan_pwr = 0;
-				}
+        if (ctrl_fan_passed_on_threshold(ctrl_ptr))
+        {
+            ctrl_ptr->fan_pwr = 1;
+        }
+        else if (ctrl_ptr->fan_pwr)
+        {
+            if (ctrl_fan_passed_off_threshold(ctrl_ptr))
+            {
+                ctrl_ptr->fan_pwr = 0;
+            }
+        }
+        else
+        {
+            ctrl_ptr->fan_pwr = 0;
+        }
 
-			ctrl_state_machine_tick(ctrl_ptr);
-			ctrl_update_canbc_states(ctrl_ptr);
+        ctrl_state_machine_tick(ctrl_ptr);
+        ctrl_update_canbc_states(ctrl_ptr);
 
-			tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
-     }
+        tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
+    }
 }
 
 /**
- * @brief       Checks the motor and inverter temperatures to determine if the fan should be turned on
+ * @brief       Checks the motor and inverter temperatures to determine if the
+ * fan should be turned on
  *
  * @param[in]   ctrl_ptr    Control service pointer
- * 
+ *
  * @return      True if the fan should be turned on
  */
 bool ctrl_fan_passed_on_threshold(ctrl_context_t* ctrl_ptr)
 {
-	return ctrl_ptr->max_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+    return ctrl_ptr->max_temp > ctrl_ptr->config_ptr->fan_on_threshold;
 }
 
 /**
- * @brief       Checks the motor and inverter temperatures to determine if the fan should be turned off
+ * @brief       Checks the motor and inverter temperatures to determine if the
+ * fan should be turned off
  *
  * @param[in]   ctrl_ptr    Control service pointer
- * 
+ *
  * @return      True if the fan should be turned off
  */
-bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
-	return ctrl_ptr->max_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr)
+{
+    return ctrl_ptr->max_temp < ctrl_ptr->config_ptr->fan_off_threshold;
 }
 
 /**
@@ -186,10 +191,10 @@ bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr) {
  */
 void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 {
-     // reduce typing...
-     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
-		 const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
+    // reduce typing...
+    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
+    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+    const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
 
     ctrl_state_t next_state = ctrl_ptr->state;
 
@@ -283,32 +288,33 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
             bool r2d = false;
 
-	       if (result == STATUS_OK)
-	       {
-		    r2d = (config_ptr->r2d_requires_brake) ?
-			 (ctrl_ptr->bps_reading > BPS_ON_THRESH) : 1;
-	       
-		    if (r2d)
-		    {
-			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
-			 pm100_disable(ctrl_ptr->pm100_ptr);
-			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-				ctrl_ptr->pump_pwr = 1;
-			 
-			 next_state = CTRL_STATE_TS_ON;
-			 
-			 LOG_INFO("R2D active\n");
-		    }
-	       }
-	       else
-	       {
-		    LOG_ERROR("BPS reading failed\n");
-		    next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-	       }
-	  }
-	  
-	  break;
-     }
+            if (result == STATUS_OK)
+            {
+                r2d = (config_ptr->r2d_requires_brake)
+                          ? (ctrl_ptr->bps_reading > BPS_ON_THRESH)
+                          : 1;
+
+                if (r2d)
+                {
+                    dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+                    pm100_disable(ctrl_ptr->pm100_ptr);
+                    rtds_activate(ctrl_ptr->rtds_config_ptr);
+                    ctrl_ptr->pump_pwr = 1;
+
+                    next_state = CTRL_STATE_TS_ON;
+
+                    LOG_INFO("R2D active\n");
+                }
+            }
+            else
+            {
+                LOG_ERROR("BPS reading failed\n");
+                next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
+            }
+        }
+
+        break;
+    }
 
     // the TS is on
     case (CTRL_STATE_TS_ON):
@@ -371,52 +377,52 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         break;
     }
 
-     case CTRL_STATE_R2D_OFF:
-     {
-	  ctrl_ptr->torque_request = 0;
-	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-	  ctrl_ptr->motor_torque_zero_start = tx_time_get();
-		ctrl_ptr->pump_pwr = 0;
-	  
-	  if (pm100_status != STATUS_OK)
-	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
-	  }
-	  else
-	  {
-	       next_state = CTRL_STATE_R2D_OFF_WAIT;
-	  }
-	  break;
-     }
-     
-     case CTRL_STATE_R2D_OFF_WAIT:
-     {
-	  ctrl_ptr->torque_request = 0;
-	  status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-	  
-	  if (pm100_status != STATUS_OK)
-	  {
-	       next_state = CTRL_STATE_TS_RUN_FAULT;
-	  }
-	  else if (tx_time_get() >= ctrl_ptr->motor_torque_zero_start +
-		   TX_TIMER_TICKS_PER_SECOND/2)
-	  {
-	       next_state = CTRL_STATE_R2D_WAIT;
-	       dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
-	  }
-		   
-	  break;
-     }
-     
-     // activation or runtime failure
-     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
-     case (CTRL_STATE_TS_RUN_FAULT):
-     {
-	  LOG_ERROR(log_h, "TS fault during activation or runtime\n");
-	  ctrl_handle_ts_fault(ctrl_ptr);
-	  next_state = CTRL_STATE_SPIN;
-	  break;
-     }
+    case CTRL_STATE_R2D_OFF:
+    {
+        ctrl_ptr->torque_request = 0;
+        status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+        ctrl_ptr->motor_torque_zero_start = tx_time_get();
+        ctrl_ptr->pump_pwr = 0;
+
+        if (pm100_status != STATUS_OK)
+        {
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+        else
+        {
+            next_state = CTRL_STATE_R2D_OFF_WAIT;
+        }
+        break;
+    }
+
+    case CTRL_STATE_R2D_OFF_WAIT:
+    {
+        ctrl_ptr->torque_request = 0;
+        status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+
+        if (pm100_status != STATUS_OK)
+        {
+            next_state = CTRL_STATE_TS_RUN_FAULT;
+        }
+        else if (tx_time_get() >= ctrl_ptr->motor_torque_zero_start
+                                      + TX_TIMER_TICKS_PER_SECOND / 2)
+        {
+            next_state = CTRL_STATE_R2D_WAIT;
+            dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
+        }
+
+        break;
+    }
+
+    // activation or runtime failure
+    case (CTRL_STATE_TS_ACTIVATION_FAILURE):
+    case (CTRL_STATE_TS_RUN_FAULT):
+    {
+        LOG_ERROR("TS fault during activation or runtime\n");
+        ctrl_handle_ts_fault(ctrl_ptr);
+        next_state = CTRL_STATE_SPIN;
+        break;
+    }
 
     case (CTRL_STATE_SPIN): // Spin forever
     {
@@ -513,18 +519,18 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
 {
     canbc_states_t* states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
 
-     if (states != NULL)
-     {
-	  // TODO: add ready to drive state?
-	  states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
-	  states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
-		states->temps.vcu_max_temp = (int8_t)ctrl_ptr->max_temp;
-	  states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
-	  states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
-	  states->errors.vcu_ctrl_error = ctrl_ptr->error;
-	  states->pdm.inverter = ctrl_ptr->inverter_pwr;
-	  states->pdm.pump = ctrl_ptr->pump_pwr;
-	  states->pdm.fan = ctrl_ptr->fan_pwr;
-	  canbc_unlock_state(ctrl_ptr->canbc_ptr);
-     }
+    if (states != NULL)
+    {
+        // TODO: add ready to drive state?
+        states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
+        states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
+        states->temps.vcu_max_temp = (int8_t) ctrl_ptr->max_temp;
+        states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
+        states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
+        states->errors.vcu_ctrl_error = ctrl_ptr->error;
+        states->pdm.inverter = ctrl_ptr->inverter_pwr;
+        states->pdm.pump = ctrl_ptr->pump_pwr;
+        states->pdm.fan = ctrl_ptr->fan_pwr;
+        canbc_unlock_state(ctrl_ptr->canbc_ptr);
+    }
 }
