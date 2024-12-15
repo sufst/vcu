@@ -150,6 +150,16 @@ void log_thread_entry(ULONG thread_input)
         // if a message was received, print it
         if (tx_status == TX_SUCCESS)
         {
+            // Create a buffer for the log message
+            char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
+
+            // format the log message
+            snprintf(log_msg_to_send,
+                     LOG_MSG_MAX_TRANSMITION_LEN,
+                     "[%s]: %s",
+                     log_level_names[msg.level],
+                     msg.msg);
+
             // lock the UART mutex
             tx_status = tx_mutex_get(&log_ptr->uart_mutex, TX_WAIT_FOREVER);
 
@@ -162,16 +172,6 @@ void log_thread_entry(ULONG thread_input)
             {
                 log_ptr->error &= ~LOG_ERROR_MUTEX;
             }
-
-            // Create a buffer for the log message
-            char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
-
-            // format the log message
-            snprintf(log_msg_to_send,
-                     LOG_MSG_MAX_TRANSMITION_LEN,
-                     "[%s]: %s",
-                     log_level_names[msg.level],
-                     msg.msg);
 
             // print the message
             HAL_StatusTypeDef status
