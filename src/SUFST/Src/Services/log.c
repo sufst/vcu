@@ -1,6 +1,7 @@
 /*****************************************************************************
  * @file    log.c
  * @author  George Peppard (@inventor02, gjp1g21@soton.ac.uk)
+ * @author  Daniel Hobbs (@D4nDude, dakh1g20@soton.ac.uk)
  * @brief   Logging service
  * @details Thread-safe logging implementation
  ****************************************************************************/
