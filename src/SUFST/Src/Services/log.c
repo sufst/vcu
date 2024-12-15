@@ -103,28 +103,28 @@ status_t log_init(log_context_t* log_ptr,
 status_t log_printf(const config_log_level_t level, const char* format, ...)
 {
     // check if the message should be logged
-    if (level >= global_log_context->config_ptr->min_level)
+    if (level < global_log_context->config_ptr->min_level)
+        return STATUS_OK;
+
+    // create the message
+    log_msg_t msg;
+    msg.level = level;
+
+    // format the message
+    va_list args;
+    va_start(args, format);
+    vsnprintf(msg.msg, LOG_MSG_MAX_LEN, format, args);
+    va_end(args);
+
+    // queue the message
+    UINT tx_status = tx_queue_send(&global_log_context->msg_queue,
+                                   (void*) &msg,
+                                   TX_NO_WAIT);
+
+    // check for errors
+    if (tx_status != TX_SUCCESS)
     {
-        // create the message
-        log_msg_t msg;
-        msg.level = level;
-
-        // format the message
-        va_list args;
-        va_start(args, format);
-        vsnprintf(msg.msg, LOG_MSG_MAX_LEN, format, args);
-        va_end(args);
-
-        // queue the message
-        UINT tx_status = tx_queue_send(&global_log_context->msg_queue,
-                                       (void*) &msg,
-                                       TX_NO_WAIT);
-
-        // check for errors
-        if (tx_status != TX_SUCCESS)
-        {
-            return STATUS_ERROR;
-        }
+        return STATUS_ERROR;
     }
 
     return STATUS_OK;
