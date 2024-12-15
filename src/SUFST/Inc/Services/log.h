@@ -30,6 +30,7 @@
 typedef struct
 {
     config_log_level_t level;
+    ULONG timestamp;
     char msg[LOG_MSG_MAX_LEN + 1];
 } log_msg_t;
 

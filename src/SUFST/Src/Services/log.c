@@ -111,6 +111,9 @@ status_t log_printf(const config_log_level_t level, const char* format, ...)
     log_msg_t msg;
     msg.level = level;
 
+    // timestamp message
+    msg.timestamp = tx_time_get();
+
     // format the message
     va_list args;
     va_start(args, format);
@@ -158,7 +161,8 @@ void log_thread_entry(ULONG thread_input)
         // format the log message
         snprintf(log_msg_to_send,
                  LOG_MSG_MAX_TRANSMITION_LEN,
-                 "[%s]: %s",
+                 "%ld [%s]: %s",
+                 msg.timestamp,
                  log_level_names[msg.level],
                  msg.msg);
 
