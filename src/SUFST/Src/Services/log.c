@@ -147,58 +147,59 @@ void log_thread_entry(ULONG thread_input)
                                      (void*) &msg,
                                      TX_WAIT_FOREVER);
 
-        // if a message was received, print it
-        if (tx_status == TX_SUCCESS)
+        // if no message was recieved, try again
+        // TODO: Error Handling
+        if (tx_status != TX_SUCCESS)
+            continue;
+
+        // Create a buffer for the log message
+        char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
+
+        // format the log message
+        snprintf(log_msg_to_send,
+                 LOG_MSG_MAX_TRANSMITION_LEN,
+                 "[%s]: %s",
+                 log_level_names[msg.level],
+                 msg.msg);
+
+        // lock the UART mutex
+        tx_status = tx_mutex_get(&log_ptr->uart_mutex, TX_WAIT_FOREVER);
+
+        if (tx_status != TX_SUCCESS)
         {
-            // Create a buffer for the log message
-            char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
+            log_ptr->error |= LOG_ERROR_MUTEX;
+            continue;
+        }
+        else
+        {
+            log_ptr->error &= ~LOG_ERROR_MUTEX;
+        }
 
-            // format the log message
-            snprintf(log_msg_to_send,
-                     LOG_MSG_MAX_TRANSMITION_LEN,
-                     "[%s]: %s",
-                     log_level_names[msg.level],
-                     msg.msg);
+        // print the message
+        HAL_StatusTypeDef status
+            = HAL_UART_Transmit(log_ptr->config_ptr->uart,
+                                (const uint8_t*) log_msg_to_send,
+                                strlen(log_msg_to_send),
+                                HAL_MAX_DELAY);
 
-            // lock the UART mutex
-            tx_status = tx_mutex_get(&log_ptr->uart_mutex, TX_WAIT_FOREVER);
+        // unlock the UART mutex
+        tx_status = tx_mutex_put(&log_ptr->uart_mutex);
+        if (tx_status != TX_SUCCESS)
+        {
+            log_ptr->error |= LOG_ERROR_MUTEX;
+        }
+        else
+        {
+            log_ptr->error &= ~LOG_ERROR_MUTEX;
+        }
 
-            if (tx_status != TX_SUCCESS)
-            {
-                log_ptr->error |= LOG_ERROR_MUTEX;
-                continue;
-            }
-            else
-            {
-                log_ptr->error &= ~LOG_ERROR_MUTEX;
-            }
-
-            // print the message
-            HAL_StatusTypeDef status
-                = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                    (const uint8_t*) log_msg_to_send,
-                                    strlen(log_msg_to_send),
-                                    HAL_MAX_DELAY);
-
-            // unlock the UART mutex
-            tx_status = tx_mutex_put(&log_ptr->uart_mutex);
-            if (tx_status != TX_SUCCESS)
-            {
-                log_ptr->error |= LOG_ERROR_MUTEX;
-            }
-            else
-            {
-                log_ptr->error &= ~LOG_ERROR_MUTEX;
-            }
-
-            if (status != HAL_OK)
-            {
-                log_ptr->error |= LOG_ERROR_UART;
-            }
-            else
-            {
-                log_ptr->error &= ~LOG_ERROR_UART;
-            }
+        if (status != HAL_OK)
+        {
+            log_ptr->error |= LOG_ERROR_UART;
+        }
+        else
+        {
+            log_ptr->error &= ~LOG_ERROR_UART;
         }
     }
 }
