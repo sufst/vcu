@@ -162,24 +162,22 @@ void log_thread_entry(ULONG thread_input)
                 log_ptr->error &= ~LOG_ERROR_MUTEX;
             }
 
-            // print the log level
-            HAL_StatusTypeDef status
-                = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                    (const uint8_t*) log_level_names[msg.level],
-                                    strlen(log_level_names[msg.level]),
-                                    HAL_MAX_DELAY);
+            // Create a buffer for the log message
+            char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
 
-            // Send a semicolon
-            status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                       (const uint8_t*) ":",
-                                       strlen(":"),
-                                       HAL_MAX_DELAY);
+            // format the log message
+            snprintf(log_msg_to_send,
+                     LOG_MSG_MAX_TRANSMITION_LEN,
+                     "[%s]: %s",
+                     log_level_names[msg.level],
+                     msg.msg);
 
             // print the message
-            status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                       (const uint8_t*) msg.msg,
-                                       strlen(msg.msg),
-                                       HAL_MAX_DELAY);
+            HAL_StatusTypeDef status
+                = HAL_UART_Transmit(log_ptr->config_ptr->uart,
+                                    (const uint8_t*) log_msg_to_send,
+                                    strlen(log_msg_to_send),
+                                    HAL_MAX_DELAY);
 
             // unlock the UART mutex
             tx_status = tx_mutex_put(&log_ptr->uart_mutex);

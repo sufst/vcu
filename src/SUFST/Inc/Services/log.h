@@ -23,6 +23,9 @@
 // the max length for a log message
 #define LOG_MSG_MAX_LEN 64
 
+// the max length for a single line of log message transmission
+#define LOG_MSG_MAX_TRANSMITION_LEN 128
+
 typedef struct
 {
     config_log_level_t level;
