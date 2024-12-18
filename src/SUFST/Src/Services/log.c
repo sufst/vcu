@@ -115,10 +115,12 @@ status_t log_printf(const config_log_level_t level, const char* format, ...)
     msg.timestamp = tx_time_get();
 
     // format the message
+    UINT last_interrupt_state = tx_interrupt_control(TX_INT_DISABLE);
     va_list args;
     va_start(args, format);
     vsnprintf(msg.msg, LOG_MSG_MAX_LEN, format, args);
     va_end(args);
+    tx_interrupt_control(last_interrupt_state);
 
     // queue the message
     UINT tx_status = tx_queue_send(&global_log_context->msg_queue,
@@ -159,12 +161,14 @@ void log_thread_entry(ULONG thread_input)
         char log_msg_to_send[LOG_MSG_MAX_TRANSMITION_LEN];
 
         // format the log message
+        UINT last_interrupt_state = tx_interrupt_control(TX_INT_DISABLE);
         snprintf(log_msg_to_send,
                  LOG_MSG_MAX_TRANSMITION_LEN,
                  "%ld [%s]: %s",
                  msg.timestamp,
                  log_level_names[msg.level],
                  msg.msg);
+        tx_interrupt_control(last_interrupt_state);
 
         // lock the UART mutex
         tx_status = tx_mutex_get(&log_ptr->uart_mutex, TX_WAIT_FOREVER);
