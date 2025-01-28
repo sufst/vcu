@@ -62,7 +62,7 @@ bool bps_fully_pressed(bps_context_t* bps_ptr)
  * @retval  true    BPS is pressed
  * @retval  false   BPS is not pressed, or SCS fault
  */
-bool bps_valid(bps_context_t* bps_ptr)  
+bool bps_valid(bps_context_t* bps_ptr)
 {
     uint16_t reading = 0;
     status_t status = bps_read(bps_ptr, &reading);

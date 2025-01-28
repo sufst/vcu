@@ -1,6 +1,7 @@
 /*****************************************************************************
  * @file    log.h
  * @author  George Peppard (@inventor02, gjp1g21@soton.ac.uk)
+ * @author  Daniel Hobbs (@D4nDude, dakh1g20@soton.ac.uk)
  * @brief   Logging service
  * @details Thread-safe logging implementation
  ****************************************************************************/
@@ -23,9 +24,13 @@
 // the max length for a log message
 #define LOG_MSG_MAX_LEN 64
 
+// the max length for a single line of log message transmission
+#define LOG_MSG_MAX_TRANSMITION_LEN 128
+
 typedef struct
 {
     config_log_level_t level;
+    ULONG timestamp;
     char msg[LOG_MSG_MAX_LEN + 1];
 } log_msg_t;
 
@@ -49,21 +54,13 @@ status_t log_init(log_context_t* log_ptr,
                   TX_BYTE_POOL* stack_pool_ptr,
                   const config_log_t* config_ptr);
 
-status_t log_printf(log_context_t* log_ptr,
-                    const config_log_level_t level,
-                    const char* format,
-                    ...);
+status_t log_printf(const config_log_level_t level, const char* format, ...);
 
 // Convenience macros
-#define LOG_DEBUG(log_ptr, message) \
-    log_printf(log_ptr, LOG_LEVEL_DEBUG, format, ##__VA_ARGS__)
-#define LOG_INFO(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_INFO, format, ##__VA_ARGS__)
-#define LOG_WARN(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_WARN, format, ##__VA_ARGS__)
-#define LOG_ERROR(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_ERROR, format, ##__VA_ARGS__)
-#define LOG_FATAL(log_ptr, format, ...) \
-    log_printf(log_ptr, LOG_LEVEL_FATAL, format, ##__VA_ARGS__)
+#define LOG_DEBUG(...) log_printf(LOG_LEVEL_DEBUG, ##__VA_ARGS__)
+#define LOG_INFO(...)  log_printf(LOG_LEVEL_INFO, ##__VA_ARGS__)
+#define LOG_WARN(...)  log_printf(LOG_LEVEL_WARN, ##__VA_ARGS__)
+#define LOG_ERROR(...) log_printf(LOG_LEVEL_ERROR, ##__VA_ARGS__)
+#define LOG_FATAL(...) log_printf(LOG_LEVEL_FATAL, ##__VA_ARGS__)
 
 #endif
