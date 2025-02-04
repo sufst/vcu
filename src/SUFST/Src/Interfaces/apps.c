@@ -5,6 +5,7 @@
  *
  * @param[in]   apps_ptr    APPS context
  */
+
 status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
@@ -54,22 +55,46 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     // read both signals
     status_t status_1 = scs_read(&apps_ptr->apps_1_signal, &reading_1);
+    scs_status_t status_1_verbose = apps_ptr->apps_1_signal.status_verbose;
     status_t status_2 = scs_read(&apps_ptr->apps_2_signal, &reading_2);
+    scs_status_t status_2_verbose = apps_ptr->apps_2_signal.status_verbose;
 
     if (status_1 != STATUS_OK)
     {
-        LOG_INFO("APPS1 error; ");
+        if (status_1_verbose == STATUS_THRESHOLD_ERROR)
+        {
+            LOG_INFO("APPS1 threshold error; ");
+        }
+        else
+        {
+            LOG_INFO("APPS1 unknown error; ");
+        }
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS1;
+    }
+    else if (status_1_verbose == STATUS_THRESHOLD_WARNING)
+    {
+        LOG_INFO("APPS1 threshold warning; ");
     }
 
     LOG_INFO("APPS1 reading: %d; ", reading_1);
 
     if (status_2 != STATUS_OK)
     {
-        LOG_INFO("APPS2 error; ");
+        if (status_2_verbose == STATUS_THRESHOLD_ERROR)
+        {
+            LOG_INFO("APPS2 threshold error; ");
+        }
+        else
+        {
+            LOG_INFO("APPS2 unknown error; ");
+        }
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS2;
+    }
+    else if (status_2_verbose == STATUS_THRESHOLD_WARNING)
+    {
+        LOG_INFO("APPS2 threshold warning; ");
     }
 
     LOG_INFO("APPS2 reading: %d; ", reading_2);

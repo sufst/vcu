@@ -131,6 +131,7 @@ void ctrl_thread_entry(ULONG input)
                                  ? ctrl_ptr->motor_temp
                                  : ctrl_ptr->inv_temp;
         LOG_INFO("Motor temp: %d   Inverter temp: %d   Max temp: %d\n",
+
                  ctrl_ptr->motor_temp,
                  ctrl_ptr->inv_temp,
                  ctrl_ptr->max_temp);

@@ -11,6 +11,7 @@
 #include <stdint.h>
 
 #include "config.h"
+#include "log.h"
 #include "scs.h"
 #include "status.h"
 
