@@ -5,13 +5,12 @@
  *
  * @param[in]   apps_ptr    APPS context
  */
+
 status_t apps_init(apps_context_t* apps_ptr,
-                   log_context_t* log_ptr,
                    const config_apps_t* config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
     apps_ptr->scs_error = SCS_ERROR_NONE;
-    apps_ptr->log_ptr = log_ptr;
 
     // initialise both SCS instances
     status_t status
@@ -65,11 +64,11 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     {
         if (status_1_verbose == STATUS_THRESHOLD_ERROR)
         {
-            LOG_INFO(apps_ptr->log_ptr, "APPS1 threshold error; ");
+            LOG_INFO("APPS1 threshold error; ");
         }
         else
         {
-            LOG_INFO(apps_ptr->log_ptr, "APPS1 unknown error; ");
+            LOG_INFO("APPS1 unknown error; ");
         }
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS1;
@@ -79,17 +78,17 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
         LOG_INFO(apps_ptr->log_ptr, "APPS1 threshold warning; ");
     }
 
-    LOG_INFO(apps_ptr->log_ptr, "APPS1 reading: %d; ", reading_1);
+    LOG_INFO("APPS1 reading: %d; ", reading_1);
 
     if (status_2 != STATUS_OK)
     {
         if (status_2_verbose == STATUS_THRESHOLD_ERROR)
         {
-            LOG_INFO(apps_ptr->log_ptr, "APPS2 threshold error; ");
+            LOG_INFO("APPS2 threshold error; ");
         }
         else
         {
-            LOG_INFO(apps_ptr->log_ptr, "APPS2 unknown error; ");
+            LOG_INFO("APPS2 unknown error; ");
         }
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS2;
@@ -99,7 +98,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
         LOG_INFO(apps_ptr->log_ptr, "APPS2 threshold warning; ");
     }
 
-    LOG_INFO(apps_ptr->log_ptr, "APPS2 reading: %d; ", reading_2);
+    LOG_INFO("APPS2 reading: %d; ", reading_2);
 
     // // check for discrepancy
     uint16_t diff = (reading_1 > reading_2) ? (reading_1 - reading_2)
@@ -107,7 +106,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     if (diff > apps_ptr->config_ptr->max_discrepancy)
     {
-        LOG_INFO(apps_ptr->log_ptr, "DIFF error; ");
+        LOG_INFO("DIFF error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS_DISCREPANCY;
     }
@@ -122,7 +121,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
         *reading_ptr = 0;
     }
 
-    LOG_INFO(apps_ptr->log_ptr, "\n");
+    LOG_INFO("\n");
 
     return status;
 }

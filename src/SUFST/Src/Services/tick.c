@@ -33,7 +33,6 @@ static void tick_thread_entry(ULONG input)
 }
 
 status_t tick_init(tick_context_t* tick_ptr,
-                   log_context_t* log_ptr,
                    canbc_context_t* canbc_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_tick_t* config_ptr,
@@ -42,7 +41,6 @@ status_t tick_init(tick_context_t* tick_ptr,
 {
     tick_ptr->config_ptr = config_ptr;
     tick_ptr->canbc_ptr = canbc_ptr;
-    tick_ptr->log_ptr = log_ptr;
 
     // Assume error so that it won't proceed without at least 1 reading
     tick_ptr->bps_status = STATUS_ERROR;
@@ -64,12 +62,12 @@ status_t tick_init(tick_context_t* tick_ptr,
     // initialise the APPS and BPS
     if (status == STATUS_OK)
     {
-        status = apps_init(&tick_ptr->apps, log_ptr, apps_config_ptr);
+        status = apps_init(&tick_ptr->apps, apps_config_ptr);
     }
 
     if (status == STATUS_OK)
     {
-        status = bps_init(&tick_ptr->bps, log_ptr, bps_config_ptr);
+        status = bps_init(&tick_ptr->bps, bps_config_ptr);
     }
 
     if (tx_status == TX_SUCCESS)
@@ -143,7 +141,7 @@ status_t tick_get_bps_reading(tick_context_t* tick_ptr, uint16_t* result)
     }
     else
     {
-        LOG_ERROR(tick_ptr->log_ptr, "BPS locking error\n");
+        LOG_ERROR("BPS locking error\n");
     }
 
     return status;
@@ -161,7 +159,7 @@ status_t tick_get_apps_reading(tick_context_t* tick_ptr, uint16_t* result)
     }
     else
     {
-        LOG_ERROR(tick_ptr->log_ptr, "APPS locking error\n");
+        LOG_ERROR("APPS locking error\n");
     }
 
     return status;

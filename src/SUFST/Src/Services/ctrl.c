@@ -12,8 +12,6 @@
 #include "rtds.h"
 #include "trc.h"
 
-static log_context_t* log_h;
-
 /*
  * internal function prototypes
  */
@@ -43,7 +41,6 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    pm100_context_t* pm100_ptr,
                    tick_context_t* tick_ptr,
                    canbc_context_t* canbc_ptr,
-                   log_context_t* log_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_rtds_t* rtds_config_ptr,
@@ -66,8 +63,6 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->inverter_pwr = false;
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->fan_pwr = false;
-
-    log_h = log_ptr;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -135,8 +130,8 @@ void ctrl_thread_entry(ULONG input)
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp
                                  ? ctrl_ptr->motor_temp
                                  : ctrl_ptr->inv_temp;
-        LOG_INFO(log_h,
-                 "Motor temp: %d   Inverter temp: %d   Max temp: %d\n",
+        LOG_INFO("Motor temp: %d   Inverter temp: %d   Max temp: %d\n",
+
                  ctrl_ptr->motor_temp,
                  ctrl_ptr->inv_temp,
                  ctrl_ptr->max_temp);
@@ -217,7 +212,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
             if (trc_ready())
             {
-                LOG_INFO(log_h, "TSON pressed & SHDN closed\n");
+                LOG_INFO("TSON pressed & SHDN closed\n");
 
                 trc_set_ts_on(GPIO_PIN_SET);
 
@@ -234,7 +229,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         if (tx_time_get()
             >= ctrl_ptr->neg_air_start + TX_TIMER_TICKS_PER_SECOND / 4)
         {
-            LOG_INFO(log_h, "Neg AIR closed, turning on inverter\n");
+            LOG_INFO("Neg AIR closed, turning on inverter\n");
 
             ctrl_ptr->inverter_pwr = true;
 
@@ -255,13 +250,13 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         {
             next_state = CTRL_STATE_R2D_WAIT;
             dash_clear_buttons(dash_ptr);
-            LOG_INFO(log_h, "Precharge complete\n");
+            LOG_INFO("Precharge complete\n");
         }
         else if (charge_time >= config_ptr->precharge_timeout_ticks)
         {
             ctrl_ptr->error |= CTRL_ERROR_PRECHARGE_TIMEOUT;
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
-            LOG_ERROR(log_h, "Precharge timeout reached\n");
+            LOG_ERROR("Precharge timeout reached\n");
         }
 
         break;
@@ -273,7 +268,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     {
         if (!trc_ready())
         {
-            LOG_ERROR(log_h, "SHDN opened\n");
+            LOG_ERROR("SHDN opened\n");
             next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
         }
         else if (dash_ptr->tson_flag) // TSON pressed, disable TS
@@ -304,17 +299,17 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                 {
                     dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
                     pm100_disable(ctrl_ptr->pm100_ptr);
-                    rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
+                    rtds_activate(ctrl_ptr->rtds_config_ptr);
                     ctrl_ptr->pump_pwr = 1;
 
                     next_state = CTRL_STATE_TS_ON;
 
-                    LOG_INFO(log_h, "R2D active\n");
+                    LOG_INFO("R2D active\n");
                 }
             }
             else
             {
-                LOG_ERROR(log_h, "BPS reading failed\n");
+                LOG_ERROR("BPS reading failed\n");
                 next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
             }
         }
@@ -345,12 +340,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                     >= ctrl_ptr->config_ptr->apps_bps_high_threshold
                 && ctrl_ptr->bps_reading > BPS_ON_THRESH)
             {
-                LOG_ERROR(log_h, "BP and AP pressed\n");
+                LOG_ERROR("BP and AP pressed\n");
 
                 if (tx_time_get() >= ctrl_ptr->apps_bps_start
                                          + (TX_TIMER_TICKS_PER_SECOND / 3))
                 {
-                    LOG_ERROR(log_h, "BP-AP fault\n");
+                    LOG_ERROR("BP-AP fault\n");
                     next_state = CTRL_STATE_APPS_BPS_FAULT;
                 }
             }
@@ -362,8 +357,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
                                                         ctrl_ptr->apps_reading);
 
-            LOG_INFO(log_h,
-                     "ADC: %d, Torque: %d\n",
+            LOG_INFO("ADC: %d, Torque: %d\n",
                      ctrl_ptr->apps_reading,
                      ctrl_ptr->torque_request);
 
@@ -377,7 +371,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         }
         else
         {
-            LOG_ERROR(log_h, "APPS / BPS fault\n");
+            LOG_ERROR("APPS / BPS fault\n");
             next_state = CTRL_STATE_TS_RUN_FAULT;
         }
 
@@ -425,7 +419,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     case (CTRL_STATE_TS_ACTIVATION_FAILURE):
     case (CTRL_STATE_TS_RUN_FAULT):
     {
-        LOG_ERROR(log_h, "TS fault during activation or runtime\n");
+        LOG_ERROR("TS fault during activation or runtime\n");
         ctrl_handle_ts_fault(ctrl_ptr);
         next_state = CTRL_STATE_SPIN;
         break;
