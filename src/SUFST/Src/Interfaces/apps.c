@@ -6,8 +6,7 @@
  * @param[in]   apps_ptr    APPS context
  */
 
-status_t apps_init(apps_context_t* apps_ptr,
-                   const config_apps_t* config_ptr)
+status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
     apps_ptr->scs_error = SCS_ERROR_NONE;
