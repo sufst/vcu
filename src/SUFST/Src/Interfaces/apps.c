@@ -74,7 +74,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     }
     else if (status_1_verbose == STATUS_THRESHOLD_WARNING)
     {
-        LOG_INFO(apps_ptr->log_ptr, "APPS1 threshold warning; ");
+        LOG_INFO("APPS1 threshold warning; ");
     }
 
     LOG_INFO("APPS1 reading: %d; ", reading_1);
@@ -94,7 +94,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     }
     else if (status_2_verbose == STATUS_THRESHOLD_WARNING)
     {
-        LOG_INFO(apps_ptr->log_ptr, "APPS2 threshold warning; ");
+        LOG_INFO("APPS2 threshold warning; ");
     }
 
     LOG_INFO("APPS2 reading: %d; ", reading_2);

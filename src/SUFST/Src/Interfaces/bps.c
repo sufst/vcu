@@ -6,12 +6,9 @@
  * @param[in]   bps_ptr     BPS context
  * @param[in]   config_ptr  Configuration
  */
-status_t bps_init(bps_context_t* bps_ptr,
-                  log_context_t* log_ptr,
-                  const config_bps_t* config_ptr)
+status_t bps_init(bps_context_t* bps_ptr, const config_bps_t* config_ptr)
 {
     bps_ptr->config_ptr = config_ptr;
-    bps_ptr->log_ptr = log_ptr;
 
     // compute pressure thresholds
     const uint16_t range
@@ -43,20 +40,20 @@ status_t bps_read(bps_context_t* bps_ptr, uint16_t* reading_ptr)
     {
         if (status_verbose == STATUS_THRESHOLD_ERROR)
         {
-            LOG_INFO(bps_ptr->log_ptr, "BPS threshold error; ");
+            LOG_INFO("BPS threshold error; ");
         }
         else
         {
-            LOG_INFO(bps_ptr->log_ptr, "BPS unknown error; ");
+            LOG_INFO("BPS unknown error; ");
         }
         status = STATUS_ERROR;
     }
     else if (status_verbose == STATUS_THRESHOLD_WARNING)
     {
-        LOG_INFO(bps_ptr->log_ptr, "BPS threshold warning; ");
+        LOG_INFO("BPS threshold warning; ");
     }
 
-    LOG_INFO(bps_ptr->log_ptr, "BPS reading: %d; ", *reading_ptr);
+    LOG_INFO("BPS reading: %d; ", *reading_ptr);
 
     return status;
 }
