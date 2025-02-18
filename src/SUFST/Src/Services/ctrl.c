@@ -242,12 +242,14 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // TS is ready, can initiate pre-charge sequence
     // TS on LED turns solid
+    // powers on pumps in preparation for r2d
     case (CTRL_STATE_PRECHARGE_WAIT):
     {
         const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
         if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
         {
+            ctrl_ptr->pump_pwr = 1;
             next_state = CTRL_STATE_R2D_WAIT;
             dash_clear_buttons(dash_ptr);
             LOG_INFO("Precharge complete\n");
@@ -305,7 +307,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                     dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
                     pm100_disable(ctrl_ptr->pm100_ptr);
                     rtds_activate(ctrl_ptr->rtds_config_ptr);
-                    ctrl_ptr->pump_pwr = 1;
 
                     next_state = CTRL_STATE_TS_ON;
 
