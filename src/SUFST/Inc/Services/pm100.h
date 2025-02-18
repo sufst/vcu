@@ -13,6 +13,7 @@
 #define PM100_H
 
 #include <can_c.h>
+#include <can_s.h>
 #include <rtcan.h>
 #include <stdint.h>
 #include <tx_api.h>
