@@ -132,7 +132,8 @@ void pm100_thread_entry(ULONG input)
                                 CAN_C_PM100_FAULT_CODES_FRAME_ID,
                                 CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
                                 CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID};
+                                CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID,
+                                CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID};
 
     for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
          i++)
@@ -240,6 +241,15 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         can_c_pm100_temperature_set_3_unpack(&pm100_ptr->temp3,
                                              msg_ptr->data,
                                              msg_ptr->length);
+
+        break;
+    }
+
+    case CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID:
+    {
+        can_s_vcu_pdm_voltage_out_unpack(&pm100_ptr->vout,
+                                         msg_ptr->data,
+                                         msg_ptr->length);
 
         break;
     }
