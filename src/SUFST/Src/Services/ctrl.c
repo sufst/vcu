@@ -264,6 +264,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // pre-charge is complete, wait for R2D signal
     // also wait for brake to be fully pressed (if enabled)
+    // also wait for pumps to be running (if enabled)
     case (CTRL_STATE_R2D_WAIT):
     {
         if (!trc_ready())

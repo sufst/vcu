@@ -46,6 +46,7 @@ typedef struct {
      config_thread_t thread;                 // control thread config
      uint32_t schedule_ticks;                // number of ticks between runs of the control loop thread
      bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
+     bool r2d_requires_pump;                 // whether or not the pump needs to be running for R2D activation
      uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
      uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
      uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
