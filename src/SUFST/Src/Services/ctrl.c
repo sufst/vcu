@@ -296,6 +296,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                           ? (ctrl_ptr->bps_reading > BPS_ON_THRESH)
                           : 1;
 
+                r2d &= (config_ptr->r2d_requires_pump)
+                           ? pm100_check_pumps_running(ctrl_ptr->pm100_ptr)
+                           : 1;
+
                 if (r2d)
                 {
                     dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);

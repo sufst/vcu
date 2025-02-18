@@ -32,6 +32,8 @@
 
 #define PM100_RX_QUEUE_SIZE           10 // 10 items
 
+#define PUMP_RUNNING_THRESHOLD        12 // Voltage/V
+
 /**
  * @brief   PM100 context
  */
@@ -69,5 +71,7 @@ int16_t pm100_motor_temp(pm100_context_t* pm100_ptr);
 int16_t pm100_max_inverter_temp(pm100_context_t* pm100_ptr);
 status_t pm100_disable(pm100_context_t* pm100_ptr);
 status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque);
+
+bool pm100_check_pumps_running(pm100_context_t* pm100_ptr);
 
 #endif

@@ -444,3 +444,9 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
     return status;
 }
+
+bool pm100_check_pumps_running(pm100_context_t* pm100_ptr)
+{
+    return (pm100_ptr->vout->pdm_output_4_voltage > PUMP_RUNNING_THRESHOLD)
+           && (pm100_ptr->vout->pdm_output_5_voltage > PUMP_RUNNING_THRESHOLD);
+}
