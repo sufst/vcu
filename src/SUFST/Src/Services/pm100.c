@@ -127,19 +127,37 @@ void pm100_thread_entry(ULONG input)
     pm100_context_t* pm100_ptr = (pm100_context_t*) input;
     const config_pm100_t* config_ptr = pm100_ptr->config_ptr;
 
-    // set up RTCAN subscriptions
-    uint32_t subscriptions[] = {CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
-                                CAN_C_PM100_FAULT_CODES_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID,
-                                CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID};
+    // set up RTCAN CAN C subscriptions
+    uint32_t can_c_subscriptions[] = {CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
+                                      CAN_C_PM100_FAULT_CODES_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID};
 
-    for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
+    for (uint32_t i = 0;
+         i < sizeof(can_c_subscriptions) / sizeof(can_c_subscriptions[0]);
          i++)
     {
         rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_c_ptr,
-                                                subscriptions[i],
+                                                can_c_subscriptions[i],
+                                                &pm100_ptr->can_rx_queue);
+
+        if (status != RTCAN_OK)
+        {
+            // TODO: update broadcast states with error
+            tx_thread_terminate(&pm100_ptr->thread);
+        }
+    }
+
+    // set up RTCAN CAN S subscriptions
+    uint32_t can_s_subscriptions[] = {CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID};
+
+    for (uint32_t i = 0;
+         i < sizeof(can_s_subscriptions) / sizeof(can_s_subscriptions[0]);
+         i++)
+    {
+        rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_s_ptr,
+                                                can_s_subscriptions[i],
                                                 &pm100_ptr->can_rx_queue);
 
         if (status != RTCAN_OK)
@@ -447,7 +465,6 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
 
 bool pm100_check_pumps_running(pm100_context_t* pm100_ptr)
 {
-    return (&(&pm100_ptr->vout)->pdm_output_4_voltage > PUMP_RUNNING_THRESHOLD)
-           && (&(&pm100_ptr->vout)->pdm_output_5_voltage
-               > PUMP_RUNNING_THRESHOLD);
+    return (&pm100_ptr->vout.pdm_output_4_voltage > PUMP_RUNNING_THRESHOLD)
+           && (&pm100_ptr->vout.pdm_output_5_voltage > PUMP_RUNNING_THRESHOLD);
 }

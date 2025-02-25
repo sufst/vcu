@@ -33,7 +33,7 @@
 
 #define PM100_RX_QUEUE_SIZE           10 // 10 items
 
-#define PUMP_RUNNING_THRESHOLD        12 // Voltage/V
+#define PUMP_RUNNING_THRESHOLD        8 // Voltage/V
 
 /**
  * @brief   PM100 context
