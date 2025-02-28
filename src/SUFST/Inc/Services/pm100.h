@@ -52,7 +52,7 @@ typedef struct
     struct can_c_pm100_temperature_set_1_t temp1;
     struct can_c_pm100_temperature_set_2_t temp2;
     struct can_c_pm100_temperature_set_3_t temp3;
-    struct can_s_vcu_pdm_voltage_out vout;
+    struct can_s_pdm_out_voltage_t vout;
     uint16_t error;
     const config_pm100_t* config_ptr;
 } pm100_context_t;

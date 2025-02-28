@@ -150,7 +150,7 @@ void pm100_thread_entry(ULONG input)
     }
 
     // set up RTCAN CAN S subscriptions
-    uint32_t can_s_subscriptions[] = {CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID};
+    uint32_t can_s_subscriptions[] = {CAN_S_PDM_OUT_VOLTAGE_FRAME_ID};
 
     for (uint32_t i = 0;
          i < sizeof(can_s_subscriptions) / sizeof(can_s_subscriptions[0]);
@@ -263,11 +263,11 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         break;
     }
 
-    case CAN_S_VCU_PDM_OUT_VOLTAGE_FRAME_ID:
+    case CAN_S_PDM_OUT_VOLTAGE_FRAME_ID:
     {
-        can_s_vcu_pdm_voltage_out_unpack(&pm100_ptr->vout,
-                                         msg_ptr->data,
-                                         msg_ptr->length);
+        can_s_pdm_out_voltage_unpack(&pm100_ptr->vout,
+                                     msg_ptr->data,
+                                     msg_ptr->length);
 
         break;
     }
