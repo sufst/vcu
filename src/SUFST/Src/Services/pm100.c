@@ -185,7 +185,6 @@ void pm100_thread_entry(ULONG input)
         {
             pm100_ptr->broadcasts_valid = true;
             process_broadcast(pm100_ptr, msg_ptr);
-            rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
         }
         else
         {
@@ -210,6 +209,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                            msg_ptr->data,
                                            msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -232,6 +233,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
             (void) pm100_disable(pm100_ptr);
         }
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -242,6 +245,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                              msg_ptr->data,
                                              msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -250,6 +255,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         can_c_pm100_temperature_set_2_unpack(&pm100_ptr->temp2,
                                              msg_ptr->data,
                                              msg_ptr->length);
+
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
 
         break;
     }
@@ -260,6 +267,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                              msg_ptr->data,
                                              msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -268,6 +277,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         can_s_pdm_out_voltage_unpack(&pm100_ptr->vout,
                                      msg_ptr->data,
                                      msg_ptr->length);
+
+        rtcan_msg_consumed(pm100_ptr->rtcan_s_ptr, msg_ptr);
 
         break;
     }
