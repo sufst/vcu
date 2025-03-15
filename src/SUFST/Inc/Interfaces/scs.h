@@ -44,5 +44,6 @@ typedef struct
  */
 status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr);
 status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr);
+uint16_t get_adc(scs_t* scs_ptr);
 
 #endif

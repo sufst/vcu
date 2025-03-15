@@ -106,6 +106,11 @@ status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
     return status;
 }
 
+uint16_t get_adc(scs_t* scs_ptr)
+{
+    return scs_ptr->adc_reading;
+}
+
 /**
  * @brief       Map raw ADC reading of safety critical signal, with clipping
  *

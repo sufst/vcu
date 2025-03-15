@@ -69,8 +69,8 @@ status_t ctrl_init( ctrl_context_t* ctrl_ptr,
      ctrl_ptr->inverter_pwr = false;
      ctrl_ptr->pump_pwr = false;
      ctrl_ptr->fan_pwr = false;
-		 ctrl_ptr->remote_ctrl_ptr = remote_ctrl_ptr;
-     
+	ctrl_ptr->remote_ctrl_ptr = remote_ctrl_ptr;
+
      log_h = log_ptr;
 
      // create the thread
@@ -158,10 +158,16 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 {
      // reduce typing...
      dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-		 remote_ctrl_context_t* remote_ctrl_ptr = ctrl_ptr->remote_ctrl_ptr; //TODO: Add dash functionality to remote_ctrl
+		 remote_ctrl_context_t* remote_ctrl_ptr = ctrl_ptr->remote_ctrl_ptr;
      const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
 
      ctrl_state_t next_state = ctrl_ptr->state;
+
+	// In simulation mode, the TS and R2D buttons are controlled by the remote control, but the dash is still in effect
+	 #ifdef VCU_SIMULATION_MODE
+	 	dash_ptr->tson_flag = dash_ptr->tson_flag || remote_get_ts_on_reading(remote_ctrl_ptr);
+		dash_ptr->r2d_flag = dash_ptr->r2d_flag || remote_get_r2d_reading(remote_ctrl_ptr);
+	 #endif
 
      switch (ctrl_ptr->state)
      {
@@ -192,12 +198,12 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
      {
 	  if (tx_time_get() >= ctrl_ptr->neg_air_start + TX_TIMER_TICKS_PER_SECOND/4)
 	  {
-	       LOG_INFO(log_h, "Neg AIR closed, turning on inverter\n");
+		LOG_INFO(log_h, "Neg AIR closed, turning on inverter\n");
 
-	       ctrl_ptr->inverter_pwr = true;
+		ctrl_ptr->inverter_pwr = true;
 
-	       next_state = CTRL_STATE_PRECHARGE_WAIT;
-	       ctrl_ptr->precharge_start = tx_time_get();
+		next_state = CTRL_STATE_PRECHARGE_WAIT;
+		ctrl_ptr->precharge_start = tx_time_get();
 	  }
 
 	  break;
@@ -211,7 +217,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	
 	  if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
 	  {
+		#ifdef VCU_SIMULATION_MODE:
+			next_state = CTRL_STATE_SIM_WAIT_TS_ON;
+		#else
 	       next_state = CTRL_STATE_R2D_WAIT;
+		#endif
 	       dash_clear_buttons(dash_ptr);
 	       LOG_INFO(log_h, "Precharge complete\n");
 	  }
@@ -234,38 +244,47 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       LOG_ERROR(log_h, "SHDN opened\n");
 	       next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
 	  }
-	  else if (dash_ptr->tson_flag || remote_get_ts_on_reading(remote_ctrl_ptr)) // TSON pressed, disable TS
+	  else if (dash_ptr->tson_flag) // TSON pressed, disable TS
 	  {
 	       dash_ptr->tson_flag = false;
 
 	       ctrl_ptr->inverter_pwr = false; // Turn off inverter
 	       trc_set_ts_on(GPIO_PIN_RESET); // Turn off AIRs
 
-	       next_state = CTRL_STATE_TS_BUTTON_WAIT;
+		#ifdef VCU_SIMULATION_MODE
+		   	next_state = CTRL_STATE_SIM_WAIT_TS_OFF;
+		#else
+	       	next_state = CTRL_STATE_TS_BUTTON_WAIT;
+		#endif
 	  }
 	  else if (dash_ptr->r2d_flag) // R2D pressed
 	  {
+		#ifndef VCU_SIMULATION_MODE:
 	       dash_ptr->r2d_flag = false;
+		#endif
 
 	       status_t result = ctrl_get_bps_reading(ctrl_ptr->tick_ptr,
 				 					remote_ctrl_ptr,
 						      &ctrl_ptr->bps_reading);
-	  
+
 	       bool r2d = false;
 
 	       if (result == STATUS_OK)
 	       {
 		    r2d = (config_ptr->r2d_requires_brake) ?
 			 (ctrl_ptr->bps_reading > BPS_ON_THRESH) : 1;
-	       
+
 		    if (r2d)
 		    {
 			 dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
 			 pm100_disable(ctrl_ptr->pm100_ptr);
 			 rtds_activate(ctrl_ptr->rtds_config_ptr, log_h);
-			 
-			 next_state = CTRL_STATE_TS_ON;
-			 
+
+			#ifdef VCU_SIMULATION_MODE
+			 	next_state = CTRL_STATE_SIM_WAIT_R2D_ON;
+			#else
+			 	next_state = CTRL_STATE_TS_ON;
+			#endif
 			 LOG_INFO(log_h, "R2D active\n");
 		    }
 	       }
@@ -275,7 +294,6 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 		    next_state = CTRL_STATE_TS_ACTIVATION_FAILURE;
 	       }
 	  }
-	  
 	  break;
      }
 
@@ -295,7 +313,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  if (dash_ptr->r2d_flag)
 	  {
 	       dash_clear_buttons(dash_ptr);
+		#ifdef VCU_SIMULATION_MODE
+		   	next_state = CTRL_STATE_SIM_WAIT_R2D_OFF;
+		#else
 	       next_state = CTRL_STATE_R2D_OFF;
+		#endif
 	  }
 	  else if (apps_status == STATUS_OK && bps_status == STATUS_OK)
 	  {
@@ -317,12 +339,32 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	       {
 		    ctrl_ptr->apps_bps_start = tx_time_get();
 	       }
-				#ifdef VCU_SIMULATION_MODE
-            ctrl_ptr->torque_request = remote_get_torque_reading(remote_ctrl_ptr);
+			#ifdef VCU_SIMULATION_MODE
+				#ifndef VCU_SIMULATION_ON_POWER
+            		ctrl_ptr->torque_request = remote_get_torque_reading(remote_ctrl_ptr);
 				#else
-	       ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-							   ctrl_ptr->apps_reading);
+		   			uint16_t power = remote_get_power_reading(remote_ctrl_ptr);
+
+					int16_t motor_speed = pm100_motor_speed(ctrl_ptr->pm100_ptr);
+					uint16_t rad_s = 1;
+
+					// this if to be removed
+					if(motor_speed < 10)
+					{
+						motor_speed = 10;
+					}
+					//rpm to rad/s
+					rad_s = (uint16_t)(motor_speed * 0.10472);
+					if(rad_s == 0)
+						rad_s = 1;
+					ctrl_ptr->torque_request = (uint16_t) (power / rad_s);
+					if(ctrl_ptr->torque_request > 1500)
+						ctrl_ptr->torque_request = 1500;
 				#endif
+			#else
+	       		ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
+							   ctrl_ptr->apps_reading);
+			#endif
 	       
 	       LOG_INFO(log_h, "ADC: %d, Torque: %d\n",
 			ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
@@ -374,10 +416,14 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  else if (tx_time_get() >= ctrl_ptr->motor_torque_zero_start +
 		   TX_TIMER_TICKS_PER_SECOND/2)
 	  {
-	       next_state = CTRL_STATE_R2D_WAIT;
+		   #ifdef VCU_SIMULATION_MODE
+		   		next_state = CTRL_STATE_SIM_WAIT_R2D_OFF;
+			#else
+				next_state = CTRL_STATE_R2D_WAIT;
+		   #endif
+
 	       dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
 	  }
-		   
 	  break;
      }
      
@@ -450,7 +496,47 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 	  break;
      }
 
-     default:
+	// Needed when in simulation mode to avoid the TS being turned on again
+	case (CTRL_STATE_SIM_WAIT_TS_OFF):
+	{
+		if(!dash_ptr->tson_flag)
+		{
+			next_state = CTRL_STATE_TS_BUTTON_WAIT;
+		}
+		break;
+	}
+
+	// Needed when in simulation mode to avoid the TS being turned off again
+	case (CTRL_STATE_SIM_WAIT_TS_ON):
+	{
+	if(!dash_ptr->tson_flag)
+	{
+		next_state = CTRL_STATE_R2D_WAIT;
+	}
+	break;
+	}
+
+	// Needed when in simulation mode to avoid the R2D being turned off again
+	case (CTRL_STATE_SIM_WAIT_R2D_ON):
+	{
+	if(!dash_ptr->r2d_flag)
+	{
+		next_state = CTRL_STATE_TS_ON;
+	}
+	break;
+	}
+
+	// Needed when in simulation mode to avoid the R2D being turned on again
+	case (CTRL_STATE_SIM_WAIT_R2D_OFF):
+	{
+	if(!dash_ptr->r2d_flag)
+	{
+		next_state = CTRL_STATE_R2D_WAIT;
+	}
+	break;
+	}
+
+	default:
 	  break;
      }
 

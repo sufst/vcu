@@ -42,6 +42,7 @@ status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_
 uint8_t remote_get_r2d_reading(remote_ctrl_context_t *remote_ctrl_ptr);
 uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr);
 uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr);
+uint16_t remote_get_power_reading(remote_ctrl_context_t *remote_ctrl_ptr);
 
 void remote_ctrl_update_canbc_states(remote_ctrl_context_t *remote_ctrl_ptr);
 

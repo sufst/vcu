@@ -18,7 +18,14 @@
 
 #include "torque_map_funcs.h"
 
+// Should be defined if the VCU is in simulation mode
+// When not defined(commented out) - the VCU is in normal mode(using apps and bps sensors)
 #define VCU_SIMULATION_MODE
+
+// Should be defined if the simulation mode is via power sent by remote control;
+// When not defined(commented out) - the simulation mode is via torque sent by remote control
+// Doesn't matter if VCU_SIMULATION_MODE is not defined
+// #define VCU_SIMULATION_ON_POWER
 
 /**
  * @brief  Threads
@@ -144,7 +151,8 @@ typedef struct
      config_thread_t thread;
      uint16_t period;
      uint32_t broadcast_timeout_ticks;
-     uint16_t torque_limit; //Nm, limit torque as a precaution
+     uint16_t torque_limit;   //Nm, limit torque as a precaution
+     uint16_t power_limit;    //W, limit power as a precaution
 } config_remote_ctrl_t;
 
 /**

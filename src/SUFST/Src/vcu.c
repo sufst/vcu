@@ -104,18 +104,6 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     }
 
-    // remote control
-    if(status == STATUS_OK)
-    {
-        status = remote_ctrl_init(
-            &vcu_ptr->remote_ctrl,
-            &vcu_ptr->log,
-            &vcu_ptr->canbc,
-            app_mem_pool,
-            &vcu_ptr->rtcan_s,
-            &vcu_ptr->config_ptr->remote_ctrl);
-    }
-
     // control
     if (status == STATUS_OK)
     {
@@ -130,6 +118,18 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->config_ptr->ctrl,
                            &vcu_ptr->config_ptr->rtds,
                            &vcu_ptr->config_ptr->torque_map);
+    }
+
+    // remote control
+    if(status == STATUS_OK)
+    {
+        status = remote_ctrl_init(
+            &vcu_ptr->remote_ctrl,
+            &vcu_ptr->log,
+            &vcu_ptr->canbc,
+            app_mem_pool,
+            &vcu_ptr->rtcan_s,
+            &vcu_ptr->config_ptr->remote_ctrl);
     }
 
     // pm100

@@ -49,6 +49,7 @@ typedef struct
      struct can_c_pm100_temperature_set_1_t temp1;
      struct can_c_pm100_temperature_set_2_t temp2;
      struct can_c_pm100_temperature_set_3_t temp3;
+     struct can_c_pm100_motor_position_info_t info;
      uint16_t error;
      const config_pm100_t* config_ptr;
 } pm100_context_t;
@@ -67,6 +68,7 @@ status_t pm100_lvs_off(pm100_context_t* pm100_ptr);
 bool pm100_is_precharged(pm100_context_t* pm100_ptr);
 int16_t pm100_motor_temp(pm100_context_t *pm100_ptr);
 int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr);
+int16_t pm100_motor_speed(pm100_context_t *pm100_ptr);
 status_t pm100_disable(pm100_context_t* pm100_ptr);
 status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque);
 

@@ -137,7 +137,8 @@ void pm100_thread_entry(ULONG input)
 	 CAN_C_PM100_FAULT_CODES_FRAME_ID,
 	 CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
 	 CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
-	 CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID
+	 CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID,
+     CAN_C_PM100_MOTOR_POSITION_INFO_FRAME_ID
     };
 
     for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
@@ -150,6 +151,7 @@ void pm100_thread_entry(ULONG input)
         if (status != RTCAN_OK)
         {
             // TODO: update broadcast states with error
+            LOG_ERROR(log_h, "Could not subscribe on %d message. Terminating thread\n");
             tx_thread_terminate(&pm100_ptr->thread);
         }
     }
@@ -167,6 +169,7 @@ void pm100_thread_entry(ULONG input)
             // timed out
             // TODO: error
             pm100_ptr->broadcasts_valid = false;
+            LOG_INFO(log_h, "PM100 broadcast timeout\n");
         }
         else if (status == TX_SUCCESS && msg_ptr != NULL)
         {
@@ -224,7 +227,6 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
 
     case CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID:
     {
-	 LOG_INFO(log_h, "TEMP%d\n", 1);
 	 can_c_pm100_temperature_set_1_unpack(&pm100_ptr->temp1,
 					      msg_ptr->data,
 					      msg_ptr->length);
@@ -248,7 +250,15 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
 					      msg_ptr->length);
 	 
 	 break;
-    }   
+    }
+
+    case CAN_C_PM100_MOTOR_POSITION_INFO_FRAME_ID:
+    {
+        can_c_pm100_motor_position_info_unpack(&pm100_ptr->info,
+                            msg_ptr->data,
+                            msg_ptr->length);
+        break;
+    }
 
     default:
         break;
@@ -344,6 +354,21 @@ int16_t pm100_motor_temp(pm100_context_t *pm100_ptr)
      }
 
      return motor_temp;
+}
+
+int16_t pm100_motor_speed(pm100_context_t *pm100_ptr)
+{
+    int16_t speed = 0;
+
+    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
+
+    if (tx_status == TX_SUCCESS)
+    {
+        speed = pm100_ptr->info.pm100_motor_speed;
+        tx_mutex_put(&pm100_ptr->state_mutex);
+    }
+
+    return speed;
 }
 
 status_t pm100_lvs_off(pm100_context_t* pm100_ptr)

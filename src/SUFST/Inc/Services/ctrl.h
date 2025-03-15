@@ -50,7 +50,11 @@ typedef enum
      CTRL_STATE_TS_RUN_FAULT,
      CTRL_STATE_SPIN,
      CTRL_STATE_APPS_SCS_FAULT,
-     CTRL_STATE_APPS_BPS_FAULT
+     CTRL_STATE_APPS_BPS_FAULT,
+     CTRL_STATE_SIM_WAIT_TS_OFF,
+     CTRL_STATE_SIM_WAIT_TS_ON,
+     CTRL_STATE_SIM_WAIT_R2D_OFF,
+     CTRL_STATE_SIM_WAIT_R2D_ON,
 } ctrl_state_t;
 
 /**
@@ -63,6 +67,7 @@ typedef struct
      uint16_t apps_reading;   // APPS reading (% * 10)
      uint16_t bps_reading;    // BPS reading (% * 10)
      int16_t sagl_reading;    // steering angle reading (deg * 10)
+     int16_t motor_speed_reading; // motor speed reading (rpm)
      uint16_t torque_request; // last torque request
      uint8_t shdn_reading;
      int16_t motor_temp;
@@ -76,7 +81,6 @@ typedef struct
      uint32_t precharge_start; // precharge start time in ticks
      uint32_t motor_torque_zero_start;
      uint32_t apps_bps_start;
-     
      dash_context_t* dash_ptr;   // dash service
      pm100_context_t* pm100_ptr; // PM100 service
      canbc_context_t* canbc_ptr; // CANBC service
