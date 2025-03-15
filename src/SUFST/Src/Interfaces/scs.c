@@ -13,7 +13,7 @@
 /*
  * internal function prototypes
  */
-static uint16_t map_adc_reading(scs_t* scs_ptr);
+static uint16_t map_adc_reading(scs_t *scs_ptr);
 static bool validate(uint16_t adc_reading,
                      uint16_t max_adc_reading,
                      uint16_t min_adc_reading,
@@ -25,7 +25,7 @@ static bool validate(uint16_t adc_reading,
  * @param[in]   scs_ptr     Pointer to SCS instance
  * @param[in]   config_ptr  Configuration
  */
-status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr)
+status_t scs_create(scs_t *scs_ptr, const config_scs_t *config_ptr)
 {
     scs_ptr->config_ptr = config_ptr;
     scs_ptr->adc_reading = config_ptr->min_adc;
@@ -40,8 +40,8 @@ status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr)
     // pre-compute the scale factors and validation constants
     scs_ptr->scale_up = (adc_range < mapped_range);
     scs_ptr->scale_factor = scs_ptr->scale_up
-                                ? ((float) mapped_range / adc_range)
-                                : ((float) adc_range / mapped_range);
+                                ? ((float)mapped_range / adc_range)
+                                : ((float)adc_range / mapped_range);
     scs_ptr->max_bounds_diff = adc_range * config_ptr->outside_bounds_fraction;
 
     return STATUS_OK;
@@ -59,15 +59,14 @@ status_t scs_create(scs_t* scs_ptr, const config_scs_t* config_ptr)
  * @retval      STATUS_OK       SCS valid
  * @retval      STATUS_ERROR    SCS out of bounds, or HAL error
  */
-status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
+status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
 {
 
     status_t status = STATUS_OK;
-    ADC_HandleTypeDef* hadc = scs_ptr->config_ptr->hadc;
+    ADC_HandleTypeDef *hadc = scs_ptr->config_ptr->hadc;
 
     // read from the ADC and validate
-    if ((HAL_ADC_Start(hadc) == HAL_OK)
-        && (HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY) == HAL_OK))
+    if ((HAL_ADC_Start(hadc) == HAL_OK) && (HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY) == HAL_OK))
     {
         scs_ptr->adc_reading = HAL_ADC_GetValue(hadc);
         scs_ptr->is_valid = validate(scs_ptr->adc_reading,
@@ -106,7 +105,7 @@ status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
     return status;
 }
 
-uint16_t get_adc(scs_t* scs_ptr)
+uint16_t get_adc(scs_t *scs_ptr)
 {
     return scs_ptr->adc_reading;
 }
@@ -116,7 +115,7 @@ uint16_t get_adc(scs_t* scs_ptr)
  *
  * @param[in]   scs_ptr     Pointer to SCS instance
  */
-uint16_t map_adc_reading(scs_t* scs_ptr)
+uint16_t map_adc_reading(scs_t *scs_ptr)
 {
     uint16_t clipped = clip_to_range(scs_ptr->adc_reading,
                                      scs_ptr->config_ptr->min_adc,

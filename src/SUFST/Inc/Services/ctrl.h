@@ -27,11 +27,11 @@
 /*
  * error codes
  */
-#define CTRL_ERROR_NONE               0x00
-#define CTRL_ERROR_INIT               0x01 // service failed to initialise
-#define CTRL_ERROR_TS_READY_TIMEOUT   0x02 // TS ready from TRC timed out
-#define CTRL_ERROR_PRECHARGE_TIMEOUT  0x04 // precharge timed out
-#define CTRL_ERROR_TRC_RUN_FAULT      0x08 // TRC faulted at runtime
+#define CTRL_ERROR_NONE 0x00
+#define CTRL_ERROR_INIT 0x01               // service failed to initialise
+#define CTRL_ERROR_TS_READY_TIMEOUT 0x02   // TS ready from TRC timed out
+#define CTRL_ERROR_PRECHARGE_TIMEOUT 0x04  // precharge timed out
+#define CTRL_ERROR_TRC_RUN_FAULT 0x08      // TRC faulted at runtime
 #define CTRL_ERROR_INVERTER_RUN_FAULT 0x10 // inverter faulted at runtime
 
 /**
@@ -62,17 +62,17 @@ typedef enum
  */
 typedef struct
 {
-     ctrl_state_t state;      // state machine state
-     TX_THREAD thread;        // service thread
-     uint16_t apps_reading;   // APPS reading (% * 10)
-     uint16_t bps_reading;    // BPS reading (% * 10)
-     int16_t sagl_reading;    // steering angle reading (deg * 10)
+     ctrl_state_t state;          // state machine state
+     TX_THREAD thread;            // service thread
+     uint16_t apps_reading;       // APPS reading (% * 10)
+     uint16_t bps_reading;        // BPS reading (% * 10)
+     int16_t sagl_reading;        // steering angle reading (deg * 10)
      int16_t motor_speed_reading; // motor speed reading (rpm)
-     uint16_t torque_request; // last torque request
+     uint16_t torque_request;     // last torque request
      uint8_t shdn_reading;
      int16_t motor_temp;
      int16_t inv_temp;
-     
+
      bool inverter_pwr;
      bool pump_pwr;
      bool fan_pwr;
@@ -81,15 +81,15 @@ typedef struct
      uint32_t precharge_start; // precharge start time in ticks
      uint32_t motor_torque_zero_start;
      uint32_t apps_bps_start;
-     dash_context_t* dash_ptr;   // dash service
-     pm100_context_t* pm100_ptr; // PM100 service
-     canbc_context_t* canbc_ptr; // CANBC service
-     tick_context_t *tick_ptr; // tick thread (reads certain sensors)
+     dash_context_t *dash_ptr;               // dash service
+     pm100_context_t *pm100_ptr;             // PM100 service
+     canbc_context_t *canbc_ptr;             // CANBC service
+     tick_context_t *tick_ptr;               // tick thread (reads certain sensors)
      remote_ctrl_context_t *remote_ctrl_ptr; // tick thread (reads certain sensors)
-     torque_map_t torque_map;    // torque map (APPS -> torque request)
+     torque_map_t torque_map;                // torque map (APPS -> torque request)
 
-     const config_ctrl_t* config_ptr;      // config
-     const config_rtds_t* rtds_config_ptr; // RTDS config
+     const config_ctrl_t *config_ptr;      // config
+     const config_rtds_t *rtds_config_ptr; // RTDS config
 
      uint8_t error; // error code
 
@@ -98,16 +98,16 @@ typedef struct
 /*
  * public functions
  */
-status_t ctrl_init( ctrl_context_t* ctrl_ptr,
-                    dash_context_t* dash_ptr,
-                    pm100_context_t* pm100_ptr,
-                    tick_context_t *tick_ptr,
-                    remote_ctrl_context_t *remote_ctrl_ptr,
-                    canbc_context_t* canbc_ptr,
-                    log_context_t* log_ptr,
-                    TX_BYTE_POOL* stack_pool_ptr,
-                    const config_ctrl_t* config_ptr,
-                    const config_rtds_t* rtds_config_ptr,
-                    const config_torque_map_t* torque_map_config_ptr);
+status_t ctrl_init(ctrl_context_t *ctrl_ptr,
+                   dash_context_t *dash_ptr,
+                   pm100_context_t *pm100_ptr,
+                   tick_context_t *tick_ptr,
+                   remote_ctrl_context_t *remote_ctrl_ptr,
+                   canbc_context_t *canbc_ptr,
+                   log_context_t *log_ptr,
+                   TX_BYTE_POOL *stack_pool_ptr,
+                   const config_ctrl_t *config_ptr,
+                   const config_rtds_t *rtds_config_ptr,
+                   const config_torque_map_t *torque_map_config_ptr);
 
 #endif

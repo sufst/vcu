@@ -5,16 +5,15 @@
  *
  * @param[in]   apps_ptr    APPS context
  */
-status_t apps_init(apps_context_t* apps_ptr,
-		   log_context_t *log_ptr, const config_apps_t* config_ptr)
+status_t apps_init(apps_context_t *apps_ptr,
+                   log_context_t *log_ptr, const config_apps_t *config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
     apps_ptr->scs_error = SCS_ERROR_NONE;
     apps_ptr->log_ptr = log_ptr;
-    
+
     // initialise both SCS instances
-    status_t status
-        = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
+    status_t status = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
 
     if (status == STATUS_OK)
     {
@@ -35,7 +34,7 @@ status_t apps_init(apps_context_t* apps_ptr,
  * @retval  STATUS_OK       Neither SCS has faulted and both APPS signals agree
  * @retval  STATUS_ERROR    SCS fault, or signals disagree
  */
-status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
+status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
 {
     status_t status = STATUS_OK;
     uint16_t reading_1 = 0;
@@ -60,7 +59,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     if (status_1 != STATUS_OK)
     {
-	 LOG_INFO(apps_ptr->log_ptr, "APPS1 error; ");
+        LOG_INFO(apps_ptr->log_ptr, "APPS1 error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS1;
     }
@@ -69,7 +68,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     if (status_2 != STATUS_OK)
     {
-	 LOG_INFO(apps_ptr->log_ptr, "APPS2 error; ");
+        LOG_INFO(apps_ptr->log_ptr, "APPS2 error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS2;
     }
@@ -78,11 +77,11 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 
     // // check for discrepancy
     uint16_t diff = (reading_1 > reading_2) ? (reading_1 - reading_2)
-                                             : (reading_2 - reading_1);
+                                            : (reading_2 - reading_1);
 
     if (diff > apps_ptr->config_ptr->max_discrepancy)
     {
-	 LOG_INFO(apps_ptr->log_ptr, "DIFF error; ");
+        LOG_INFO(apps_ptr->log_ptr, "DIFF error; ");
         status = STATUS_ERROR;
         apps_ptr->scs_error |= SCS_ERROR_APPS_DISCREPANCY;
     }
@@ -90,7 +89,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     // return reading
     if (status == STATUS_OK)
     {
-	 *reading_ptr = reading_2; //(reading_1 + reading_2) / 2;
+        *reading_ptr = reading_2; //(reading_1 + reading_2) / 2;
     }
     else
     {
@@ -98,7 +97,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
     }
 
     LOG_INFO(apps_ptr->log_ptr, "\n");
-    
+
     return status;
 }
 
@@ -110,7 +109,7 @@ status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
  *
  * @param[in]   apps_ptr    APPS context
  */
-bool apps_check_plausibility(apps_context_t* apps_ptr)
+bool apps_check_plausibility(apps_context_t *apps_ptr)
 {
     uint16_t reading = 0;
     status_t status = apps_read(apps_ptr, &reading);

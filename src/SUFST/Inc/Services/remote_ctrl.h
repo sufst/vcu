@@ -1,3 +1,10 @@
+/*****************************************************************************
+ * @file    remote_ctrl.h
+ * @author  Dmytro Avdieienko (@Avdieienko, da3e22@soton.ac.uk)
+ * @brief   Remote control service
+ * @details Thread-safe remote control service implementation intended for use on the dyno
+ ****************************************************************************/
+
 #ifndef REMOTE_CTRL_H
 #define REMOTE_CTRL_H
 
@@ -13,8 +20,7 @@
 #include "bps.h"
 #include "apps.h"
 
-#define REMOTE_CTRL_RX_QUEUE_SIZE           2 // 2 items (8 bytes)
-
+#define REMOTE_CTRL_RX_QUEUE_SIZE 2 // 2 items (8 bytes)
 
 typedef struct
 {
@@ -22,7 +28,7 @@ typedef struct
     TX_MUTEX sensor_mutex;
     const config_remote_ctrl_t *config_ptr;
     canbc_context_t *canbc_ptr;
-    rtcan_handle_t* rtcan_s_ptr;
+    rtcan_handle_t *rtcan_s_ptr;
     TX_QUEUE can_rx_queue;
     ULONG can_rx_queue_mem[REMOTE_CTRL_RX_QUEUE_SIZE];
 
@@ -31,11 +37,11 @@ typedef struct
 } remote_ctrl_context_t;
 
 status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
-            log_context_t *log_ptr,
-            canbc_context_t *canbc_ptr,
-            TX_BYTE_POOL *stack_pool_ptr,
-            rtcan_handle_t *rtcan_s_prt,
-            const config_remote_ctrl_t *config_ptr);
+                          log_context_t *log_ptr,
+                          canbc_context_t *canbc_ptr,
+                          TX_BYTE_POOL *stack_pool_ptr,
+                          rtcan_handle_t *rtcan_s_prt,
+                          const config_remote_ctrl_t *config_ptr);
 
 status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result);
 status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result);
