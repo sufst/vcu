@@ -91,8 +91,11 @@ static const config_t config_instance = {
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = true,
-	.apps_bps_low_threshold = 5,
-	.apps_bps_high_threshold = 20,
+        .bps_on_threshold = 5,
+	    .apps_bps_low_threshold = 5,
+	    .apps_bps_high_threshold = 20,
+        .fan_on_threshold = 60, // to be adjusted to the actual value
+        .fan_off_threshold = 50, // to be adjusted to the actual value
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),

@@ -27,10 +27,8 @@
 #define PM100_SPEED_MODE_DISABLE 0x0
 #define PM100_SPEED_MODE_ENABLE 0x1
 
-#define PM100_DIRECTION_FORWARD 0x1
-#define PM100_DIRECTION_REVERSE 0x0
-
-static log_context_t *log_h;
+#define PM100_DIRECTION_FORWARD            0x1
+#define PM100_DIRECTION_REVERSE            0x0
 
 /*
  * internal function prototypes
@@ -48,19 +46,17 @@ static void process_broadcast(pm100_context_t *pm100_ptr,
  * @param[in]   rtcan_s_ptr     RTCAN S instance for sending precharge cmd
  * @param[in]   config_ptr      Configuration
  */
-status_t pm100_init(pm100_context_t *pm100_ptr,
-                    log_context_t *log_ptr,
-                    TX_BYTE_POOL *stack_pool_ptr,
-                    rtcan_handle_t *rtcan_c_ptr,
-                    rtcan_handle_t *rtcan_s_ptr,
-                    const config_pm100_t *config_ptr)
+status_t pm100_init(pm100_context_t* pm100_ptr,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    rtcan_handle_t* rtcan_c_ptr,
+                    rtcan_handle_t* rtcan_s_ptr,
+                    const config_pm100_t* config_ptr)
 {
     pm100_ptr->config_ptr = config_ptr;
     pm100_ptr->rtcan_c_ptr = rtcan_c_ptr;
     pm100_ptr->rtcan_s_ptr = rtcan_s_ptr;
     pm100_ptr->error = PM100_ERROR_NONE;
     pm100_ptr->broadcasts_valid = false;
-    log_h = log_ptr;
 
     status_t status = STATUS_OK;
 
@@ -238,6 +234,11 @@ void process_broadcast(pm100_context_t *pm100_ptr, const rtcan_msg_t *msg_ptr)
                                              msg_ptr->length);
 
         break;
+        can_c_pm100_temperature_set_2_unpack(&pm100_ptr->temp2,
+                                             msg_ptr->data,
+                                             msg_ptr->length);
+
+        break;
     }
 
     case CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID:
@@ -280,6 +281,7 @@ void process_broadcast(pm100_context_t *pm100_ptr, const rtcan_msg_t *msg_ptr)
 status_t pm100_lvs_on(pm100_context_t *pm100_ptr)
 {
     // UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
+    // UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
 
     return STATUS_OK;
 }
@@ -307,12 +309,26 @@ bool pm100_is_precharged(pm100_context_t *pm100_ptr)
     return broadcasts_valid && (vsm_state == PM100_VSM_STATE_PRECHARGE_COMPLETE || vsm_state == PM100_VSM_STATE_WAIT || vsm_state == PM100_VSM_STATE_READY || vsm_state == PM100_VSM_STATE_RUNNING);
 }
 
-int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr)
+int16_t pm100_max_inverter_temp(pm100_context_t* pm100_ptr)
 {
+    int16_t max_temp = 0;
     int16_t max_temp = 0;
 
     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
+    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
 
+    if (tx_status == TX_SUCCESS)
+    {
+        if (pm100_ptr->temp1.pm100_module_a > max_temp)
+            max_temp = pm100_ptr->temp1.pm100_module_a;
+        if (pm100_ptr->temp1.pm100_module_b > max_temp)
+            max_temp = pm100_ptr->temp1.pm100_module_b;
+        if (pm100_ptr->temp1.pm100_module_c > max_temp)
+            max_temp = pm100_ptr->temp1.pm100_module_c;
+        if (pm100_ptr->temp1.pm100_gate_driver_board > max_temp)
+            max_temp = pm100_ptr->temp1.pm100_gate_driver_board;
+        if (pm100_ptr->temp2.pm100_control_board_temperature > max_temp)
+            max_temp = pm100_ptr->temp2.pm100_control_board_temperature;
     if (tx_status == TX_SUCCESS)
     {
         if (pm100_ptr->temp1.pm100_module_a > max_temp)
@@ -328,20 +344,30 @@ int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr)
 
         tx_mutex_put(&pm100_ptr->state_mutex);
     }
+        tx_mutex_put(&pm100_ptr->state_mutex);
+    }
 
+    return max_temp;
     return max_temp;
 }
 
-int16_t pm100_motor_temp(pm100_context_t *pm100_ptr)
+int16_t pm100_motor_temp(pm100_context_t* pm100_ptr)
 {
     int16_t motor_temp = 0;
+    int16_t motor_temp = 0;
 
+    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
 
     if (tx_status == TX_SUCCESS)
     {
         motor_temp = pm100_ptr->temp3.pm100_motor_temperature;
+    if (tx_status == TX_SUCCESS)
+    {
+        motor_temp = pm100_ptr->temp3.pm100_motor_temperature;
 
+        tx_mutex_put(&pm100_ptr->state_mutex);
+    }
         tx_mutex_put(&pm100_ptr->state_mutex);
     }
 
@@ -378,7 +404,7 @@ status_t pm100_lvs_off(pm100_context_t *pm100_ptr)
  */
 status_t pm100_disable(pm100_context_t *pm100_ptr)
 {
-    LOG_INFO(log_h, "Sending PM100 Disable command\n");
+    LOG_INFO("Sending PM100 Disable command\n");
     rtcan_msg_t msg = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
@@ -430,14 +456,14 @@ status_t pm100_request_torque(pm100_context_t *pm100_ptr, uint16_t torque)
 
                 can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
-                LOG_INFO(log_h, "Sending torque request\n");
+                LOG_INFO("Sending torque request\n");
                 rtcan_status_t rtcan_status = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
                 status = (rtcan_status == RTCAN_OK) ? STATUS_OK : STATUS_ERROR;
             }
             else
             {
                 // to get out of lockout, need to send a disable command
-                LOG_WARN(log_h, "Still in lockout at torque request\n");
+                LOG_WARN("Still in lockout at torque request\n");
                 status = pm100_disable(pm100_ptr);
             }
         }
@@ -446,8 +472,8 @@ status_t pm100_request_torque(pm100_context_t *pm100_ptr, uint16_t torque)
     }
     else
     {
-        LOG_ERROR(log_h, "Failed to send torque request\n");
-        (void)pm100_disable(pm100_ptr); // just in case
+        LOG_ERROR("Failed to send torque request\n");
+        (void) pm100_disable(pm100_ptr); // just in case
         status = STATUS_ERROR;
     }
 

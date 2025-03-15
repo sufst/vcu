@@ -14,10 +14,10 @@
  * internal function prototypes
  */
 static uint16_t map_adc_reading(scs_t *scs_ptr);
-static bool validate(uint16_t adc_reading,
-                     uint16_t max_adc_reading,
-                     uint16_t min_adc_reading,
-                     uint32_t max_diff);
+static scs_status_t validate(uint16_t adc_reading,
+                             uint16_t max_adc_reading,
+                             uint16_t min_adc_reading,
+                             uint32_t max_diff);
 
 /**
  * @brief       Create new safety critical signal
@@ -62,39 +62,41 @@ status_t scs_create(scs_t *scs_ptr, const config_scs_t *config_ptr)
 status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
 {
 
-    status_t status = STATUS_OK;
     ADC_HandleTypeDef *hadc = scs_ptr->config_ptr->hadc;
 
     // read from the ADC and validate
     if ((HAL_ADC_Start(hadc) == HAL_OK) && (HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY) == HAL_OK))
     {
         scs_ptr->adc_reading = HAL_ADC_GetValue(hadc);
-        scs_ptr->is_valid = validate(scs_ptr->adc_reading,
-                                     scs_ptr->config_ptr->max_adc,
-                                     scs_ptr->config_ptr->min_adc,
-                                     scs_ptr->max_bounds_diff);
+        scs_ptr->status_verbose = validate(scs_ptr->adc_reading,
+                                           scs_ptr->config_ptr->max_adc,
+                                           scs_ptr->config_ptr->min_adc,
+                                           scs_ptr->max_bounds_diff);
+        scs_ptr->is_valid
+            = scs_ptr->status_verbose == STATUS_OK
+              || scs_ptr->status_verbose == STATUS_THRESHOLD_WARNING;
 
         if (scs_ptr->is_valid)
         {
             // everything is ok
-            status = STATUS_OK;
+            scs_ptr->status = STATUS_OK;
             scs_ptr->invalid_start_tick = 0;
             scs_ptr->mapped_reading = map_adc_reading(scs_ptr);
             *reading_ptr = scs_ptr->mapped_reading;
         }
         else
         {
-            status = STATUS_ERROR;
+            scs_ptr->status = STATUS_ERROR;
         }
     }
     else
     {
         // TODO: HAL errors here behave as SCS errors, consider if they should
         //       be treated differently for diagnostics
-        status = STATUS_ERROR;
+        scs_ptr->status = STATUS_ERROR;
     }
 
-    if (status != STATUS_OK)
+    if (scs_ptr->status != STATUS_OK)
     {
         scs_ptr->invalid_start_tick = tx_time_get();
         scs_ptr->is_valid = false;
@@ -102,7 +104,7 @@ status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
         scs_ptr->mapped_reading = scs_ptr->config_ptr->min_mapped;
     }
 
-    return status;
+    return scs_ptr->status;
 }
 
 uint16_t get_adc(scs_t *scs_ptr)
@@ -163,11 +165,12 @@ uint16_t map_adc_reading(scs_t *scs_ptr)
  * @return      true                The signal is valid
  * @return      false               The signal is invalid
  */
-bool validate(uint16_t adc_reading,
-              uint16_t max_adc_reading,
-              uint16_t min_adc_reading,
-              uint32_t max_diff)
+scs_status_t validate(uint16_t adc_reading,
+                      uint16_t max_adc_reading,
+                      uint16_t min_adc_reading,
+                      uint32_t max_diff)
 {
+    status_t status = STATUS_THRESHOLD_ERROR;
     uint16_t low_diff = 0;
     uint16_t high_diff = 0;
 
@@ -181,5 +184,14 @@ bool validate(uint16_t adc_reading,
         high_diff = adc_reading - max_adc_reading;
     }
 
-    return (low_diff < max_diff) && (high_diff < max_diff);
+    if (!low_diff && !high_diff)
+    {
+        status = STATUS_OK;
+    }
+    else if ((low_diff < max_diff) && (high_diff < max_diff))
+    {
+        status = STATUS_THRESHOLD_WARNING;
+    }
+
+    return status;
 }

@@ -31,7 +31,29 @@ status_t bps_init(bps_context_t *bps_ptr, const config_bps_t *config_ptr)
  */
 status_t bps_read(bps_context_t *bps_ptr, uint16_t *reading_ptr)
 {
-    return scs_read(&bps_ptr->signal, reading_ptr);
+    status_t status = scs_read(&bps_ptr->signal, reading_ptr);
+    scs_status_t status_verbose = bps_ptr->signal.status_verbose;
+
+    if (status != STATUS_OK)
+    {
+        if (status_verbose == STATUS_THRESHOLD_ERROR)
+        {
+            LOG_INFO("BPS threshold error; ");
+        }
+        else
+        {
+            LOG_INFO("BPS unknown error; ");
+        }
+        status = STATUS_ERROR;
+    }
+    else if (status_verbose == STATUS_THRESHOLD_WARNING)
+    {
+        LOG_INFO("BPS threshold warning; ");
+    }
+
+    LOG_INFO("BPS reading: %d; ", *reading_ptr);
+
+    return status;
 }
 
 /**
@@ -50,4 +72,25 @@ bool bps_fully_pressed(bps_context_t *bps_ptr)
     bool above_threshold = (reading > bps_ptr->fully_pressed_threshold);
 
     return (status == STATUS_OK) && above_threshold;
+}
+
+/**
+ * @brief
+ *
+ * @param[in]   bps_ptr     BPS context
+ *
+ * @retval  true    BPS is pressed
+ * @retval  false   BPS is not pressed, or SCS fault
+ */
+bool bps_valid(bps_context_t* bps_ptr)
+{
+    uint16_t reading = 0;
+    status_t status = bps_read(bps_ptr, &reading);
+    // if (status == STATUS_OK){
+    //     if (reading != 0){
+    //         return false;
+    //     }
+    // }
+    // return true ;
+    return (status == STATUS_OK) && (reading != 0);
 }

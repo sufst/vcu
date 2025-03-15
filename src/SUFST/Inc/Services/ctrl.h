@@ -19,8 +19,8 @@
 #include "dash.h"
 #include "log.h"
 #include "pm100.h"
-#include "tick.h"
 #include "status.h"
+#include "tick.h"
 #include "torque_map.h"
 #include "remote_ctrl.h"
 
@@ -72,6 +72,7 @@ typedef struct
      uint8_t shdn_reading;
      int16_t motor_temp;
      int16_t inv_temp;
+     int8_t max_temp;
 
      bool inverter_pwr;
      bool pump_pwr;
@@ -91,7 +92,7 @@ typedef struct
      const config_ctrl_t *config_ptr;      // config
      const config_rtds_t *rtds_config_ptr; // RTDS config
 
-     uint8_t error; // error code
+    uint8_t error; // error code
 
 } ctrl_context_t;
 
@@ -104,7 +105,6 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    tick_context_t *tick_ptr,
                    remote_ctrl_context_t *remote_ctrl_ptr,
                    canbc_context_t *canbc_ptr,
-                   log_context_t *log_ptr,
                    TX_BYTE_POOL *stack_pool_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,

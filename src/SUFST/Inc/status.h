@@ -13,4 +13,12 @@ typedef enum
     STATUS_ERROR
 } status_t;
 
+typedef enum
+{
+    STATUS_THRESHOLD_OK,
+    STATUS_THRESHOLD_MISMATCH,
+    STATUS_THRESHOLD_WARNING,
+    STATUS_THRESHOLD_ERROR
+} scs_status_t;
+
 #endif

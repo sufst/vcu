@@ -58,7 +58,6 @@ typedef struct
  * public functions
  */
 status_t pm100_init(pm100_context_t* pm100_ptr,
-                    log_context_t* log_ptr,
                     TX_BYTE_POOL* stack_pool_ptr,
                     rtcan_handle_t* rtcan_c_ptr,
                     rtcan_handle_t* rtcan_s_ptr,

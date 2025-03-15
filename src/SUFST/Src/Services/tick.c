@@ -32,23 +32,21 @@ static void tick_thread_entry(ULONG input)
      }
 }
 
-status_t tick_init(tick_context_t *tick_ptr,
-                   log_context_t *log_ptr,
-                   canbc_context_t *canbc_ptr,
-                   TX_BYTE_POOL *stack_pool_ptr,
-                   const config_tick_t *config_ptr,
-                   const config_apps_t *apps_config_ptr,
-                   const config_bps_t *bps_config_ptr)
+status_t tick_init(tick_context_t* tick_ptr,
+                   canbc_context_t* canbc_ptr,
+                   TX_BYTE_POOL* stack_pool_ptr,
+                   const config_tick_t* config_ptr,
+                   const config_apps_t* apps_config_ptr,
+                   const config_bps_t* bps_config_ptr)
 {
-     tick_ptr->config_ptr = config_ptr;
-     tick_ptr->canbc_ptr = canbc_ptr;
-     tick_ptr->log_ptr = log_ptr;
+    tick_ptr->config_ptr = config_ptr;
+    tick_ptr->canbc_ptr = canbc_ptr;
 
-     // Assume error so that it won't proceed without at least 1 reading
-     tick_ptr->bps_status = STATUS_ERROR;
-     tick_ptr->apps_status = STATUS_ERROR;
+    // Assume error so that it won't proceed without at least 1 reading
+    tick_ptr->bps_status = STATUS_ERROR;
+    tick_ptr->apps_status = STATUS_ERROR;
 
-     status_t status = STATUS_OK;
+    status_t status = STATUS_OK;
 
      void *stack_ptr = NULL;
      UINT tx_status = tx_byte_allocate(stack_pool_ptr,
@@ -66,6 +64,16 @@ status_t tick_init(tick_context_t *tick_ptr,
      {
           status = apps_init(&tick_ptr->apps, log_ptr, apps_config_ptr);
      }
+    // create state mutex
+    if (tx_status == TX_SUCCESS)
+    {
+        tx_status = tx_mutex_create(&tick_ptr->sensor_mutex, NULL, TX_INHERIT);
+    }
+    // initialise the APPS and BPS
+    if (status == STATUS_OK)
+    {
+        status = apps_init(&tick_ptr->apps, apps_config_ptr);
+    }
 
      if (status == STATUS_OK)
      {
@@ -96,7 +104,7 @@ status_t tick_init(tick_context_t *tick_ptr,
           tx_thread_terminate(&tick_ptr->thread);
      }
 
-     return status;
+    return status;
 }
 
 void tick_update_canbc_states(tick_context_t *tick_ptr)
@@ -112,7 +120,7 @@ void tick_update_canbc_states(tick_context_t *tick_ptr)
      }
 }
 
-static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
+static status_t lock_tick_sensors(tick_context_t* tick_ptr, uint32_t timeout)
 {
      UINT tx_status = tx_mutex_get(&tick_ptr->sensor_mutex, timeout);
 
@@ -126,43 +134,43 @@ static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
      }
 }
 
-static void unlock_tick_sensors(tick_context_t *tick_ptr)
+static void unlock_tick_sensors(tick_context_t* tick_ptr)
 {
-     tx_mutex_put(&tick_ptr->sensor_mutex);
+    tx_mutex_put(&tick_ptr->sensor_mutex);
 }
 
-status_t tick_get_bps_reading(tick_context_t *tick_ptr, uint16_t *result)
+status_t tick_get_bps_reading(tick_context_t* tick_ptr, uint16_t* result)
 {
-     status_t status = STATUS_ERROR;
+    status_t status = STATUS_ERROR;
 
-     if (lock_tick_sensors(tick_ptr, 100) == STATUS_OK)
-     {
-          *result = tick_ptr->bps_reading;
-          status = tick_ptr->bps_status;
-          unlock_tick_sensors(tick_ptr);
-     }
-     else
-     {
-          LOG_ERROR(tick_ptr->log_ptr, "BPS locking error\n");
-     }
+    if (lock_tick_sensors(tick_ptr, 100) == STATUS_OK)
+    {
+        *result = tick_ptr->bps_reading;
+        status = tick_ptr->bps_status;
+        unlock_tick_sensors(tick_ptr);
+    }
+    else
+    {
+        LOG_ERROR("BPS locking error\n");
+    }
 
-     return status;
+    return status;
 }
 
-status_t tick_get_apps_reading(tick_context_t *tick_ptr, uint16_t *result)
+status_t tick_get_apps_reading(tick_context_t* tick_ptr, uint16_t* result)
 {
-     status_t status = STATUS_ERROR;
+    status_t status = STATUS_ERROR;
 
-     if (lock_tick_sensors(tick_ptr, 100) == STATUS_OK)
-     {
-          *result = tick_ptr->apps_reading;
-          status = tick_ptr->apps_status;
-          unlock_tick_sensors(tick_ptr);
-     }
-     else
-     {
-          LOG_ERROR(tick_ptr->log_ptr, "APPS locking error\n");
-     }
+    if (lock_tick_sensors(tick_ptr, 100) == STATUS_OK)
+    {
+        *result = tick_ptr->apps_reading;
+        status = tick_ptr->apps_status;
+        unlock_tick_sensors(tick_ptr);
+    }
+    else
+    {
+        LOG_ERROR("APPS locking error\n");
+    }
 
-     return status;
+    return status;
 }

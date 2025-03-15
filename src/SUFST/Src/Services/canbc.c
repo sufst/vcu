@@ -114,6 +114,16 @@ static void send_bc_messages(canbc_context_t *canbc_h)
                                    message.length);
             rtcan_transmit(canbc_h->rtcan_h, &message);
         }
+        // temps
+        {
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_TEMPS_FRAME_ID,
+                                   .length = CAN_S_VCU_TEMPS_LENGTH};
+
+            can_s_vcu_temps_pack(message.data,
+                                 &canbc_h->states.temps,
+                                 message.length);
+            rtcan_transmit(canbc_h->rtcan_h, &message);
+        }
 
         // errors
         {

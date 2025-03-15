@@ -13,6 +13,6 @@
 #include "log.h"
 #include "status.h"
 
-status_t rtds_activate(const config_rtds_t* config_ptr, log_context_t* log_h);
+status_t rtds_activate(const config_rtds_t* config_ptr);
 
 #endif
