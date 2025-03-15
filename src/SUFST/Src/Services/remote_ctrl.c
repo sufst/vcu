@@ -8,7 +8,6 @@
 #include "remote_ctrl.h"
 #include "clip_to_range.h"
 
-static log_context_t *log_h;
 static void remote_ctrl_thread_entry(ULONG input);
 static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_t timeout);
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr);
@@ -18,7 +17,6 @@ void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr);
 #define BPS_LIGHT_THRESH 5
 
 status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
-                          log_context_t *log_ptr,
                           canbc_context_t *canbc_ptr,
                           TX_BYTE_POOL *stack_pool_ptr,
                           rtcan_handle_t *rtcan_s_prt,
@@ -28,8 +26,6 @@ status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
     remote_ctrl_ptr->rtcan_s_ptr = rtcan_s_prt;
     remote_ctrl_ptr->canbc_ptr = canbc_ptr;
     can_s_vcu_simulate_init(&remote_ctrl_ptr->requests);
-
-    log_h = log_ptr;
 
     status_t status = STATUS_OK;
 
@@ -100,7 +96,7 @@ static void remote_ctrl_thread_entry(ULONG input)
 
             if (status != RTCAN_OK)
             {
-                LOG_ERROR(log_h, "Failed to subscribe to the CAN_S_VCU_SIMULATION message");
+                LOG_ERROR( "Failed to subscribe to the CAN_S_VCU_SIMULATION message");
                 tx_thread_terminate(&remote_ctrl_ptr->thread);
             }
 
@@ -122,29 +118,29 @@ static void remote_ctrl_thread_entry(ULONG input)
                     }
                     else
                     {
-                        LOG_ERROR(log_h, "Error locking sensors\n");
+                        LOG_ERROR( "Error locking sensors\n");
                     }
                 }
                 else if (status != TX_SUCCESS && msg_ptr == NULL)
                 {
                     if (status == TX_QUEUE_EMPTY)
                     {
-                        LOG_ERROR(log_h, "TX Broadcast Error & Msg_ptr is null\n");
+                        LOG_ERROR("TX Broadcast Error & Msg_ptr is null\n");
                     }
                     else
                     {
-                        LOG_ERROR(log_h, "TX Error & Msg_ptr is null\n");
+                        LOG_ERROR("TX Error & Msg_ptr is null\n");
                     }
                     reset_remote_ctrl_requests(remote_ctrl_ptr);
                 }
                 else if (status == TX_QUEUE_EMPTY)
                 {
-                    LOG_ERROR(log_h, "Broadcast timeout\n");
+                    LOG_ERROR("Broadcast timeout\n");
                     reset_remote_ctrl_requests(remote_ctrl_ptr);
                 }
                 else
                 {
-                    LOG_ERROR(log_h, "Broadcast Error\n");
+                    LOG_ERROR("Broadcast Error\n");
                     reset_remote_ctrl_requests(remote_ctrl_ptr);
                 }
                 remote_ctrl_update_canbc_states(remote_ctrl_ptr);
@@ -178,14 +174,14 @@ uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
         result = remote_ctrl_ptr->requests.sim_torque_request;
         if (result > remote_ctrl_ptr->config_ptr->torque_limit)
         {
-            LOG_WARN(log_h, "Torque requested is over the limit, setting it to 0\n");
+            LOG_WARN("Torque requested is over the limit, setting it to 0\n");
             result = 0;
         }
         unlock_sim_sensors(remote_ctrl_ptr);
     }
     else
     {
-        LOG_ERROR(log_h, "Torque locking error\n");
+        LOG_ERROR("Torque locking error\n");
     }
 
     return result;
@@ -203,7 +199,7 @@ status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t
     }
     else
     {
-        LOG_ERROR(log_h, "BPS locking error\n");
+        LOG_ERROR("BPS locking error\n");
     }
 
     return status;
@@ -221,7 +217,7 @@ status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_
     }
     else
     {
-        LOG_ERROR(log_h, "APPS locking error\n");
+        LOG_ERROR("APPS locking error\n");
     }
 
     return status;
@@ -238,7 +234,7 @@ uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr)
     }
     else
     {
-        LOG_ERROR(log_h, "TS locking error\n");
+        LOG_ERROR("TS locking error\n");
     }
 
     return result;
@@ -253,14 +249,14 @@ uint8_t remote_get_r2d_reading(remote_ctrl_context_t *remote_ctrl_ptr)
         result = remote_ctrl_ptr->requests.sim_r2_d;
         if (!can_s_vcu_state_vcu_r2_d_is_in_range(result))
         {
-            LOG_WARN(log_h, "R2D requested is over the limit, setting it to 0\n");
+            LOG_WARN("R2D requested is over the limit, setting it to 0\n");
             result = 0u;
         }
         unlock_sim_sensors(remote_ctrl_ptr);
     }
     else
     {
-        LOG_ERROR(log_h, "R2D locking error\n");
+        LOG_ERROR("R2D locking error\n");
     }
 
     return result;
@@ -279,7 +275,7 @@ void remote_ctrl_update_canbc_states(remote_ctrl_context_t *remote_ctrl_ptr)
     }
     else
     {
-        LOG_ERROR(log_h, "CANBC locking failure\n");
+        LOG_ERROR("CANBC locking failure\n");
     }
 }
 
@@ -308,7 +304,7 @@ void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr)
     }
     else
     {
-        LOG_ERROR(log_h, "Error locking sensors\n");
+        LOG_ERROR("Error locking sensors\n");
     }
 }
 
@@ -323,7 +319,7 @@ uint16_t remote_get_power_reading(remote_ctrl_context_t *remote_ctrl_ptr)
     }
     else
     {
-        LOG_ERROR(log_h, "Power locking error\n");
+        LOG_ERROR("Power locking error\n");
     }
 
     return result;

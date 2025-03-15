@@ -146,7 +146,7 @@ void pm100_thread_entry(ULONG input)
         if (status != RTCAN_OK)
         {
             // TODO: update broadcast states with error
-            LOG_ERROR(log_h, "Could not subscribe on %d message. Terminating thread\n");
+            LOG_ERROR("Could not subscribe on %d message. Terminating thread\n");
             tx_thread_terminate(&pm100_ptr->thread);
         }
     }
@@ -164,7 +164,7 @@ void pm100_thread_entry(ULONG input)
             // timed out
             // TODO: error
             pm100_ptr->broadcasts_valid = false;
-            LOG_INFO(log_h, "PM100 broadcast timeout\n");
+            LOG_INFO("PM100 broadcast timeout\n");
         }
         else if (status == TX_SUCCESS && msg_ptr != NULL)
         {
@@ -281,7 +281,6 @@ void process_broadcast(pm100_context_t *pm100_ptr, const rtcan_msg_t *msg_ptr)
 status_t pm100_lvs_on(pm100_context_t *pm100_ptr)
 {
     // UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
-    // UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
 
     return STATUS_OK;
 }
@@ -312,23 +311,9 @@ bool pm100_is_precharged(pm100_context_t *pm100_ptr)
 int16_t pm100_max_inverter_temp(pm100_context_t* pm100_ptr)
 {
     int16_t max_temp = 0;
-    int16_t max_temp = 0;
 
     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
 
-    if (tx_status == TX_SUCCESS)
-    {
-        if (pm100_ptr->temp1.pm100_module_a > max_temp)
-            max_temp = pm100_ptr->temp1.pm100_module_a;
-        if (pm100_ptr->temp1.pm100_module_b > max_temp)
-            max_temp = pm100_ptr->temp1.pm100_module_b;
-        if (pm100_ptr->temp1.pm100_module_c > max_temp)
-            max_temp = pm100_ptr->temp1.pm100_module_c;
-        if (pm100_ptr->temp1.pm100_gate_driver_board > max_temp)
-            max_temp = pm100_ptr->temp1.pm100_gate_driver_board;
-        if (pm100_ptr->temp2.pm100_control_board_temperature > max_temp)
-            max_temp = pm100_ptr->temp2.pm100_control_board_temperature;
     if (tx_status == TX_SUCCESS)
     {
         if (pm100_ptr->temp1.pm100_module_a > max_temp)
@@ -344,31 +329,29 @@ int16_t pm100_max_inverter_temp(pm100_context_t* pm100_ptr)
 
         tx_mutex_put(&pm100_ptr->state_mutex);
     }
-        tx_mutex_put(&pm100_ptr->state_mutex);
+    else
+    {
+        LOG_ERROR("Failed to get max temp\n");
     }
 
-    return max_temp;
     return max_temp;
 }
 
 int16_t pm100_motor_temp(pm100_context_t* pm100_ptr)
 {
     int16_t motor_temp = 0;
-    int16_t motor_temp = 0;
 
     UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
-    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
 
-    if (tx_status == TX_SUCCESS)
-    {
-        motor_temp = pm100_ptr->temp3.pm100_motor_temperature;
     if (tx_status == TX_SUCCESS)
     {
         motor_temp = pm100_ptr->temp3.pm100_motor_temperature;
 
         tx_mutex_put(&pm100_ptr->state_mutex);
     }
-        tx_mutex_put(&pm100_ptr->state_mutex);
+    else
+    {
+        LOG_ERROR("Failed to get motor temp\n");
     }
 
     return motor_temp;

@@ -37,7 +37,6 @@ typedef struct
 } remote_ctrl_context_t;
 
 status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
-                          log_context_t *log_ptr,
                           canbc_context_t *canbc_ptr,
                           TX_BYTE_POOL *stack_pool_ptr,
                           rtcan_handle_t *rtcan_s_prt,

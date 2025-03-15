@@ -121,7 +121,6 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     {
         status = remote_ctrl_init(
             &vcu_ptr->remote_ctrl,
-            &vcu_ptr->log,
             &vcu_ptr->canbc,
             app_mem_pool,
             &vcu_ptr->rtcan_s,
