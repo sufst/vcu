@@ -74,7 +74,7 @@ status_t scs_read(scs_t* scs_ptr, uint16_t* reading_ptr)
                                            scs_ptr->config_ptr->min_adc,
                                            scs_ptr->max_bounds_diff);
         scs_ptr->is_valid
-            = scs_ptr->status_verbose == STATUS_OK
+            = scs_ptr->status_verbose == STATUS_THRESHOLD_OK
               || scs_ptr->status_verbose == STATUS_THRESHOLD_WARNING;
 
         if (scs_ptr->is_valid)
@@ -166,7 +166,7 @@ scs_status_t validate(uint16_t adc_reading,
                       uint16_t min_adc_reading,
                       uint32_t max_diff)
 {
-    status_t status = STATUS_THRESHOLD_ERROR;
+    scs_status_t status = STATUS_THRESHOLD_ERROR;
     uint16_t low_diff = 0;
     uint16_t high_diff = 0;
 
@@ -182,7 +182,7 @@ scs_status_t validate(uint16_t adc_reading,
 
     if (!low_diff && !high_diff)
     {
-        status = STATUS_OK;
+        status = STATUS_THRESHOLD_OK;
     }
     else if ((low_diff < max_diff) && (high_diff < max_diff))
     {
