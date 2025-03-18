@@ -37,7 +37,7 @@ typedef struct
     uint32_t max_bounds_diff;       // cached bounds difference for validation
     const config_scs_t* config_ptr; // configuration
     status_t status;
-    status_t status_verbose;
+    scs_status_t status_verbose;
 } scs_t;
 
 /*
