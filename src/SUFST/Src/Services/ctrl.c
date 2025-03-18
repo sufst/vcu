@@ -41,6 +41,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    pm100_context_t* pm100_ptr,
                    tick_context_t* tick_ptr,
                    canbc_context_t* canbc_ptr,
+                   canrx_context_t* canrx_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_rtds_t* rtds_config_ptr,
@@ -51,6 +52,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->pm100_ptr = pm100_ptr;
     ctrl_ptr->tick_ptr = tick_ptr;
     ctrl_ptr->canbc_ptr = canbc_ptr;
+    ctrl_ptr->canrx_ptr = canrx_ptr;
     ctrl_ptr->config_ptr = config_ptr;
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->error = CTRL_ERROR_NONE;

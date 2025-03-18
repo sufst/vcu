@@ -4,3 +4,4 @@
 [submodule "src/Middlewares/SUFST/can-defs"]
 	path = src/Middlewares/SUFST/can-defs
 	url = https://github.com/sufst/can-defs
+    branch = feat/torque-mapping-based-on-battery-charge

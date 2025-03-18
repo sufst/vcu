@@ -15,6 +15,7 @@
 #include "apps.h"
 #include "bps.h"
 #include "canbc.h"
+#include "canrx.h"
 #include "config.h"
 #include "dash.h"
 #include "log.h"
@@ -80,6 +81,7 @@ typedef struct
     dash_context_t* dash_ptr;   // dash service
     pm100_context_t* pm100_ptr; // PM100 service
     canbc_context_t* canbc_ptr; // CANBC service
+    canrx_context_t* canrx_ptr; // CANRX service
     tick_context_t* tick_ptr;   // tick thread (reads certain sensors)
     torque_map_t torque_map;    // torque map (APPS -> torque request)
 
@@ -98,6 +100,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    pm100_context_t* pm100_ptr,
                    tick_context_t* tick_ptr,
                    canbc_context_t* canbc_ptr,
+                   canrx_context_t* canrx_ptr,
                    TX_BYTE_POOL* stack_pool_ptr,
                    const config_ctrl_t* config_ptr,
                    const config_rtds_t* rtds_config_ptr,

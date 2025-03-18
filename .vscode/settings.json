@@ -49,9 +49,11 @@
     "status.h": "c",
     "torque_map_funcs.h": "c",
     "rtds.h": "c",
-    "pm100.h": "c"
+    "pm100.h": "c",
+    "canrx.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": true,
-  "C_Cpp.errorSquiggles": "Enabled",
-  "mcu-debug.rtos-views.showRTOS": false
+  "C_Cpp.errorSquiggles": "enabled",
+  "mcu-debug.rtos-views.showRTOS": false,
+  "C_Cpp.default.compilerPath": "arm-none-eabi-gcc"
 }

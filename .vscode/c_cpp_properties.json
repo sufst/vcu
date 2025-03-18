@@ -1,8 +1,54 @@
 {
   "configurations": [
     {
+      "name": "arm-none-eabi-gcc (Linux)",
+      "compileCommands": [
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/compile_commands.json"
+      ],
+      "includePath": [
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/SUFST/Inc",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/SUFST/Inc/Functions",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Core/Inc",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/CMSIS/**",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Middlewares/ST/threadx/common/inc",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/STM32F7xx_HAL_Driver/Inc"
+      ],
+      "defines": [
+        "TX_INCLUDE_USER_DEFINE_FILE",
+        "USE_HAL_DRIVER",
+        "STM32F746xx"
+      ],
+      "cStandard": "gnu11",
+      "intelliSenseMode": "gcc-arm",
+      "configurationProvider": "ms-vscode.makefile-tools",
+      "compileCommandsInCppPropertiesJson": [
+        "/home/r_kirkbride/Documents/GitHub/sufst/vcu/compile_commands.json"
+      ],
+      "configurationProviderInCppPropertiesJson": "ms-vscode.makefile-tools",
+      "mergeConfigurations": false,
+      "browse": {
+        "path": [
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/SUFST/Inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Core/Inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/CMSIS/Device/ST/STM32F7xx/Include",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/CMSIS/**",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Middlewares/ST/threadx/common/inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+          "/home/r_kirkbride/Documents/GitHub/sufst/vcu"
+        ],
+        "limitSymbolsToIncludedHeaders": true
+      },
+      "compilerPath": "/usr/bin/arm-none-eabi-gcc",
+      "compilerPathInCppPropertiesJson": "/usr/bin/arm-none-eabi-gcc"
+    },
+    {
       "name": "arm-none-eabi-gcc (macOS)",
-      "compileCommands": "${workspaceFolder}/compile_commands.json",
+      "compileCommands": ["${workspaceFolder}/compile_commands.json"],
       "includePath": [
         "${workspaceFolder}/src/SUFST/Inc",
         "${workspaceFolder}/src/Core/Inc",
@@ -12,7 +58,12 @@
         "${workspaceFolder}/src/Middlewares/ST/threadx/common/inc",
         "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
         "${workspaceFolder}/src/SUFST/Inc/CAN",
-        "${workspaceFolder}/src/Drivers/STM32F7xx_HAL_Driver/Inc"
+        "${workspaceFolder}/src/Drivers/STM32F7xx_HAL_Driver/Inc",
+        "${workspaceFolder}/src/Middlewares/SUFST/rtcan/inc",
+        "${workspaceFolder}/src/SUFST/Inc/Interfaces",
+        "${workspaceFolder}/src/SUFST/Inc/Functions",
+        "${workspaceFolder}/src/SUFST/Inc/Services",
+        "${workspaceFolder}/src/Middlewares/SUFST/can-defs/out"
       ],
       "defines": [
         "TX_INCLUDE_USER_DEFINE_FILE",
@@ -21,11 +72,12 @@
       ],
       "cStandard": "gnu11",
       "intelliSenseMode": "gcc-arm",
-      "configurationProvider": "ms-vscode.makefile-tools"
+      "configurationProvider": "ms-vscode.makefile-tools",
+      "compilerPath": "/usr/bin/arm-none-eabi-gcc"
     },
     {
       "name": "arm-none-eabi-gcc (Windows)",
-      "compileCommands": "${workspaceFolder}/compile_commands.json",
+      "compileCommands": ["${workspaceFolder}/compile_commands.json"],
       "includePath": [
         "${workspaceFolder}/**",
         "${workspaceFolder}/src/Drivers/**"

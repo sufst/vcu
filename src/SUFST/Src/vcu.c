@@ -83,6 +83,16 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->config_ptr->canbc);
     }
 
+    // CAN recieve service
+    if (status == STATUS_OK)
+    {
+        status = canrx_init(&vcu_ptr->canrx,
+                            &vcu_ptr->rtcan_c,
+                            &vcu_ptr->rtcan_s,
+                            app_mem_pool,
+                            &vcu_ptr->config_ptr->canrx);
+    }
+
     // dash
     if (status == STATUS_OK)
     {
@@ -110,6 +120,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->pm100,
                            &vcu_ptr->tick,
                            &vcu_ptr->canbc,
+                           &vcu_ptr->canrx,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->ctrl,
                            &vcu_ptr->config_ptr->rtds,
