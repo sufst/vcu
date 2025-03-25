@@ -127,18 +127,37 @@ void pm100_thread_entry(ULONG input)
     pm100_context_t* pm100_ptr = (pm100_context_t*) input;
     const config_pm100_t* config_ptr = pm100_ptr->config_ptr;
 
-    // set up RTCAN subscriptions
-    uint32_t subscriptions[] = {CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
-                                CAN_C_PM100_FAULT_CODES_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
-                                CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID};
+    // set up RTCAN CAN C subscriptions
+    uint32_t can_c_subscriptions[] = {CAN_C_PM100_INTERNAL_STATES_FRAME_ID,
+                                      CAN_C_PM100_FAULT_CODES_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_2_FRAME_ID,
+                                      CAN_C_PM100_TEMPERATURE_SET_3_FRAME_ID};
 
-    for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]);
+    for (uint32_t i = 0;
+         i < sizeof(can_c_subscriptions) / sizeof(can_c_subscriptions[0]);
          i++)
     {
         rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_c_ptr,
-                                                subscriptions[i],
+                                                can_c_subscriptions[i],
+                                                &pm100_ptr->can_rx_queue);
+
+        if (status != RTCAN_OK)
+        {
+            // TODO: update broadcast states with error
+            tx_thread_terminate(&pm100_ptr->thread);
+        }
+    }
+
+    // set up RTCAN CAN S subscriptions
+    uint32_t can_s_subscriptions[] = {CAN_S_PDM_OUT_VOLTAGE_FRAME_ID};
+
+    for (uint32_t i = 0;
+         i < sizeof(can_s_subscriptions) / sizeof(can_s_subscriptions[0]);
+         i++)
+    {
+        rtcan_status_t status = rtcan_subscribe(pm100_ptr->rtcan_s_ptr,
+                                                can_s_subscriptions[i],
                                                 &pm100_ptr->can_rx_queue);
 
         if (status != RTCAN_OK)
@@ -166,7 +185,6 @@ void pm100_thread_entry(ULONG input)
         {
             pm100_ptr->broadcasts_valid = true;
             process_broadcast(pm100_ptr, msg_ptr);
-            rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
         }
         else
         {
@@ -191,6 +209,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                            msg_ptr->data,
                                            msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -213,6 +233,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
             (void) pm100_disable(pm100_ptr);
         }
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -223,6 +245,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                              msg_ptr->data,
                                              msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -232,6 +256,8 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
                                              msg_ptr->data,
                                              msg_ptr->length);
 
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
         break;
     }
 
@@ -240,6 +266,19 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
         can_c_pm100_temperature_set_3_unpack(&pm100_ptr->temp3,
                                              msg_ptr->data,
                                              msg_ptr->length);
+
+        rtcan_msg_consumed(pm100_ptr->rtcan_c_ptr, msg_ptr);
+
+        break;
+    }
+
+    case CAN_S_PDM_OUT_VOLTAGE_FRAME_ID:
+    {
+        can_s_pdm_out_voltage_unpack(&pm100_ptr->vout,
+                                     msg_ptr->data,
+                                     msg_ptr->length);
+
+        rtcan_msg_consumed(pm100_ptr->rtcan_s_ptr, msg_ptr);
 
         break;
     }
@@ -433,4 +472,10 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
     }
 
     return status;
+}
+
+bool pm100_check_pumps_running(pm100_context_t* pm100_ptr)
+{
+    return (&pm100_ptr->vout.pdm_output_4_voltage > PUMP_RUNNING_THRESHOLD)
+           && (&pm100_ptr->vout.pdm_output_5_voltage > PUMP_RUNNING_THRESHOLD);
 }

@@ -13,6 +13,7 @@
 #define PM100_H
 
 #include <can_c.h>
+#include <can_s.h>
 #include <rtcan.h>
 #include <stdint.h>
 #include <tx_api.h>
@@ -32,6 +33,8 @@
 
 #define PM100_RX_QUEUE_SIZE           10 // 10 items
 
+#define PUMP_RUNNING_THRESHOLD        8 // Voltage/V
+
 /**
  * @brief   PM100 context
  */
@@ -49,6 +52,7 @@ typedef struct
     struct can_c_pm100_temperature_set_1_t temp1;
     struct can_c_pm100_temperature_set_2_t temp2;
     struct can_c_pm100_temperature_set_3_t temp3;
+    struct can_s_pdm_out_voltage_t vout;
     uint16_t error;
     const config_pm100_t* config_ptr;
 } pm100_context_t;
@@ -68,5 +72,7 @@ int16_t pm100_motor_temp(pm100_context_t* pm100_ptr);
 int16_t pm100_max_inverter_temp(pm100_context_t* pm100_ptr);
 status_t pm100_disable(pm100_context_t* pm100_ptr);
 status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque);
+
+bool pm100_check_pumps_running(pm100_context_t* pm100_ptr);
 
 #endif
