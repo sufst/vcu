@@ -22,6 +22,7 @@
 #include "pm100.h"
 #include "tick.h"
 #include "status.h"
+#include "remote_ctrl.h"
 
 /**
  * @brief       VCU context
@@ -37,6 +38,7 @@ typedef struct
      ctrl_context_t ctrl;           // control service
      pm100_context_t pm100;         // PM100 service
      tick_context_t tick;
+     remote_ctrl_context_t remote_ctrl;
      heartbeat_context_t heartbeat; // heartbeat service
      log_context_t log;             // logging service
      uint32_t err;                  // current error code

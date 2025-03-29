@@ -36,9 +36,9 @@ static log_context_t* global_log_context;
  * @param config_ptr logging service configuration
  * @return status_t outcome of initialisation
  */
-status_t log_init(log_context_t* log_ptr,
-                  TX_BYTE_POOL* stack_pool_ptr,
-                  const config_log_t* config_ptr)
+status_t log_init(log_context_t *log_ptr,
+                  TX_BYTE_POOL *stack_pool_ptr,
+                  const config_log_t *config_ptr)
 {
     log_ptr->config_ptr = config_ptr;
     log_ptr->error = LOG_ERROR_NONE;
@@ -47,7 +47,7 @@ status_t log_init(log_context_t* log_ptr,
     status_t status = STATUS_OK;
 
     // allocate stack space
-    void* stack_ptr = NULL;
+    void *stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
                                       config_ptr->thread.stack_size,
@@ -73,9 +73,9 @@ status_t log_init(log_context_t* log_ptr,
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&log_ptr->thread,
-                                     (CHAR*) log_ptr->config_ptr->thread.name,
+                                     (CHAR *)log_ptr->config_ptr->thread.name,
                                      log_thread_entry,
-                                     (ULONG) log_ptr,
+                                     (ULONG)log_ptr,
                                      stack_ptr,
                                      config_ptr->thread.stack_size,
                                      config_ptr->thread.priority,
@@ -138,7 +138,7 @@ status_t log_printf(const config_log_level_t level, const char* format, ...)
 
 void log_thread_entry(ULONG thread_input)
 {
-    log_context_t* log_ptr = (log_context_t*) thread_input;
+    log_context_t *log_ptr = (log_context_t *)thread_input;
     log_msg_t msg;
     UINT tx_status;
 
@@ -149,7 +149,7 @@ void log_thread_entry(ULONG thread_input)
     {
         // wait for a message to be queued
         tx_status = tx_queue_receive(&log_ptr->msg_queue,
-                                     (void*) &msg,
+                                     (void *)&msg,
                                      TX_WAIT_FOREVER);
 
         // if no message was recieved, try again

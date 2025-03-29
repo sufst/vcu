@@ -63,7 +63,7 @@ static const config_t config_instance = {
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 176,
+            .min_adc = 170,
             .max_adc = 465,
             .min_mapped = 0,
             .max_mapped = 100,
@@ -131,6 +131,17 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .period = SECONDS_TO_TICKS(0.01)
+    },
+    .remote_ctrl = {
+        .thread = {
+            .name = "REMOTE",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .period = SECONDS_TO_TICKS(0.01),
+        .torque_limit = 2000,
+        .power_limit = 10000,
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(1)
     },
     .canbc = {
         .thread = {

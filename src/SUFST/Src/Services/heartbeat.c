@@ -18,14 +18,14 @@ static void heartbeat_thread_entry(ULONG input);
  * @param[in]   stack_pool_ptr  Application memory pool
  * @param[in]   config_ptr      Configuration
  */
-status_t heartbeat_init(heartbeat_context_t* heartbeat_h,
-                        TX_BYTE_POOL* stack_pool_ptr,
-                        const config_heartbeat_t* config_ptr)
+status_t heartbeat_init(heartbeat_context_t *heartbeat_h,
+                        TX_BYTE_POOL *stack_pool_ptr,
+                        const config_heartbeat_t *config_ptr)
 {
     heartbeat_h->config_ptr = config_ptr;
 
     // create service thread
-    void* stack_ptr = NULL;
+    void *stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
                                       config_ptr->thread.stack_size,
@@ -34,9 +34,9 @@ status_t heartbeat_init(heartbeat_context_t* heartbeat_h,
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&heartbeat_h->thread,
-                                     (CHAR*) config_ptr->thread.name,
+                                     (CHAR *)config_ptr->thread.name,
                                      heartbeat_thread_entry,
-                                     (ULONG) heartbeat_h,
+                                     (ULONG)heartbeat_h,
                                      stack_ptr,
                                      config_ptr->thread.stack_size,
                                      config_ptr->thread.priority,
@@ -56,7 +56,7 @@ status_t heartbeat_init(heartbeat_context_t* heartbeat_h,
  */
 static void heartbeat_thread_entry(ULONG input)
 {
-    heartbeat_context_t* heartbeat_h = (heartbeat_context_t*) input;
+    heartbeat_context_t *heartbeat_h = (heartbeat_context_t *)input;
 
     // initialise LED
     HAL_GPIO_WritePin(GREEN_LED_GPIO_Port, GREEN_LED_Pin, GPIO_PIN_RESET);
