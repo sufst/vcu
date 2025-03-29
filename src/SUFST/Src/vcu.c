@@ -101,6 +101,16 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
                            &vcu_ptr->config_ptr->bps);
     }
 
+    // pm100
+    if (status == STATUS_OK)
+    {
+        status = pm100_init(&vcu_ptr->pm100,
+                            app_mem_pool,
+                            &vcu_ptr->rtcan_c,
+                            &vcu_ptr->rtcan_s,
+                            &vcu_ptr->config_ptr->pm100);
+    }
+
     // control
     if (status == STATUS_OK)
     {
@@ -125,16 +135,6 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
             app_mem_pool,
             &vcu_ptr->rtcan_s,
             &vcu_ptr->config_ptr->remote_ctrl);
-    }
-
-    // pm100
-    if (status == STATUS_OK)
-    {
-        status = pm100_init(&vcu_ptr->pm100,
-                            app_mem_pool,
-                            &vcu_ptr->rtcan_c,
-                            &vcu_ptr->rtcan_s,
-                            &vcu_ptr->config_ptr->pm100);
     }
 
     // heartbeat

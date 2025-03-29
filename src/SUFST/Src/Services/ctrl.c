@@ -540,6 +540,13 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the TS being turned on again
 	case (CTRL_STATE_SIM_WAIT_TS_OFF):
 	{
+		ctrl_ptr->torque_request = 0;
+		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+		if (pm100_status != STATUS_OK)
+		{
+			next_state = CTRL_STATE_TS_RUN_FAULT;
+		}
+
 		if (!dash_ptr->tson_flag)
 		{
 			next_state = CTRL_STATE_TS_BUTTON_WAIT;
@@ -550,6 +557,12 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the TS being turned off again
 	case (CTRL_STATE_SIM_WAIT_TS_ON):
 	{
+		ctrl_ptr->torque_request = 0;
+		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+		if (pm100_status != STATUS_OK)
+		{
+			next_state = CTRL_STATE_TS_RUN_FAULT;
+		}
 		if (!dash_ptr->tson_flag)
 		{
 			next_state = CTRL_STATE_R2D_WAIT;
@@ -560,6 +573,12 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the R2D being turned off again
 	case (CTRL_STATE_SIM_WAIT_R2D_ON):
 	{
+		ctrl_ptr->torque_request = 0;
+		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+		if (pm100_status != STATUS_OK)
+		{
+			next_state = CTRL_STATE_TS_RUN_FAULT;
+		}
 		if (!dash_ptr->r2d_flag)
 		{
 			next_state = CTRL_STATE_TS_ON;
@@ -570,8 +589,15 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the R2D being turned on again
 	case (CTRL_STATE_SIM_WAIT_R2D_OFF):
 	{
+		ctrl_ptr->torque_request = 0;
+		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
+		if (pm100_status != STATUS_OK)
+		{
+			next_state = CTRL_STATE_TS_RUN_FAULT;
+		}
 		if (!dash_ptr->r2d_flag)
 		{
+			dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
 			next_state = CTRL_STATE_R2D_WAIT;
 		}
 		break;
