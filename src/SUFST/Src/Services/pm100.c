@@ -390,6 +390,7 @@ status_t pm100_disable(pm100_context_t *pm100_ptr)
     LOG_INFO("Sending PM100 Disable command\n");
     rtcan_msg_t msg = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
+                       .extended = CAN_C_PM100_COMMAND_MESSAGE_IS_EXTENDED,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
     rtcan_status_t status = rtcan_transmit(pm100_ptr->rtcan_c_ptr, &msg);
@@ -430,6 +431,7 @@ status_t pm100_request_torque(pm100_context_t *pm100_ptr, uint16_t torque)
             {
                 rtcan_msg_t msg = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                                    .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
+                                   .extended = CAN_C_PM100_COMMAND_MESSAGE_IS_EXTENDED,
                                    .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
                 struct can_c_pm100_command_message_t cmd = {.pm100_torque_command = torque,
