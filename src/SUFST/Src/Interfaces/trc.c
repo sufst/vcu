@@ -43,7 +43,8 @@ status_t trc_wait_for_ready(uint32_t poll_ticks, uint32_t timeout)
         status = (tx_thread_sleep(poll_ticks) == TX_SUCCESS) ? STATUS_OK
                                                              : STATUS_ERROR;
 
-        bool ready_high = (HAL_GPIO_ReadPin(TS_READY_GPIO_Port, TS_READY_Pin) == GPIO_PIN_SET);
+        bool ready_high = (HAL_GPIO_ReadPin(TS_READY_GPIO_Port, TS_READY_Pin)
+                           == GPIO_PIN_SET);
 
         if (ready_high)
         {

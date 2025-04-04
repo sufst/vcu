@@ -6,8 +6,8 @@
  * internal function prototypes
  */
 static void canbc_thread_entry(ULONG input);
-static void sleep_till_next_bc(canbc_context_t *canbc_h, uint32_t start_time);
-static void send_bc_messages(canbc_context_t *canbc_h);
+static void sleep_till_next_bc(canbc_context_t* canbc_h, uint32_t start_time);
+static void send_bc_messages(canbc_context_t* canbc_h);
 
 /**
  * @brief       Initialise CANBC service
@@ -17,17 +17,17 @@ static void send_bc_messages(canbc_context_t *canbc_h);
  * @param[in]   stack_pool_ptr  Application memory pool
  * @param[in]   config_ptr      Configuration
  */
-status_t canbc_init(canbc_context_t *canbc_h,
-                    rtcan_handle_t *rtcan_h,
-                    TX_BYTE_POOL *stack_pool_ptr,
-                    const config_canbc_t *config_ptr)
+status_t canbc_init(canbc_context_t* canbc_h,
+                    rtcan_handle_t* rtcan_h,
+                    TX_BYTE_POOL* stack_pool_ptr,
+                    const config_canbc_t* config_ptr)
 {
     canbc_h->rtcan_h = rtcan_h;
     canbc_h->config_ptr = config_ptr;
     canbc_h->rolling_counter = 0;
 
     // create service thread
-    void *stack_ptr = NULL;
+    void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
                                       config_ptr->thread.stack_size,
@@ -36,9 +36,9 @@ status_t canbc_init(canbc_context_t *canbc_h,
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&canbc_h->thread,
-                                     (CHAR *)config_ptr->thread.name,
+                                     (CHAR*) config_ptr->thread.name,
                                      canbc_thread_entry,
-                                     (ULONG)canbc_h,
+                                     (ULONG) canbc_h,
                                      stack_ptr,
                                      config_ptr->thread.stack_size,
                                      config_ptr->thread.priority,
@@ -65,7 +65,7 @@ status_t canbc_init(canbc_context_t *canbc_h,
  */
 static void canbc_thread_entry(ULONG input)
 {
-    canbc_context_t *canbc_h = (canbc_context_t *)input;
+    canbc_context_t* canbc_h = (canbc_context_t*) input;
 
     while (1)
     {
@@ -87,7 +87,7 @@ static void canbc_thread_entry(ULONG input)
  *
  * @param[in]   canbc_h     CANBC handle
  */
-static void send_bc_messages(canbc_context_t *canbc_h)
+static void send_bc_messages(canbc_context_t* canbc_h)
 {
     UINT tx_status = tx_mutex_get(&canbc_h->state_mutex, TX_WAIT_FOREVER);
 
@@ -95,9 +95,9 @@ static void send_bc_messages(canbc_context_t *canbc_h)
     {
         // states
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_STATE_FRAME_ID,
-                                    .length = CAN_S_VCU_STATE_LENGTH,
-                                    .extended = CAN_S_VCU_STATE_IS_EXTENDED};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_STATE_FRAME_ID,
+                                   .length = CAN_S_VCU_STATE_LENGTH,
+                                   .extended = CAN_S_VCU_STATE_IS_EXTENDED};
 
             can_s_vcu_state_pack(message.data,
                                  &canbc_h->states.state,
@@ -107,9 +107,9 @@ static void send_bc_messages(canbc_context_t *canbc_h)
 
         // sensors
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_SENSORS_FRAME_ID,
-                                    .length = CAN_S_VCU_SENSORS_LENGTH,
-                                    .extended = CAN_S_VCU_SENSORS_IS_EXTENDED};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_SENSORS_FRAME_ID,
+                                   .length = CAN_S_VCU_SENSORS_LENGTH,
+                                   .extended = CAN_S_VCU_SENSORS_IS_EXTENDED};
 
             can_s_vcu_sensors_pack(message.data,
                                    &canbc_h->states.sensors,
@@ -118,9 +118,9 @@ static void send_bc_messages(canbc_context_t *canbc_h)
         }
         // temps
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_TEMPS_FRAME_ID,
-                                    .length = CAN_S_VCU_TEMPS_LENGTH,
-                                    .extended = CAN_S_VCU_TEMPS_IS_EXTENDED};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_TEMPS_FRAME_ID,
+                                   .length = CAN_S_VCU_TEMPS_LENGTH,
+                                   .extended = CAN_S_VCU_TEMPS_IS_EXTENDED};
 
             can_s_vcu_temps_pack(message.data,
                                  &canbc_h->states.temps,
@@ -130,9 +130,9 @@ static void send_bc_messages(canbc_context_t *canbc_h)
 
         // errors
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_ERROR_FRAME_ID,
-                                    .length = CAN_S_VCU_ERROR_LENGTH,
-                                    .extended = CAN_S_VCU_ERROR_IS_EXTENDED};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_ERROR_FRAME_ID,
+                                   .length = CAN_S_VCU_ERROR_LENGTH,
+                                   .extended = CAN_S_VCU_ERROR_IS_EXTENDED};
 
             can_s_vcu_error_pack(message.data,
                                  &canbc_h->states.errors,
@@ -141,9 +141,9 @@ static void send_bc_messages(canbc_context_t *canbc_h)
         }
 
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_PDM_FRAME_ID,
-                                    .length = CAN_S_VCU_PDM_LENGTH,
-                                    .extended = CAN_S_VCU_PDM_IS_EXTENDED};
+            rtcan_msg_t message = {.identifier = CAN_S_VCU_PDM_FRAME_ID,
+                                   .length = CAN_S_VCU_PDM_LENGTH,
+                                   .extended = CAN_S_VCU_PDM_IS_EXTENDED};
 
             can_s_vcu_pdm_pack(message.data,
                                &canbc_h->states.pdm,
@@ -161,7 +161,7 @@ static void send_bc_messages(canbc_context_t *canbc_h)
  * @param[in]   canbc_h     CANBC handle
  * @param[in]   start_time  Timestamp at which last broadcast event started
  */
-static void sleep_till_next_bc(canbc_context_t *canbc_h, uint32_t start_time)
+static void sleep_till_next_bc(canbc_context_t* canbc_h, uint32_t start_time)
 {
     const uint32_t period = canbc_h->config_ptr->broadcast_period_ticks;
     const uint32_t run_time = tx_time_get() - start_time;
@@ -189,10 +189,10 @@ static void sleep_till_next_bc(canbc_context_t *canbc_h, uint32_t start_time)
  * @param[in]   canbc_h     CANBC handle
  * @param[in]   timeout     Timeout in ticks to acquire lock
  */
-canbc_states_t *canbc_lock_state(canbc_context_t *canbc_h, uint32_t timeout)
+canbc_states_t* canbc_lock_state(canbc_context_t* canbc_h, uint32_t timeout)
 {
     UINT tx_status = tx_mutex_get(&canbc_h->state_mutex, timeout);
-    canbc_states_t *ret = NULL;
+    canbc_states_t* ret = NULL;
 
     if (tx_status == TX_SUCCESS)
     {
@@ -207,7 +207,7 @@ canbc_states_t *canbc_lock_state(canbc_context_t *canbc_h, uint32_t timeout)
  *
  * @param[in]   canbc_h     CANBC handle
  */
-void canbc_unlock_state(canbc_context_t *canbc_h)
+void canbc_unlock_state(canbc_context_t* canbc_h)
 {
     tx_mutex_put(&canbc_h->state_mutex);
 }
