@@ -38,10 +38,12 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     status_t status = STATUS_OK;
 
     // logging services (first so we can log errors)
-    if (status == STATUS_OK)
+    status = log_init(&vcu_ptr->log, app_mem_pool, &vcu_ptr->config_ptr->log);
+
+    if (status != STATUS_OK)
     {
-        status
-            = log_init(&vcu_ptr->log, app_mem_pool, &vcu_ptr->config_ptr->log);
+        LOG_ERROR("Error in Log Initialisation!"); // TODO: is this needed?
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_RTCAN);
