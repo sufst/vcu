@@ -165,13 +165,16 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_REMOTE_CONTROL);
 
     // remote control
-    if (status == STATUS_OK)
+    status = remote_ctrl_init(&vcu_ptr->remote_ctrl,
+                              &vcu_ptr->canbc,
+                              app_mem_pool,
+                              &vcu_ptr->rtcan_s,
+                              &vcu_ptr->config_ptr->remote_ctrl);
+
+    if (status != STATUS_OK)
     {
-        status = remote_ctrl_init(&vcu_ptr->remote_ctrl,
-                                  &vcu_ptr->canbc,
-                                  app_mem_pool,
-                                  &vcu_ptr->rtcan_s,
-                                  &vcu_ptr->config_ptr->remote_ctrl);
+        LOG_ERROR("Error in Remote Control Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_HEARTBEAT);
