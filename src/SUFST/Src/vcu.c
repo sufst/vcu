@@ -114,14 +114,17 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_TICK);
 
     // tick
-    if (status == STATUS_OK)
+    status = tick_init(&vcu_ptr->tick,
+                       &vcu_ptr->canbc,
+                       app_mem_pool,
+                       &vcu_ptr->config_ptr->tick,
+                       &vcu_ptr->config_ptr->apps,
+                       &vcu_ptr->config_ptr->bps);
+
+    if (status != STATUS_OK)
     {
-        status = tick_init(&vcu_ptr->tick,
-                           &vcu_ptr->canbc,
-                           app_mem_pool,
-                           &vcu_ptr->config_ptr->tick,
-                           &vcu_ptr->config_ptr->apps,
-                           &vcu_ptr->config_ptr->bps);
+        LOG_ERROR("Error in Tick Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_PM100);
