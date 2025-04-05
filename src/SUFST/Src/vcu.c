@@ -180,11 +180,14 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_HEARTBEAT);
 
     // heartbeat
-    if (status == STATUS_OK)
+    status = heartbeat_init(&vcu_ptr->heartbeat,
+                            app_mem_pool,
+                            &vcu_ptr->config_ptr->heartbeat);
+
+    if (status != STATUS_OK)
     {
-        status = heartbeat_init(&vcu_ptr->heartbeat,
-                                app_mem_pool,
-                                &vcu_ptr->config_ptr->heartbeat);
+        LOG_ERROR("Error in Heartbeat Service Initialisation!");
+        return status;
     }
 
     if (status != STATUS_OK)
