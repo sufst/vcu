@@ -88,12 +88,15 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_CANBC);
 
     // CAN broadcast service
-    if (status == STATUS_OK)
+    status = canbc_init(&vcu_ptr->canbc,
+                        &vcu_ptr->rtcan_s,
+                        app_mem_pool,
+                        &vcu_ptr->config_ptr->canbc);
+
+    if (status != STATUS_OK)
     {
-        status = canbc_init(&vcu_ptr->canbc,
-                            &vcu_ptr->rtcan_s,
-                            app_mem_pool,
-                            &vcu_ptr->config_ptr->canbc);
+        LOG_ERROR("Error in CANBC Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_DASH);
