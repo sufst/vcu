@@ -145,18 +145,21 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_CONTROL);
 
     // control
-    if (status == STATUS_OK)
+    status = ctrl_init(&vcu_ptr->ctrl,
+                       &vcu_ptr->dash,
+                       &vcu_ptr->pm100,
+                       &vcu_ptr->tick,
+                       &vcu_ptr->remote_ctrl,
+                       &vcu_ptr->canbc,
+                       app_mem_pool,
+                       &vcu_ptr->config_ptr->ctrl,
+                       &vcu_ptr->config_ptr->rtds,
+                       &vcu_ptr->config_ptr->torque_map);
+
+    if (status != STATUS_OK)
     {
-        status = ctrl_init(&vcu_ptr->ctrl,
-                           &vcu_ptr->dash,
-                           &vcu_ptr->pm100,
-                           &vcu_ptr->tick,
-                           &vcu_ptr->remote_ctrl,
-                           &vcu_ptr->canbc,
-                           app_mem_pool,
-                           &vcu_ptr->config_ptr->ctrl,
-                           &vcu_ptr->config_ptr->rtds,
-                           &vcu_ptr->config_ptr->torque_map);
+        LOG_ERROR("Error in Control Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_REMOTE_CONTROL);
