@@ -56,28 +56,32 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     for (uint32_t i = 0; i < 2; i++)
     {
-        if (status == STATUS_OK)
+
+        rtcan_status_t rtcan_status = rtcan_init(rtcan_handles[i],
+                                                 can_handles[i],
+                                                 rtcan_priorities[i],
+                                                 app_mem_pool);
+
+        if (rtcan_status == RTCAN_OK)
         {
-            rtcan_status_t rtcan_status = rtcan_init(rtcan_handles[i],
-                                                     can_handles[i],
-                                                     rtcan_priorities[i],
-                                                     app_mem_pool);
+            rtcan_status = rtcan_start(rtcan_handles[i]);
+        }
 
-            if (rtcan_status == RTCAN_OK)
-            {
-                rtcan_status = rtcan_start(rtcan_handles[i]);
-            }
+        if (rtcan_status != RTCAN_OK)
+        {
+            // TODO: error
+            status = STATUS_ERROR;
+            // vcu_h->err |= VCU_ERROR_INIT;
+        }
+        else
+        {
+            LOG_INFO("RTCAN service %d started\n", i);
+        }
 
-            if (rtcan_status != RTCAN_OK)
-            {
-                // TODO: error
-                status = STATUS_ERROR;
-                // vcu_h->err |= VCU_ERROR_INIT;
-            }
-            else
-            {
-                LOG_INFO("RTCAN service %d started\n", i);
-            }
+        if (status != STATUS_OK)
+        {
+            LOG_ERROR("Error in RTCAN Bus %i initialisation!", i);
+            return status;
         }
     }
 
