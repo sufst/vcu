@@ -102,11 +102,13 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_DASH);
 
     // dash
-    if (status == STATUS_OK)
+    status
+        = dash_init(&vcu_ptr->dash, app_mem_pool, &vcu_ptr->config_ptr->dash);
+
+    if (status != STATUS_OK)
     {
-        status = dash_init(&vcu_ptr->dash,
-                           app_mem_pool,
-                           &vcu_ptr->config_ptr->dash);
+        LOG_ERROR("Error in Dash Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_TICK);
