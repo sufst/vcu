@@ -42,7 +42,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Log Initialisation!"); // TODO: is this needed?
+        LOG_FATAL("Error in Log Initialisation!"); // TODO: is this needed?
         return status;
     }
 
@@ -80,7 +80,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
         if (status != STATUS_OK)
         {
-            LOG_ERROR("Error in RTCAN Bus %i initialisation!", i);
+            LOG_FATAL("Error in RTCAN Bus %i initialisation!", i);
             return status;
         }
     }
@@ -95,7 +95,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in CANBC Service Initialisation!");
+        LOG_FATAL("Error in CANBC Service Initialisation!");
         return status;
     }
 
@@ -107,7 +107,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Dash Service Initialisation!");
+        LOG_FATAL("Error in Dash Service Initialisation!");
         return status;
     }
 
@@ -123,7 +123,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Tick Service Initialisation!");
+        LOG_FATAL("Error in Tick Service Initialisation!");
         return status;
     }
 
@@ -138,7 +138,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in PM100 Service Initialisation!");
+        LOG_FATAL("Error in PM100 Service Initialisation!");
         return status;
     }
 
@@ -158,7 +158,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Control Service Initialisation!");
+        LOG_FATAL("Error in Control Service Initialisation!");
         return status;
     }
 
@@ -173,7 +173,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Remote Control Service Initialisation!");
+        LOG_FATAL("Error in Remote Control Service Initialisation!");
         return status;
     }
 
@@ -186,7 +186,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_ERROR("Error in Heartbeat Service Initialisation!");
+        LOG_FATAL("Error in Heartbeat Service Initialisation!");
         return status;
     }
 
