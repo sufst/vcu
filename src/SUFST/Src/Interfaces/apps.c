@@ -12,7 +12,8 @@ status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr)
     apps_ptr->scs_error = SCS_ERROR_NONE;
 
     // initialise both SCS instances
-    status_t status = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
+    status_t status
+        = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
 
     if (status == STATUS_OK)
     {
@@ -33,7 +34,7 @@ status_t apps_init(apps_context_t* apps_ptr, const config_apps_t* config_ptr)
  * @retval  STATUS_OK       Neither SCS has faulted and both APPS signals agree
  * @retval  STATUS_ERROR    SCS fault, or signals disagree
  */
-status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
+status_t apps_read(apps_context_t* apps_ptr, uint16_t* reading_ptr)
 {
     status_t status = STATUS_OK;
     uint16_t reading_1 = 0;
@@ -133,7 +134,7 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
  *
  * @param[in]   apps_ptr    APPS context
  */
-bool apps_check_plausibility(apps_context_t *apps_ptr)
+bool apps_check_plausibility(apps_context_t* apps_ptr)
 {
     uint16_t reading = 0;
     status_t status = apps_read(apps_ptr, &reading);
