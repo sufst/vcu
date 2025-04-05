@@ -130,13 +130,16 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_PM100);
 
     // pm100
-    if (status == STATUS_OK)
+    status = pm100_init(&vcu_ptr->pm100,
+                        app_mem_pool,
+                        &vcu_ptr->rtcan_c,
+                        &vcu_ptr->rtcan_s,
+                        &vcu_ptr->config_ptr->pm100);
+
+    if (status != STATUS_OK)
     {
-        status = pm100_init(&vcu_ptr->pm100,
-                            app_mem_pool,
-                            &vcu_ptr->rtcan_c,
-                            &vcu_ptr->rtcan_s,
-                            &vcu_ptr->config_ptr->pm100);
+        LOG_ERROR("Error in PM100 Service Initialisation!");
+        return status;
     }
 
     vcu_set_state(vcu_ptr, VCU_STATE_INIT_CONTROL);
