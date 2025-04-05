@@ -42,7 +42,9 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 
     if (status != STATUS_OK)
     {
-        LOG_FATAL("Error in Log Initialisation!"); // TODO: is this needed?
+        // LOG_FATAL("Error in Log Initialisation!");
+        // We cannot log as it is not guaranteed that the log service has been
+        //  initialised
         return status;
     }
 
