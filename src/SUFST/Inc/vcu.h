@@ -23,6 +23,7 @@
 #include "remote_ctrl.h"
 #include "status.h"
 #include "tick.h"
+#include "vcu_state.h"
 
 /**
  * @brief       VCU context
@@ -42,6 +43,7 @@ typedef struct
     heartbeat_context_t heartbeat; // heartbeat service
     log_context_t log;             // logging service
     uint32_t err;                  // current error code
+    vcu_state_t state;             // current VCU state
     const config_t* config_ptr;    // pointer to global VCU configuration
 
 } vcu_context_t;
@@ -64,5 +66,7 @@ status_t vcu_handle_can_rx_it(vcu_context_t* vcu_ptr,
                               uint32_t rx_fifo);
 
 status_t vcu_handle_can_err(vcu_context_t* vcu_ptr, CAN_HandleTypeDef* can_h);
+
+void vcu_set_state(vcu_context_t* vcu_ptr, vcu_state_t newState);
 
 #endif

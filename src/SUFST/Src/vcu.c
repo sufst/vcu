@@ -32,6 +32,9 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
 {
     vcu_ptr->config_ptr = config_ptr;
 
+    // Set Initial VCU State
+    vcu_ptr->state = VCU_STATE_INIT;
+
     status_t status = STATUS_OK;
 
     // logging services (first so we can log errors)
@@ -40,6 +43,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         status
             = log_init(&vcu_ptr->log, app_mem_pool, &vcu_ptr->config_ptr->log);
     }
+
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_RTCAN);
 
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
@@ -74,6 +79,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         }
     }
 
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_CANBC);
+
     // CAN broadcast service
     if (status == STATUS_OK)
     {
@@ -83,6 +90,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->config_ptr->canbc);
     }
 
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_DASH);
+
     // dash
     if (status == STATUS_OK)
     {
@@ -90,6 +99,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            app_mem_pool,
                            &vcu_ptr->config_ptr->dash);
     }
+
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_TICK);
 
     // tick
     if (status == STATUS_OK)
@@ -102,6 +113,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->config_ptr->bps);
     }
 
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_PM100);
+
     // pm100
     if (status == STATUS_OK)
     {
@@ -111,6 +124,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                             &vcu_ptr->rtcan_s,
                             &vcu_ptr->config_ptr->pm100);
     }
+
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_CONTROL);
 
     // control
     if (status == STATUS_OK)
@@ -127,6 +142,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                            &vcu_ptr->config_ptr->torque_map);
     }
 
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_REMOTE_CONTROL);
+
     // remote control
     if (status == STATUS_OK)
     {
@@ -136,6 +153,8 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                                   &vcu_ptr->rtcan_s,
                                   &vcu_ptr->config_ptr->remote_ctrl);
     }
+
+    vcu_set_state(vcu_ptr, VCU_STATE_INIT_HEARTBEAT);
 
     // heartbeat
     if (status == STATUS_OK)
@@ -242,4 +261,10 @@ status_t vcu_handle_can_err(vcu_context_t* vcu_ptr, CAN_HandleTypeDef* can_h)
     }
 
     return STATUS_OK;
+}
+
+void vcu_set_state(vcu_context_t* vcu_ptr, const vcu_state_t newState)
+{
+    vcu_ptr->state = newState;
+    LOG_DEBUG("VCU State Change to %#2X", newState);
 }

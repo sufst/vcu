@@ -16,15 +16,25 @@
  *
  * @details     Contains all states the VCU could be in.
  */
-typedef enum uint_16
+typedef enum
 {
-    VCU_INIT = 0x00,      // VCU General Initialisation
-    VCU_IDLE = 0x10,      // VCU Waiting for TS
-    VCU_TS_ENABLE = 0x20, // VCU ENABLING TS
-    VCU_TS_ON = 0x30,     // VCU TS IDLE
-    VCU_R2D = 0x40,       // VCU R2D
-    VCU_ERROR = 0xE0,     // VCU recoverable Error
-    VCU_FATAL = 0xF0,     // VCU unrecoverable Error
+    VCU_STATE_INIT = 0x00,         // * VCU General Initialisation
+    VCU_STATE_INIT_RTCAN,          // VCU RTCAN service init
+    VCU_STATE_INIT_CANBC,          // VCU CANBC service init
+    VCU_STATE_INIT_DASH,           // VCU Dash service init
+    VCU_STATE_INIT_TICK,           // VCU tick service init
+    VCU_STATE_INIT_PM100,          // PM100 service init
+    VCU_STATE_INIT_CONTROL,        // Ctrl service init
+    VCU_STATE_INIT_REMOTE_CONTROL, // Remote Control service init
+    VCU_STATE_INIT_HEARTBEAT,      // Hearbeat service init
+    VCU_STATE_INIT_DONE = 0x0F,    // Init Done
+
+    VCU_STATE_IDLE = 0x10,      // * VCU Waiting for TS
+    VCU_STATE_TS_ENABLE = 0x20, // * VCU ENABLING TS
+    VCU_STATE_TS_ON = 0x30,     // * VCU TS IDLE
+    VCU_STATE_R2D = 0x40,       // * VCU R2D
+    VCU_STATE_ERROR = 0xE0,     // * VCU recoverable Error
+    VCU_STATE_FATAL = 0xF0,     // * VCU unrecoverable Error
 } vcu_state_t;
 
 #endif // VCU_STATE_H
