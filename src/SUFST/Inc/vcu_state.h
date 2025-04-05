@@ -16,7 +16,7 @@
  *
  * @details     Contains all states the VCU could be in.
  */
-typedef enum
+typedef enum uint_16
 {
     VCU_INIT = 0x00,      // VCU General Initialisation
     VCU_IDLE = 0x10,      // VCU Waiting for TS
