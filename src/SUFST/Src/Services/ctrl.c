@@ -198,6 +198,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
     const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
+    const uint8_t PUMP_RUN_THRESH = config_ptr->pump_running_threshold;
 
     ctrl_state_t next_state = ctrl_ptr->state;
 
@@ -266,6 +267,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     // pre-charge is complete, wait for R2D signal
     // also wait for brake to be fully pressed (if enabled)
+    // also wait for pumps ot be running (if enabled)
     case (CTRL_STATE_R2D_WAIT):
     {
         if (!trc_ready())
@@ -296,6 +298,10 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                 r2d = (config_ptr->r2d_requires_brake)
                           ? (ctrl_ptr->bps_reading > BPS_ON_THRESH)
                           : 1;
+
+                r2d &= (config_ptr->r2d_requires_pump) ? (
+                           ctrl_ptr->canrx_ptr->vcu_pdm.pump > PUMP_RUN_THRESH)
+                                                       : 1;
 
                 if (r2d)
                 {

@@ -91,6 +91,7 @@ static const config_t config_instance = {
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = true,
+        .r2d_requires_pump = true,
         .bps_on_threshold = 5,
 	    .apps_bps_low_threshold = 5,
 	    .apps_bps_high_threshold = 20,
@@ -100,7 +101,8 @@ static const config_t config_instance = {
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
         .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
-        .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1)
+        .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
+        .pump_running_threshold = 12
     },
     .rtds = {
         .active_ticks = SECONDS_TO_TICKS(2),

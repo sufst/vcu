@@ -46,6 +46,7 @@ typedef struct {
      config_thread_t thread;                 // control thread config
      uint32_t schedule_ticks;                // number of ticks between runs of the control loop thread
      bool r2d_requires_brake;                // whether or not the brake needs to be pressed for R2D activation
+     bool r2d_requires_pump;                 // whether or not the pump needs to be running for R2D activation
      uint32_t ts_ready_timeout_ticks;        // ticks after which waiting for TS ready times out
      uint32_t ts_ready_poll_ticks;           // how often to poll input when waiting for TS ready
      uint32_t precharge_timeout_ticks;       // ticks after which waiting for precharge times out
@@ -56,6 +57,7 @@ typedef struct {
      uint16_t fan_on_threshold;              // temperature at which to turn on the fan
      uint16_t fan_off_threshold;             // temperature at which to turn off the fan
      uint16_t bps_on_threshold;              // BPS reading to consider BPS 'on'
+     uint8_t pump_running_threshold;         // Pump Voltage reading to consider the pumps running
 } config_ctrl_t;
 
 /**
@@ -132,8 +134,8 @@ typedef struct {
  * @brief   CAN recieving service
  */
 typedef struct {
-    config_thread_t thread;                 // CANRX thread config
-    uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
+    config_thread_t thread;                  // CANRX thread config
+    uint32_t broadcast_timeout_ticks;        // maximum number of ticks to wait for a broadcast
 } config_canrx_t;
 
 typedef struct

@@ -214,6 +214,14 @@ void process_broadcast(canrx_context_t* canrx_ptr, const rtcan_msg_t* msg_ptr)
         break;
     }
 
+    case CAN_S_VCU_PDM_FRAME_ID:
+    {
+        can_s_vcu_pdm_unpack(&canrx_ptr->vcu_pdm,
+                             msg_ptr->data,
+                             msg_ptr->length);
+        break;
+    }
+
     default:
         break;
     }
