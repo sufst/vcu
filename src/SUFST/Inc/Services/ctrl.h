@@ -23,6 +23,7 @@
 #include "status.h"
 #include "tick.h"
 #include "torque_map.h"
+#include "vcu_state.h"
 
 /*
  * error codes
@@ -62,7 +63,8 @@ typedef enum
  */
 typedef struct CTRL_STATE
 {
-    ctrl_state_t state_old;          // state machine state
+    ctrl_state_t state_old; // state machine state
+    vcu_state_t* vcu_state;
     TX_THREAD thread;            // service thread
     uint16_t apps_reading;       // APPS reading (% * 10)
     uint16_t bps_reading;        // BPS reading (% * 10)

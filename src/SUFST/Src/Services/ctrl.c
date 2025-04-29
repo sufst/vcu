@@ -126,6 +126,14 @@ void ctrl_thread_entry(ULONG input)
 {
     ctrl_context_t* ctrl_ptr = (ctrl_context_t*) input;
 
+    // spin waiting for init to complete
+    while (vcu_get_state() != VCU_STATE_INIT_DONE)
+    {
+        tx_thread_sleep(5);
+    }
+
+    vcu_set_state(VCU_STATE_IDLE);
+
     while (1)
     {
         uint32_t start_time = tx_time_get();
