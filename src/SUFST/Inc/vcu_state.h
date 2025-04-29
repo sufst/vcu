@@ -29,12 +29,12 @@ typedef enum
     VCU_STATE_INIT_HEARTBEAT,      // Hearbeat service init
     VCU_STATE_INIT_DONE = 0x0F,    // Init Done
 
-    VCU_STATE_IDLE = 0x10,      // * VCU Waiting for TS
-    VCU_STATE_TS_ENABLE = 0x20, // * VCU ENABLING TS
-    VCU_STATE_TS_ON = 0x30,     // * VCU TS IDLE
-    VCU_STATE_R2D = 0x40,       // * VCU R2D
-    VCU_STATE_ERROR = 0xE0,     // * VCU recoverable Error
-    VCU_STATE_FATAL = 0xF0,     // * VCU unrecoverable Error
+    VCU_STATE_IDLE = 0x10,     // * VCU Waiting for TS
+    VCU_STATE_TS_START = 0x20, // * VCU ENABLING TS
+    VCU_STATE_TS_ON = 0x30,    // * VCU TS IDLE
+    VCU_STATE_R2D = 0x40,      // * VCU R2D
+    VCU_STATE_ERROR = 0xE0,    // * VCU recoverable Error
+    VCU_STATE_FATAL = 0xF0,    // * VCU unrecoverable Error
 } vcu_state_t;
 
 void vcu_set_state(const vcu_state_t newState);
