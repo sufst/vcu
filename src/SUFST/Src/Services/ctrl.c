@@ -53,7 +53,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
                    const config_rtds_t* rtds_config_ptr,
                    const config_torque_map_t* torque_map_config_ptr)
 {
-    ctrl_ptr->state = CTRL_STATE_TS_BUTTON_WAIT;
+    ctrl_ptr->state_old = CTRL_STATE_TS_BUTTON_WAIT;
     ctrl_ptr->dash_ptr = dash_ptr;
     ctrl_ptr->pm100_ptr = pm100_ptr;
     ctrl_ptr->tick_ptr = tick_ptr;
@@ -206,7 +206,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
     const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
     const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
 
-    ctrl_state_t next_state = ctrl_ptr->state;
+    ctrl_state_t next_state = ctrl_ptr->state_old;
 
 // In simulation mode, the TS and R2D buttons are controlled by the remote
 // control, but the dash is still in effect
@@ -217,7 +217,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         = dash_ptr->r2d_flag || remote_get_r2d_reading(remote_ctrl_ptr);
 #endif
 
-    switch (ctrl_ptr->state)
+    switch (ctrl_ptr->state_old)
     {
 
         // wait for TS button to be held and released
@@ -622,7 +622,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         break;
     }
 
-    ctrl_ptr->state = next_state;
+    ctrl_ptr->state_old = next_state;
 }
 
 /**
@@ -661,7 +661,7 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
         states->sensors.vcu_sagl = ctrl_ptr->sagl_reading;
         states->sensors.vcu_torque_request = ctrl_ptr->torque_request;
         states->temps.vcu_max_temp = (int8_t) ctrl_ptr->max_temp;
-        states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
+        states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state_old;
         states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
         states->errors.vcu_ctrl_error = ctrl_ptr->error;
         states->pdm.inverter = ctrl_ptr->inverter_pwr;
