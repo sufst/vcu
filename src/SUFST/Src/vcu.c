@@ -26,11 +26,11 @@ static vcu_context_t* vcu_ptr_static;
  * @param[in]   app_mem_pool    Pointer to RTOS application memory pool
  * @param[in]   config_ptr      Pointer to VCU configuration instance
  */
-status_t vcu_init(vcu_context_t* vcu_ptr,
+status_t vcu_init(vcu_context_t* const vcu_ptr,
                   CAN_HandleTypeDef* can_c_h,
                   CAN_HandleTypeDef* can_s_h,
                   TX_BYTE_POOL* app_mem_pool,
-                  const config_t* config_ptr)
+                  const config_t* const config_ptr)
 {
     vcu_ptr->config_ptr = config_ptr;
     vcu_ptr_static = vcu_ptr;
@@ -54,10 +54,12 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
     vcu_set_state(VCU_STATE_INIT_RTCAN);
 
     // RTCAN services
-    rtcan_handle_t* rtcan_handles[] = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
-    CAN_HandleTypeDef* can_handles[] = {can_s_h, can_c_h};
-    ULONG rtcan_priorities[] = {vcu_ptr->config_ptr->rtos.rtcan_s_priority,
-                                vcu_ptr->config_ptr->rtos.rtcan_c_priority};
+    rtcan_handle_t* const rtcan_handles[]
+        = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
+    CAN_HandleTypeDef* const can_handles[] = {can_s_h, can_c_h};
+    const ULONG rtcan_priorities[]
+        = {vcu_ptr->config_ptr->rtos.rtcan_s_priority,
+           vcu_ptr->config_ptr->rtos.rtcan_c_priority};
 
     for (uint32_t i = 0; i < 2; i++)
     {

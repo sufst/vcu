@@ -124,7 +124,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
  */
 void ctrl_thread_entry(ULONG input)
 {
-    ctrl_context_t* ctrl_ptr = (ctrl_context_t*) input;
+    ctrl_context_t* const ctrl_ptr = (ctrl_context_t*) input;
 
     // spin waiting for init to complete
     while (vcu_get_state() != VCU_STATE_INIT_DONE)
@@ -206,15 +206,16 @@ bool ctrl_fan_passed_off_threshold(ctrl_context_t* ctrl_ptr)
  *
  * @param[in]   ctrl_ptr    Control context
  */
-void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
+void ctrl_state_machine_tick(ctrl_context_t* const ctrl_ptr)
 {
     // reduce typing...
-    dash_context_t* dash_ptr = ctrl_ptr->dash_ptr;
-    remote_ctrl_context_t* remote_ctrl_ptr = ctrl_ptr->remote_ctrl_ptr;
-    const config_ctrl_t* config_ptr = ctrl_ptr->config_ptr;
+    dash_context_t* const dash_ptr = ctrl_ptr->dash_ptr;
+    remote_ctrl_context_t* const remote_ctrl_ptr = ctrl_ptr->remote_ctrl_ptr;
+    const config_ctrl_t* const config_ptr = ctrl_ptr->config_ptr;
     const uint16_t BPS_ON_THRESH = config_ptr->bps_on_threshold;
 
     ctrl_state_t next_state = ctrl_ptr->state_old;
+    vcu_state_t next_requested_vcu_state = vcu_get_state();
 
 // In simulation mode, the TS and R2D buttons are controlled by the remote
 // control, but the dash is still in effect
@@ -227,6 +228,19 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     switch (ctrl_ptr->state_old)
     {
+#pragma region VCU_IDLE_REGION
+    case (VCU_STATE_IDLE):
+        // Here we wait for TS ON Request
+        // if we want to enable TS
+        next_requested_vcu_state
+            = VCU_STATE_TS_START; // TODO: Check for TS Enable
+        break;
+
+#pragma endregion VCU_IDLE_REGION
+
+#pragma region VCU_TS_START_REGION
+
+#pragma endregion VCU_TS_START_REGION
 
         // wait for TS button to be held and released
         // then begin activating the TS
