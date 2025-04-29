@@ -37,4 +37,8 @@ typedef enum
     VCU_STATE_FATAL = 0xF0,     // * VCU unrecoverable Error
 } vcu_state_t;
 
+void vcu_set_state(const vcu_state_t newState);
+
+vcu_state_t vcu_get_state();
+
 #endif // VCU_STATE_H

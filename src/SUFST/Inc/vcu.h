@@ -67,6 +67,4 @@ status_t vcu_handle_can_rx_it(vcu_context_t* vcu_ptr,
 
 status_t vcu_handle_can_err(vcu_context_t* vcu_ptr, CAN_HandleTypeDef* can_h);
 
-void vcu_set_state(vcu_context_t* vcu_ptr, vcu_state_t newState);
-
 #endif

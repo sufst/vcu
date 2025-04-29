@@ -15,6 +15,8 @@
 #include "config.h"
 #include "dash.h"
 
+static vcu_context_t* vcu_ptr_static;
+
 /**
  * @brief       Initialises the VCU and all system services
  *
@@ -31,6 +33,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
                   const config_t* config_ptr)
 {
     vcu_ptr->config_ptr = config_ptr;
+    vcu_ptr_static = vcu_ptr;
 
     // Set Initial VCU State
     vcu_ptr->state = VCU_STATE_INIT;
@@ -48,7 +51,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_RTCAN);
+    vcu_set_state(VCU_STATE_INIT_RTCAN);
 
     // RTCAN services
     rtcan_handle_t* rtcan_handles[] = {&vcu_ptr->rtcan_s, &vcu_ptr->rtcan_c};
@@ -87,7 +90,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         }
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_CANBC);
+    vcu_set_state(VCU_STATE_INIT_CANBC);
 
     // CAN broadcast service
     status = canbc_init(&vcu_ptr->canbc,
@@ -101,7 +104,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_DASH);
+    vcu_set_state(VCU_STATE_INIT_DASH);
 
     // dash
     status
@@ -113,7 +116,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_TICK);
+    vcu_set_state(VCU_STATE_INIT_TICK);
 
     // tick
     status = tick_init(&vcu_ptr->tick,
@@ -129,7 +132,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_PM100);
+    vcu_set_state(VCU_STATE_INIT_PM100);
 
     // pm100
     status = pm100_init(&vcu_ptr->pm100,
@@ -144,7 +147,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_CONTROL);
+    vcu_set_state(VCU_STATE_INIT_CONTROL);
 
     // control
     status = ctrl_init(&vcu_ptr->ctrl,
@@ -164,7 +167,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_REMOTE_CONTROL);
+    vcu_set_state(VCU_STATE_INIT_REMOTE_CONTROL);
 
     // remote control
     status = remote_ctrl_init(&vcu_ptr->remote_ctrl,
@@ -179,7 +182,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_HEARTBEAT);
+    vcu_set_state(VCU_STATE_INIT_HEARTBEAT);
 
     // heartbeat
     status = heartbeat_init(&vcu_ptr->heartbeat,
@@ -192,7 +195,7 @@ status_t vcu_init(vcu_context_t* vcu_ptr,
         return status;
     }
 
-    vcu_set_state(vcu_ptr, VCU_STATE_INIT_DONE);
+    vcu_set_state(VCU_STATE_INIT_DONE);
 
     return status;
 }
@@ -290,8 +293,13 @@ status_t vcu_handle_can_err(vcu_context_t* vcu_ptr, CAN_HandleTypeDef* can_h)
     return STATUS_OK;
 }
 
-void vcu_set_state(vcu_context_t* vcu_ptr, const vcu_state_t newState)
+void vcu_set_state(const vcu_state_t newState)
 {
-    vcu_ptr->state = newState;
+    vcu_ptr_static->state = newState;
     LOG_DEBUG("VCU State Change to %#2X", newState);
+}
+
+vcu_state_t vcu_get_state()
+{
+    return vcu_ptr_static->state;
 }
