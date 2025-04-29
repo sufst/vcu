@@ -60,7 +60,7 @@ typedef enum
 /**
  * @brief   Control service context
  */
-typedef struct
+typedef struct CTRL_STATE
 {
     ctrl_state_t state;          // state machine state
     TX_THREAD thread;            // service thread
