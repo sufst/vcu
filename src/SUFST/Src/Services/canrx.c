@@ -110,6 +110,9 @@ void canrx_thread_entry(ULONG input)
     const config_canrx_t* config_ptr = canrx_ptr->config_ptr;
 
     // set up RTCAN subscriptions
+    /* This is commented, as there are currently no can_c_subscriptions
+    Uncomment to add a can_c_subscription
+
     uint32_t can_c_subscriptions[0];
 
     for (uint32_t i = 0;
@@ -126,6 +129,7 @@ void canrx_thread_entry(ULONG input)
             tx_thread_terminate(&canrx_ptr->thread);
         }
     }
+    */
 
     uint32_t can_s_subscriptions[] = {CAN_S_MSGID_0_X202_FRAME_ID};
 
