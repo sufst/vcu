@@ -111,7 +111,10 @@ static const config_t config_instance = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
         .output_max = 1500,
-        .deadzone_fraction = 0.15f
+        .deadzone_fraction = 0.15f,
+        .limit_min = 300,
+        .limit_start = 50,
+        .limit_end = 60
     },
     .pm100 = {
         .thread = {

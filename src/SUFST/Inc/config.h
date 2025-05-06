@@ -107,6 +107,9 @@ typedef struct {
      uint16_t input_max;                     // maximum input value (range must be zero to max)
      uint16_t output_max;                    // maximum output value (Nm * 10)
      float deadzone_fraction;                // fraction of input range for deadzone
+     uint16_t limit_min;                     // minimum Torque request at the end of the limit (Nm *10)
+     uint8_t limit_start;                    // BMS temp to start limiting torque (Celcius)
+     uint8_t limit_end;                      // BMS temp for maximum toque limiting (Celcius)
 } config_torque_map_t;
 
 /**
