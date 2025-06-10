@@ -73,6 +73,7 @@ typedef struct
     bool inverter_pwr;
     bool pump_pwr;
     bool fan_pwr;
+    bool power_saving;
 
     uint32_t neg_air_start;
     uint32_t precharge_start; // precharge start time in ticks

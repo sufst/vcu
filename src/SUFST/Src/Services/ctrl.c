@@ -65,6 +65,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     ctrl_ptr->inverter_pwr = false;
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->fan_pwr = false;
+    ctrl_ptr->power_saving = false;
 
     // create the thread
     void* stack_ptr = NULL;
@@ -357,9 +358,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             }
             ctrl_ptr->bms_temp
                 = ctrl_ptr->canrx_ptr->msgid_x202.bms_high_temperature;
-            ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-                                                        ctrl_ptr->apps_reading,
-                                                        ctrl_ptr->bms_temp);
+            ctrl_ptr->torque_request
+                = torque_map_apply(&ctrl_ptr->torque_map,
+                                   ctrl_ptr->apps_reading,
+                                   ctrl_ptr->bms_temp,
+                                   &ctrl_ptr->power_saving);
 
             LOG_INFO("ADC: %d, Torque: %d\n",
                      ctrl_ptr->apps_reading,
@@ -532,6 +535,7 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
         states->temps.vcu_max_temp = (int8_t) ctrl_ptr->max_temp;
         states->state.vcu_ctrl_state = (uint8_t) ctrl_ptr->state;
         states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
+        states->state.vcu_power_saving = (uint8_t) ctrl_ptr->power_saving;
         states->errors.vcu_ctrl_error = ctrl_ptr->error;
         states->pdm.inverter = ctrl_ptr->inverter_pwr;
         states->pdm.pump = ctrl_ptr->pump_pwr;
