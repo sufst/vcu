@@ -22,8 +22,6 @@ static void tick_thread_entry(ULONG input)
 
 /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
   tick_ptr->bps_reading, tick_ptr->bps_status);*/
-/*LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
-  tick_ptr->apps_reading, tick_ptr->apps_status);*/
 #ifndef VCU_SIMULATION_MODE
         tick_update_canbc_states(tick_ptr);
 #endif
@@ -55,16 +53,6 @@ status_t tick_init(tick_context_t* tick_ptr,
                                       config_ptr->thread.stack_size,
                                       TX_NO_WAIT);
 
-    // create state mutex
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status = tx_mutex_create(&tick_ptr->sensor_mutex, NULL, TX_INHERIT);
-    }
-    // initialise the APPS and BPS
-    if (status == STATUS_OK)
-    {
-        status = apps_init(&tick_ptr->apps, apps_config_ptr);
-    }
     // create state mutex
     if (tx_status == TX_SUCCESS)
     {
