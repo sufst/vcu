@@ -65,16 +65,6 @@ status_t tick_init(tick_context_t* tick_ptr,
     {
         status = apps_init(&tick_ptr->apps, apps_config_ptr);
     }
-    // create state mutex
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status = tx_mutex_create(&tick_ptr->sensor_mutex, NULL, TX_INHERIT);
-    }
-    // initialise the APPS and BPS
-    if (status == STATUS_OK)
-    {
-        status = apps_init(&tick_ptr->apps, apps_config_ptr);
-    }
 
     if (status == STATUS_OK)
     {
