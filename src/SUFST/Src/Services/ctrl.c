@@ -209,8 +209,13 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	// In simulation mode, the TS and R2D buttons are controlled by the remote control, but the dash is still in effect
 	#ifdef VCU_SIMULATION_MODE
+        LOG_INFO("TS dash button: %d, R2D dash button: %d\n",
+                dash_ptr->tson_flag, dash_ptr->r2d_flag);
+        LOG_INFO("TS remote signal: %d, R2D remote signal: %d\n",
+                remote_get_ts_on_reading(remote_ctrl_ptr), remote_get_r2d_reading(remote_ctrl_ptr));
 		dash_ptr->tson_flag = dash_ptr->tson_flag || remote_get_ts_on_reading(remote_ctrl_ptr);
 		dash_ptr->r2d_flag = dash_ptr->r2d_flag || remote_get_r2d_reading(remote_ctrl_ptr);
+
 	#endif
 
 	switch (ctrl_ptr->state)
@@ -220,7 +225,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 		// then begin activating the TS
 	case (CTRL_STATE_TS_BUTTON_WAIT):
 	{
-		LOG_INFO("STATE TS_BUTTON_WAIT\n");
 		if (dash_ptr->tson_flag)
 		{
 			dash_clear_buttons(dash_ptr);
@@ -233,7 +237,9 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 				next_state = CTRL_STATE_WAIT_NEG_AIR;
 				ctrl_ptr->neg_air_start = tx_time_get();
-			}
+			} else {
+                LOG_ERROR("TSON pressed, but SHDN open\n");
+            }
 		}
 
 		break;
@@ -241,7 +247,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case (CTRL_STATE_WAIT_NEG_AIR):
 	{
-		LOG_INFO("STATE WAIT_NEG_AIR\n");
 		if (tx_time_get() >= ctrl_ptr->neg_air_start + TX_TIMER_TICKS_PER_SECOND / 4)
 		{
 			LOG_INFO("Neg AIR closed, turning on inverter\n");
@@ -250,7 +255,9 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 			next_state = CTRL_STATE_PRECHARGE_WAIT;
 			ctrl_ptr->precharge_start = tx_time_get();
-		}
+		} else {
+            LOG_ERROR("Waiting for Neg AIR, timedout\n");
+        }
 
 		break;
 	}
@@ -259,7 +266,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// TS on LED turns solid
 	case (CTRL_STATE_PRECHARGE_WAIT):
 	{
-		LOG_INFO("STATE PRECHARGE_WAIT\n");
 		const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
 
 		if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
@@ -286,7 +292,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// also wait for brake to be fully pressed (if enabled)
 	case (CTRL_STATE_R2D_WAIT):
 	{
-		LOG_INFO("STATE R2D_WAIT\n");
 		if (!trc_ready())
 		{
 			LOG_ERROR("SHDN opened\n");
@@ -333,7 +338,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 					#else
 						next_state = CTRL_STATE_TS_ON;
 					#endif
-					LOG_INFO("R2D active\n");
 				}
 			}
 			else
@@ -348,7 +352,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// the TS is on
 	case (CTRL_STATE_TS_ON):
 	{
-		LOG_INFO("STATE TS_ON\n");
 		// read from the APPS
 		status_t pm100_status;
 
@@ -437,7 +440,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case CTRL_STATE_R2D_OFF:
 	{
-		LOG_INFO("STATE R2D_OFF\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 		ctrl_ptr->motor_torque_zero_start = tx_time_get();
@@ -456,7 +458,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case CTRL_STATE_R2D_OFF_WAIT:
 	{
-		LOG_INFO("STATE R2D_OFF_WAIT\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 
@@ -482,7 +483,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	case (CTRL_STATE_TS_ACTIVATION_FAILURE):
 	case (CTRL_STATE_TS_RUN_FAULT):
 	{
-		LOG_INFO("STATE TS_RUN_FAULT\n");
 		LOG_ERROR("TS fault during activation or runtime\n");
 		ctrl_handle_ts_fault(ctrl_ptr);
 		next_state = CTRL_STATE_SPIN;
@@ -491,7 +491,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case (CTRL_STATE_SPIN): // Spin forever
 	{
-		LOG_INFO("STATE SPIN\n");
 		break;
 	}
 
@@ -499,7 +498,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// this is recoverable, if the signal becomes plausible again
 	case (CTRL_STATE_APPS_SCS_FAULT):
 	{
-		LOG_INFO("STATE APPS_SCS_FAULT\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 
@@ -518,7 +516,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case (CTRL_STATE_APPS_BPS_FAULT):
 	{
-		LOG_INFO("STATE APPS_BPS_FAULT\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 
@@ -553,7 +550,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the TS being turned on again
 	case (CTRL_STATE_SIM_WAIT_TS_OFF):
 	{
-		LOG_INFO("STATE SIM_WAIT_TS_OFF\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 		if (pm100_status != STATUS_OK)
@@ -571,7 +567,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the TS being turned off again
 	case (CTRL_STATE_SIM_WAIT_TS_ON):
 	{
-		LOG_INFO("STATE SIM_WAIT_TS_ON\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 		if (pm100_status != STATUS_OK)
@@ -588,7 +583,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the R2D being turned off again
 	case (CTRL_STATE_SIM_WAIT_R2D_ON):
 	{
-		LOG_INFO("STATE SIM_WAIT_R2D_ON\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 		if (pm100_status != STATUS_OK)
@@ -605,7 +599,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	// Needed when in simulation mode to avoid the R2D being turned on again
 	case (CTRL_STATE_SIM_WAIT_R2D_OFF):
 	{
-		LOG_INFO("STATE SIM_WAIT_R2D_OFF\n");
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 		if (pm100_status != STATUS_OK)

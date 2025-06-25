@@ -82,7 +82,6 @@ status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
 
 static void remote_ctrl_thread_entry(ULONG input)
 {
-    LOG_INFO("Remote control thread started\n");
     #ifndef VCU_SIMULATION_MODE
     #else
         remote_ctrl_context_t *remote_ctrl_ptr = (remote_ctrl_context_t *)input;
@@ -104,8 +103,6 @@ static void remote_ctrl_thread_entry(ULONG input)
             uint8_t loop_counter = 0;
             while (1)
             {
-                loop_counter++;
-                LOG_INFO("Loop count: %d\n", loop_counter);
                 rtcan_msg_t *msg_ptr = NULL;
                 UINT status = tx_queue_receive(&remote_ctrl_ptr->can_rx_queue,
                                             &msg_ptr,
@@ -159,26 +156,23 @@ static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_
 
     if (tx_status == TX_SUCCESS)
     {
-        LOG_INFO("lock_sim_sensors OK\n");
         return STATUS_OK;
     }
-    LOG_ERROR("lock_sim_sensors failed\n");
     return STATUS_ERROR;
 }
 
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr)
 {
     tx_mutex_put(&remote_ctrl_ptr->sensor_mutex);
-    LOG_INFO("unlock_sim_sensors\n");
 }
 
 uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
-    LOG_INFO("remote get torque reading\n");
     uint16_t result = 0; // Set initial torque to 0
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {
+        LOG_INFO("Remote torque requested: %d\n", remote_ctrl_ptr->requests.sim_torque_request);
         result = remote_ctrl_ptr->requests.sim_torque_request;
         if (result > remote_ctrl_ptr->config_ptr->torque_limit)
         {
@@ -197,11 +191,11 @@ uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 
 status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
 {
-    LOG_INFO("remote get bps reading\n");
     status_t status = STATUS_ERROR;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {
+        LOG_INFO("Remote BPS requested: %d\n", remote_ctrl_ptr->requests.sim_bps);
         *result = remote_ctrl_ptr->requests.sim_bps;
         status = STATUS_OK;
         unlock_sim_sensors(remote_ctrl_ptr);
@@ -216,11 +210,12 @@ status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t
 
 status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
 {
-    LOG_INFO("remote get apps reading\n");
     status_t status = STATUS_ERROR;
+
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {
+        LOG_INFO("Remote APPS reading: %d\n", remote_ctrl_ptr->requests.sim_apps);
         *result = remote_ctrl_ptr->requests.sim_apps;
         status = STATUS_OK;
         unlock_sim_sensors(remote_ctrl_ptr);
@@ -235,7 +230,6 @@ status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_
 
 uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
-    LOG_INFO("remote get ts on reading\n");
     uint8_t result = 0u;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
@@ -254,7 +248,6 @@ uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 
 uint8_t remote_get_r2d_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
-    LOG_INFO("remote get r2d reading\n");
     uint8_t result = 0u;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
@@ -295,14 +288,16 @@ void remote_ctrl_update_canbc_states(remote_ctrl_context_t *remote_ctrl_ptr)
 
 void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t *msg_ptr)
 {
-    LOG_INFO("Processing remote control broadcast message\n");
+    LOG_INFO("Received CAN message with ID: %lu\n", msg_ptr->identifier);
     switch (msg_ptr->identifier)
     {
     case CAN_S_VCU_SIMULATION_FRAME_ID:
     {
-        can_s_vcu_simulation_unpack(&remote_ctrl_ptr->requests,
+        if (can_s_vcu_simulation_unpack(&remote_ctrl_ptr->requests,
                                     msg_ptr->data,
-                                    msg_ptr->length);
+                                    msg_ptr->length) != 0) {
+            LOG_ERROR("Failed to unpack CAN_S_VCU_SIMULATION message\n");
+        }
         break;
     }
     default:
