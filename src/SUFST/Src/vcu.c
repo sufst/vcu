@@ -135,6 +135,12 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
             app_mem_pool,
             &vcu_ptr->rtcan_s,
             &vcu_ptr->config_ptr->remote_ctrl);
+        LOG_INFO("Remote control service initialised\n");
+    }
+
+    if (status != STATUS_OK)
+    {
+        LOG_ERROR("Failed to initialise remote control service\n");
     }
 
     // heartbeat
@@ -148,6 +154,7 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     if (status != STATUS_OK)
         LOG_ERROR("Some services failed to initialise\n");
 
+    LOG_INFO("All VCU services initialised\n");
     return status;
 }
 

@@ -82,7 +82,7 @@ status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
 
 static void remote_ctrl_thread_entry(ULONG input)
 {
-
+    LOG_INFO("Remote control thread started\n");
     #ifndef VCU_SIMULATION_MODE
     #else
         remote_ctrl_context_t *remote_ctrl_ptr = (remote_ctrl_context_t *)input;
@@ -155,18 +155,22 @@ static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_
 
     if (tx_status == TX_SUCCESS)
     {
+        LOG_INFO("lock_sim_sensors OK\n");
         return STATUS_OK;
     }
+    LOG_ERROR("lock_sim_sensors failed\n");
     return STATUS_ERROR;
 }
 
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr)
 {
     tx_mutex_put(&remote_ctrl_ptr->sensor_mutex);
+    LOG_INFO("unlock_sim_sensors\n");
 }
 
 uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
+    LOG_INFO("remote get torque reading\n");
     uint16_t result = 0; // Set initial torque to 0
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
@@ -189,6 +193,7 @@ uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 
 status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
 {
+    LOG_INFO("remote get bps reading\n");
     status_t status = STATUS_ERROR;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
@@ -207,6 +212,7 @@ status_t remote_get_bps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t
 
 status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_t *result)
 {
+    LOG_INFO("remote get apps reading\n");
     status_t status = STATUS_ERROR;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
@@ -225,11 +231,13 @@ status_t remote_get_apps_reading(remote_ctrl_context_t *remote_ctrl_ptr, uint16_
 
 uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
+    LOG_INFO("remote get ts on reading\n");
     uint8_t result = 0u;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {
         result = remote_ctrl_ptr->requests.sim_ts_on;
+        LOG_INFO("TS requested: %d\n", result);
         unlock_sim_sensors(remote_ctrl_ptr);
     }
     else
@@ -242,11 +250,13 @@ uint8_t remote_get_ts_on_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 
 uint8_t remote_get_r2d_reading(remote_ctrl_context_t *remote_ctrl_ptr)
 {
+    LOG_INFO("remote get r2d reading\n");
     uint8_t result = 0u;
 
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {
         result = remote_ctrl_ptr->requests.sim_r2_d;
+        LOG_INFO("R2D requested: %d\n", result);
         if (!can_s_vcu_state_vcu_r2_d_is_in_range(result))
         {
             LOG_WARN("R2D requested is over the limit, setting it to 0\n");
@@ -281,6 +291,7 @@ void remote_ctrl_update_canbc_states(remote_ctrl_context_t *remote_ctrl_ptr)
 
 void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t *msg_ptr)
 {
+    LOG_INFO("Processing remote control broadcast message\n");
     switch (msg_ptr->identifier)
     {
     case CAN_S_VCU_SIMULATION_FRAME_ID:
