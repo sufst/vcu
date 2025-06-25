@@ -100,8 +100,12 @@ static void remote_ctrl_thread_entry(ULONG input)
                 tx_thread_terminate(&remote_ctrl_ptr->thread);
             }
 
+
+            uint8_t loop_counter = 0;
             while (1)
             {
+                loop_counter++;
+                LOG_INFO("Loop count: %d\n", loop_counter);
                 rtcan_msg_t *msg_ptr = NULL;
                 UINT status = tx_queue_receive(&remote_ctrl_ptr->can_rx_queue,
                                             &msg_ptr,
