@@ -20,7 +20,7 @@
 
 // Should be defined if the VCU is in simulation mode
 // When not defined(commented out) - the VCU is in normal mode(using apps and bps sensors)
-#define VCU_SIMULATION_MODE
+// #define VCU_SIMULATION_MODE
 
 // Should be defined if the simulation mode is via power sent by remote control;
 // When not defined(commented out) - the simulation mode is via torque sent by remote control

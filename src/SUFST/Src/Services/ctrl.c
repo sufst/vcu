@@ -135,12 +135,13 @@ void ctrl_thread_entry(ULONG input)
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp
                                  ? ctrl_ptr->motor_temp
                                  : ctrl_ptr->inv_temp;
+        /*
         LOG_INFO("Motor temp: %d   Inverter temp: %d   Max temp: %d\n",
 
                  ctrl_ptr->motor_temp,
                  ctrl_ptr->inv_temp,
                  ctrl_ptr->max_temp);
-
+        */
         if (ctrl_fan_passed_on_threshold(ctrl_ptr))
         {
             ctrl_ptr->fan_pwr = 1;
