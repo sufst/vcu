@@ -375,7 +375,7 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 										 (TX_TIMER_TICKS_PER_SECOND / 3))
 				{
 					LOG_ERROR("BP-AP fault\n");
-					next_state = CTRL_STATE_APPS_BPS_FAULT;
+					// next_state = CTRL_STATE_APPS_BPS_FAULT;
 				}
 			}
 			else

@@ -56,32 +56,32 @@ static const config_t config_instance = {
 	 .apps_1_scs = {
             .hadc = &hadc1,
             .min_adc = 1,
-            .max_adc = 170,
+            .max_adc = 177,
             .min_mapped = 0,
             .max_mapped = 100,
             .outside_bounds_fraction = 0.005f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 165,
-            .max_adc = 290,
+            .min_adc = 168,
+            .max_adc = 305,
             .min_mapped = 0,
             .max_mapped = 100,
             .outside_bounds_fraction = 0.005f
         },
-        .max_discrepancy = 5,
+        .max_discrepancy = 10,
 	
     },
     .bps = {
         .scs = {
             .hadc = &hadc3,
-            .min_adc = 50,
-            .max_adc = 250,
+            .min_adc = 0,
+            .max_adc = 1024,
             .min_mapped = 0,
             .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
         },
-        .fully_pressed_fraction = 0.15f
+        .fully_pressed_fraction = 0.25f
     },
     .ctrl = {
         .thread = {
@@ -90,15 +90,15 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
-        .r2d_requires_brake = true,
-        .bps_on_threshold = 5,
+        .r2d_requires_brake = false,
+        .bps_on_threshold = 10,
 	    .apps_bps_low_threshold = 5,
 	    .apps_bps_high_threshold = 20,
         .fan_on_threshold = 60, // to be adjusted to the actual value
         .fan_off_threshold = 50, // to be adjusted to the actual value
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
-        .precharge_timeout_ticks = SECONDS_TO_TICKS(5),
+        .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
         .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1)
     },
