@@ -174,7 +174,7 @@ void pm100_thread_entry(ULONG input)
         }
         else
         {
-            // TODO; some other error
+            LOG_ERROR("PM100 thread: unexpected error %d\n", status);
         }
     }
 }

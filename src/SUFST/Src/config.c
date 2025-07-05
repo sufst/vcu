@@ -55,33 +55,33 @@ static const config_t config_instance = {
 	 
 	 .apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 1,
-            .max_adc = 177,
+            .min_adc = 0,
+            .max_adc = 125,
             .min_mapped = 0,
             .max_mapped = 100,
             .outside_bounds_fraction = 0.005f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 168,
-            .max_adc = 305,
+            .min_adc = 110,
+            .max_adc = 205,
             .min_mapped = 0,
             .max_mapped = 100,
             .outside_bounds_fraction = 0.005f
         },
-        .max_discrepancy = 10,
+        .max_discrepancy = 15,
 	
     },
     .bps = {
         .scs = {
             .hadc = &hadc3,
             .min_adc = 0,
-            .max_adc = 1024,
+            .max_adc = 400,
             .min_mapped = 0,
             .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
         },
-        .fully_pressed_fraction = 0.25f
+        .fully_pressed_fraction = 0.5f
     },
     .ctrl = {
         .thread = {
@@ -91,9 +91,9 @@ static const config_t config_instance = {
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = false,
-        .bps_on_threshold = 10,
+        .bps_on_threshold = 40,
 	    .apps_bps_low_threshold = 5,
-	    .apps_bps_high_threshold = 20,
+	    .apps_bps_high_threshold = 30,
         .fan_on_threshold = 60, // to be adjusted to the actual value
         .fan_off_threshold = 50, // to be adjusted to the actual value
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
@@ -111,7 +111,7 @@ static const config_t config_instance = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
         .output_max = 500,
-        .deadzone_fraction = 0.10f
+        .deadzone_fraction = 0.15f
     },
     .pm100 = {
         .thread = {
