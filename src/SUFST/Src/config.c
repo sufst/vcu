@@ -110,7 +110,7 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 500,
+        .output_max = 1000,
         .deadzone_fraction = 0.15f
     },
     .pm100 = {
