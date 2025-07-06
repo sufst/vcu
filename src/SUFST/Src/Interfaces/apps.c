@@ -77,7 +77,7 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
         LOG_INFO("APPS1 threshold warning; ");
     }
 
-    // LOG_INFO("APPS1 reading: %d; ", reading_1);
+    LOG_INFO("APPS1 reading: %d; ", reading_1);
 
     if (status_2 != STATUS_OK)
     {
@@ -97,7 +97,7 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
         LOG_INFO("APPS2 threshold warning; ");
     }
 
-    // LOG_INFO("APPS2 reading: %d; ", reading_2);
+    LOG_INFO("APPS2 reading: %d; ", reading_2);
 
     // // check for discrepancy
     uint16_t diff = (reading_1 > reading_2) ? (reading_1 - reading_2)

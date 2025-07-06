@@ -476,7 +476,7 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 	{
 		LOG_ERROR("TS fault during activation or runtime\n");
 		ctrl_handle_ts_fault(ctrl_ptr);
-		next_state = CTRL_STATE_SPIN;
+		next_state = CTRL_STATE_TS_BUTTON_WAIT;
 		break;
 	}
 
