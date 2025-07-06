@@ -63,13 +63,13 @@ static const config_t config_instance = {
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 110,
+            .min_adc = 108,
             .max_adc = 215,
             .min_mapped = 0,
             .max_mapped = 100,
             .outside_bounds_fraction = 0.005f
         },
-        .max_discrepancy = 15,
+        .max_discrepancy = 10,
 	
     },
     .bps = {
@@ -110,8 +110,8 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 1000,
-        .deadzone_fraction = 0.15f
+        .output_max = 500,
+        .deadzone_fraction = 0.20f
     },
     .pm100 = {
         .thread = {
