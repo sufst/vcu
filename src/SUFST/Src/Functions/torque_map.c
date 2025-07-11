@@ -137,7 +137,14 @@ uint16_t apply_temp_limit(torque_map_t* map_ptr,
     }
     else if (bms_temp > map_ptr->limit_end)
     {
-        result = map_ptr->limit_min;
+        if (input < map_ptr->limit_min)
+        {
+            result = input;
+        }
+        else
+        {
+            result = map_ptr->limit_min;
+        }
         *power_saving = true;
     }
     else
