@@ -446,7 +446,7 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
                        .extended = CAN_C_PM100_COMMAND_MESSAGE_IS_EXTENDED,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-                if (torque == 0 && pm100_motor_speed(pm100_ptr) == 0)
+                if (torque == 0 && pm100_motor_speed(pm100_ptr) < 10)
                 {
                     inverter_enable = PM100_INVERTER_OFF;
                 }
