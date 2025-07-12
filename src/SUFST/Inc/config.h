@@ -137,6 +137,13 @@ typedef struct {
      uint32_t broadcast_period_ticks;        // ticks between broadcasts
 } config_canbc_t;
 
+/**
+ * @brief   CAN recieving service
+ */
+typedef struct {
+    config_thread_t thread;                 // CANRX thread config
+    uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
+} config_canrx_t;
 typedef struct
 {
      config_thread_t thread;                 // thread config
@@ -216,6 +223,7 @@ typedef struct {
      config_tick_t tick;
      config_remote_ctrl_t remote_ctrl;
      config_canbc_t canbc;
+     config_canrx_t canrx;
      config_heartbeat_t heartbeat;
      config_log_t log;
      config_rtos_t rtos;

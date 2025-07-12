@@ -151,6 +151,14 @@ static const config_t config_instance = {
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
     },
+    .canrx = {
+        .thread = {
+            .name = "CANRX",
+            .priority = 3,
+            .stack_size = 1024
+        },
+        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
+    },
     .heartbeat = {
         .thread = {
             .name = "HEARTBEAT",
