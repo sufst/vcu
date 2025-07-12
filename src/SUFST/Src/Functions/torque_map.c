@@ -130,7 +130,14 @@ apply_temp_limit(torque_map_t* map_ptr, uint16_t input, uint8_t bms_temp)
     }
     else if (bms_temp > map_ptr->temp_end)
     {
-        result = map_ptr->temp_min;
+        if (input < map_ptr->temp_min)
+        {
+            result = input;
+        }
+        else
+        {
+            result = map_ptr->temp_min;
+        }
     }
     else
     {
