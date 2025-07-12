@@ -425,9 +425,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 #else
             ctrl_ptr->bms_temp
                 = ctrl_ptr->canrx_ptr->msgid_x202.bms_high_temperature;
-            ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-                                                        ctrl_ptr->apps_reading,
-                                                        ctrl_ptr->bms_temp);
+            ctrl_ptr->torque_request
+                = torque_map_apply(&ctrl_ptr->torque_map,
+                                   ctrl_ptr->apps_reading,
+                                   ctrl_ptr->bms_temp,
+                                   &ctrl_ptr->power_saving);
 #endif
 
             LOG_INFO("ADC: %d, Torque: %d\n",
@@ -651,6 +653,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
     ctrl_ptr->inverter_pwr = false;
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->fan_pwr = false;
+    ctrl_ptr->power_saving = false;
 
     trc_set_ts_on(GPIO_PIN_RESET);
     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
@@ -678,6 +681,7 @@ void ctrl_update_canbc_states(ctrl_context_t* ctrl_ptr)
         states->pdm.inverter = ctrl_ptr->inverter_pwr;
         states->pdm.pump = ctrl_ptr->pump_pwr;
         states->pdm.fan = ctrl_ptr->fan_pwr;
+        states->state.vcu_power_saving = ctrl_ptr->power_saving;
         canbc_unlock_state(ctrl_ptr->canbc_ptr);
     }
 }
