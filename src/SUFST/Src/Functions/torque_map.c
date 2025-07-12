@@ -10,6 +10,10 @@ static inline uint16_t apply_temp_limit(torque_map_t* map_ptr,
                                         uint16_t input,
                                         uint8_t bms_temp,
                                         bool* power_saving);
+static inline uint16_t apply_speed_limit(torque_map_t* map_ptr,
+                                         uint16_t input,
+                                         uint16_t speed,
+                                         bool* power_saving);
 
 /**
  * @brief       Initialises the torque map
@@ -50,9 +54,12 @@ status_t torque_map_init(torque_map_t* map_ptr,
         break;
     };
 
-    map_ptr->limit_min = config_ptr->limit_min;
-    map_ptr->limit_start = config_ptr->limit_start;
-    map_ptr->limit_end = config_ptr->limit_end;
+    map_ptr->temp_min = config_ptr->temp_min;
+    map_ptr->temp_start = config_ptr->temp_start;
+    map_ptr->temp_end = config_ptr->temp_end;
+    map_ptr->speed_min = config_ptr->speed_min;
+    map_ptr->speed_start = config_ptr->speed_start;
+    map_ptr->speed_end = config_ptr->speed_end;
 
     return status;
 }
@@ -65,6 +72,7 @@ status_t torque_map_init(torque_map_t* map_ptr,
  */
 uint16_t torque_map_apply(torque_map_t* map_ptr,
                           uint16_t input,
+                          uint16_t speed,
                           uint8_t bms_temp,
                           bool* power_saving)
 {
@@ -130,20 +138,20 @@ uint16_t apply_temp_limit(torque_map_t* map_ptr,
                           bool* power_saving)
 {
     uint16_t result = 0;
-    if (bms_temp < map_ptr->limit_start)
+    if (bms_temp < map_ptr->temp_start)
     {
         result = input;
         *power_saving = false;
     }
-    else if (bms_temp > map_ptr->limit_end)
+    else if (bms_temp > map_ptr->temp_end)
     {
-        if (input < map_ptr->limit_min)
+        if (input < map_ptr->temp_min)
         {
             result = input;
         }
         else
         {
-            result = map_ptr->limit_min;
+            result = map_ptr->temp_min;
         }
         *power_saving = true;
     }
@@ -151,9 +159,9 @@ uint16_t apply_temp_limit(torque_map_t* map_ptr,
     {
         uint16_t max_torque
             = map_ptr->config_ptr->output_max
-              - (map_ptr->config_ptr->output_max - map_ptr->limit_min)
-                    * (bms_temp - map_ptr->limit_start)
-                    / (map_ptr->limit_end - map_ptr->limit_start);
+              - (map_ptr->config_ptr->output_max - map_ptr->temp_min)
+                    * (bms_temp - map_ptr->temp_start)
+                    / (map_ptr->temp_end - map_ptr->temp_start);
 
         if (input < max_torque)
         {
@@ -165,6 +173,48 @@ uint16_t apply_temp_limit(torque_map_t* map_ptr,
         }
 
         *power_saving = true;
+    }
+
+    return result;
+}
+
+uint16_t apply_speed_limit(torque_map_t* map_ptr,
+                           uint16_t input,
+                           uint16_t speed,
+                           bool* power_saving)
+{
+    uint16_t result = 0;
+    if (speed < map_ptr->speed_start)
+    {
+        result = input;
+    }
+    else if (speed > map_ptr->speed_end)
+    {
+        if (input < map_ptr->speed_min)
+        {
+            result = input;
+        }
+        else
+        {
+            result = map_ptr->speed_min;
+        }
+    }
+    else
+    {
+        uint16_t max_torque
+            = map_ptr->config_ptr->output_max
+              - (map_ptr->config_ptr->output_max - map_ptr->speed_min)
+                    * (speed - map_ptr->speed_start)
+                    / (map_ptr->speed_end - map_ptr->speed_start);
+
+        if (input < max_torque)
+        {
+            result = input;
+        }
+        else
+        {
+            result = max_torque;
+        }
     }
 
     return result;
