@@ -28,6 +28,10 @@ typedef struct _torque_map_t
     uint16_t speed_min;   // minimum Torque request at max speed (Nm *10)
     uint16_t speed_start; // speed to start limiting torque (rpm)
     uint16_t speed_end;   // speed for max torque limiting (rpm)
+    uint16_t
+        temp_min; // minimum Torque request at the end of the limit (Nm *10)
+    uint8_t temp_start; // BMS temp to start limiting torque (Celcius)
+    uint8_t temp_end;   // BMS temp for maximum toque limiting (Celcius)
 } torque_map_t;
 
 /*
@@ -36,6 +40,8 @@ typedef struct _torque_map_t
 status_t torque_map_init(torque_map_t* map_ptr,
                          const config_torque_map_t* config_ptr);
 uint16_t
-torque_map_apply(torque_map_t* map_ptr, uint16_t input, uint16_t speed);
+torque_map_apply(torque_map_t* map_ptr, uint16_t input, uint16_t speed,
+                          uint8_t bms_temp,
+                          bool* power_saving);
 
 #endif

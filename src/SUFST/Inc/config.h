@@ -119,6 +119,9 @@ typedef struct {
      uint16_t speed_min;                     // minimum Torque request at max speed (Nm *10)
      uint16_t speed_start;                   // speed to start limiting torque (rpm)
      uint16_t speed_end;                     // speed for max torque limiting (rpm)
+     uint16_t temp_min;                     // minimum Torque request at the end of the limit (Nm *10)
+     uint8_t temp_start;                    // BMS temp to start limiting torque (Celcius)
+     uint8_t temp_end;                      // BMS temp for maximum toque limiting (Celcius)
 } config_torque_map_t;
 
 /**
@@ -140,6 +143,13 @@ typedef struct {
      uint32_t broadcast_period_ticks;        // ticks between broadcasts
 } config_canbc_t;
 
+/**
+ * @brief   CAN recieving service
+ */
+typedef struct {
+    config_thread_t thread;                 // CANRX thread config
+    uint32_t broadcast_timeout_ticks;       // maximum number of ticks to wait for a broadcast
+} config_canrx_t;
 typedef struct
 {
      config_thread_t thread;                 // thread config
@@ -219,6 +229,7 @@ typedef struct {
      config_tick_t tick;
      config_remote_ctrl_t remote_ctrl;
      config_canbc_t canbc;
+     config_canrx_t canrx;
      config_heartbeat_t heartbeat;
      config_log_t log;
      config_rtos_t rtos;
