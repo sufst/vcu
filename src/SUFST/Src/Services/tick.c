@@ -1,6 +1,6 @@
 #include "tick.h"
 
-#define BPS_LIGHT_THRESH 30
+#define BPS_LIGHT_THRESH 40
 
 static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout);
 static void unlock_tick_sensors(tick_context_t *tick_ptr);

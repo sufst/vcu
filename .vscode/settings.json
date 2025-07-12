@@ -49,7 +49,9 @@
     "status.h": "c",
     "torque_map_funcs.h": "c",
     "rtds.h": "c",
-    "pm100.h": "c"
+    "pm100.h": "c",
+    "can_c.h": "c",
+    "ctrl.h": "c"
   },
   "cortex-debug.variableUseNaturalFormat": true,
   "C_Cpp.errorSquiggles": "Enabled",

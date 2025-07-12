@@ -55,28 +55,28 @@ static const config_t config_instance = {
 	 
 	 .apps_1_scs = {
             .hadc = &hadc1,
-            .min_adc = 0,
-            .max_adc = 135,
+            .min_adc = 6,
+            .max_adc = 192,
             .min_mapped = 0,
             .max_mapped = 100,
-            .outside_bounds_fraction = 0.005f
+            .outside_bounds_fraction = 0.05f
         },
         .apps_2_scs = {
             .hadc = &hadc2,
-            .min_adc = 108,
-            .max_adc = 215,
+            .min_adc = 130,
+            .max_adc = 255,
             .min_mapped = 0,
             .max_mapped = 100,
-            .outside_bounds_fraction = 0.005f
+            .outside_bounds_fraction = 0.05f
         },
-        .max_discrepancy = 10,
+        .max_discrepancy = 15,
 	
     },
     .bps = {
         .scs = {
             .hadc = &hadc3,
             .min_adc = 0,
-            .max_adc = 400,
+            .max_adc = 350,
             .min_mapped = 0,
             .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
@@ -90,7 +90,7 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
-        .r2d_requires_brake = false,
+        .r2d_requires_brake = true,
         .bps_on_threshold = 40,
 	    .apps_bps_low_threshold = 5,
 	    .apps_bps_high_threshold = 30,
@@ -111,7 +111,7 @@ static const config_t config_instance = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
         .output_max = 500,
-        .deadzone_fraction = 0.20f
+        .deadzone_fraction = 0.28f
     },
     .pm100 = {
         .thread = {

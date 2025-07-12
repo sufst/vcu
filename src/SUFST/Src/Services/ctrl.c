@@ -233,6 +233,9 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 				ctrl_ptr->neg_air_start = tx_time_get();
 			}
 		}
+        else{
+            ctrl_ptr->inverter_pwr = false; // Turn off inverter if TS button is not pressed
+        }
 
 		break;
 	}
@@ -449,6 +452,7 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
 	case CTRL_STATE_R2D_OFF_WAIT:
 	{
+        dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
 		ctrl_ptr->torque_request = 0;
 		status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 
@@ -465,7 +469,6 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 				next_state = CTRL_STATE_R2D_WAIT;
 			#endif
 
-			dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
 		}
 		break;
 	}
