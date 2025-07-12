@@ -423,8 +423,11 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
                 ctrl_ptr->torque_request = 1500;
 #endif
 #else
+            ctrl_ptr->bms_temp
+                = ctrl_ptr->canrx_ptr->msgid_x202.bms_high_temperature;
             ctrl_ptr->torque_request = torque_map_apply(&ctrl_ptr->torque_map,
-                                                        ctrl_ptr->apps_reading);
+                                                        ctrl_ptr->apps_reading,
+                                                        ctrl_ptr->bms_temp);
 #endif
 
             LOG_INFO("ADC: %d, Torque: %d\n",
