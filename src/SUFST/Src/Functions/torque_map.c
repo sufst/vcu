@@ -7,7 +7,7 @@ static inline uint16_t apply_deadzone(torque_map_t* map_ptr, uint16_t input);
 static uint16_t null_torque_map(torque_map_t* map_ptr, uint16_t input);
 static uint16_t linear_torque_map(torque_map_t* map_ptr, uint16_t input);
 static inline uint16_t
-apply_speed_limit(torque_map_t* map_ptr, uint16_t input, uint16_t speed);
+apply_speed_limit(torque_map_t* map_ptr, uint16_t input, int16_t speed);
 
 /**
  * @brief       Initialises the torque map
@@ -61,7 +61,7 @@ status_t torque_map_init(torque_map_t* map_ptr,
  * @param[in]   map_ptr     Torque map
  * @param[in]   input       Input value
  */
-uint16_t torque_map_apply(torque_map_t* map_ptr, uint16_t input, uint16_t speed)
+uint16_t torque_map_apply(torque_map_t* map_ptr, uint16_t input, int16_t speed)
 {
     const uint16_t input_deadzone = apply_deadzone(map_ptr, input);
     const uint16_t torque = map_ptr->map_func(map_ptr, input_deadzone);
@@ -118,8 +118,7 @@ uint16_t linear_torque_map(torque_map_t* map_ptr, uint16_t input)
     return torque;
 }
 
-uint16_t
-apply_speed_limit(torque_map_t* map_ptr, uint16_t input, uint16_t speed)
+uint16_t apply_speed_limit(torque_map_t* map_ptr, uint16_t input, int16_t speed)
 {
     uint16_t result = 0;
     if (speed < map_ptr->speed_start)

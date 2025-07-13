@@ -35,7 +35,6 @@ typedef struct _torque_map_t
  */
 status_t torque_map_init(torque_map_t* map_ptr,
                          const config_torque_map_t* config_ptr);
-uint16_t
-torque_map_apply(torque_map_t* map_ptr, uint16_t input, uint16_t speed);
+uint16_t torque_map_apply(torque_map_t* map_ptr, uint16_t input, int16_t speed);
 
 #endif

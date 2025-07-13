@@ -69,7 +69,7 @@ static const config_t config_instance = {
             .max_mapped = 100,
             .outside_bounds_fraction = 0.05f
         },
-        .max_discrepancy = 15,
+        .max_discrepancy = 10,
 	
     },
     .bps = {
@@ -110,11 +110,11 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 1000,
+        .output_max = 1200,
         .deadzone_fraction = 0.28f,
-        .speed_min = 500,
+        .speed_min = 200,
         .speed_start = 2000,
-        .speed_end = 3000
+        .speed_end = 4000
     },
     .pm100 = {
         .thread = {
