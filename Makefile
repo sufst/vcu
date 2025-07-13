@@ -101,7 +101,6 @@ src/SUFST/Src/Interfaces/rtds.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/trc.c \
 src/SUFST/Src/Services/canbc.c \
-src/SUFST/Src/Services/canrx.c \
 src/SUFST/Src/Services/ctrl.c \
 src/SUFST/Src/Services/remote_ctrl.c \
 src/SUFST/Src/Services/dash.c \

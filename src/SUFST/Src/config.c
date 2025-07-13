@@ -115,9 +115,6 @@ static const config_t config_instance = {
         .speed_min = 500,
         .speed_start = 2000,
         .speed_end = 3000
-        .temp_min = 300,
-        .temp_start = 50,
-        .temp_end = 60
     },
     .pm100 = {
         .thread = {
@@ -156,14 +153,6 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
-    },
-    .canrx = {
-        .thread = {
-            .name = "CANRX",
-            .priority = 3,
-            .stack_size = 1024
-        },
-        .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
     },
     .heartbeat = {
         .thread = {
