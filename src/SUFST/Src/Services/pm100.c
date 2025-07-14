@@ -438,25 +438,17 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
             if (pm100_ptr->states.pm100_inverter_enable_lockout
                 == PM100_LOCKOUT_DISABLED)
             {
-                bool inverter_enable = PM100_INVERTER_ON;
-
                 rtcan_msg_t msg
                     = {.identifier = CAN_C_PM100_COMMAND_MESSAGE_FRAME_ID,
                        .length = CAN_C_PM100_COMMAND_MESSAGE_LENGTH,
                        .extended = CAN_C_PM100_COMMAND_MESSAGE_IS_EXTENDED,
                        .data = {0, 0, 0, 0, 0, 0, 0, 0}};
 
-                uint16_t speed = pm100_motor_speed(pm100_ptr);
-                if (torque == 0 && speed < 10)
-                {
-                    inverter_enable = PM100_INVERTER_OFF;
-                }
-
                 struct can_c_pm100_command_message_t cmd
                     = {.pm100_torque_command = torque,
                        .pm100_direction_command = PM100_DIRECTION_REVERSE,
                        .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
-                       .pm100_inverter_enable = inverter_enable};
+                       .pm100_inverter_enable = PM100_INVERTER_ON};
 
                 can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
