@@ -112,9 +112,9 @@ static const config_t config_instance = {
         .input_max = 100,
         .output_max = 500,
         .deadzone_fraction = 0.28f,
-        .temp_min = 300,
-        .temp_start = 50,
-        .temp_end = 60
+        .soc_min = 300,
+        .soc_start = 15,
+        .soc_end = 5
     },
     .pm100 = {
         .thread = {
