@@ -75,6 +75,7 @@ typedef struct
     int16_t inv_temp;
     int8_t max_temp;
     uint8_t bms_soc;
+    uint8_t bms_temp;
 
     bool inverter_pwr;
     bool pump_pwr;

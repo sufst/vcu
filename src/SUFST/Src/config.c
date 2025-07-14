@@ -114,7 +114,10 @@ static const config_t config_instance = {
         .deadzone_fraction = 0.28f,
         .soc_min = 300,
         .soc_start = 15,
-        .soc_end = 5
+        .soc_end = 5,
+        .temp_min = 300,
+        .temp_start = 50,
+        .temp_end = 60
     },
     .pm100 = {
         .thread = {

@@ -131,7 +131,8 @@ void canrx_thread_entry(ULONG input)
     }
     */
 
-    uint32_t can_s_subscriptions[] = {CAN_S_MSGID_0_X201_FRAME_ID};
+    uint32_t can_s_subscriptions[]
+        = {CAN_S_MSGID_0_X201_FRAME_ID, CAN_S_MSGID_0_X202_FRAME_ID};
 
     for (uint32_t i = 0;
          i < sizeof(can_s_subscriptions) / sizeof(can_s_subscriptions[0]);
@@ -212,6 +213,15 @@ void process_broadcast(canrx_context_t* canrx_ptr, const rtcan_msg_t* msg_ptr)
     case CAN_S_MSGID_0_X201_FRAME_ID:
     {
         can_s_msgid_0_x201_unpack(&canrx_ptr->msgid_x201,
+                                  msg_ptr->data,
+                                  msg_ptr->length);
+
+        break;
+    }
+
+    case CAN_S_MSGID_0_X202_FRAME_ID:
+    {
+        can_s_msgid_0_x201_unpack(&canrx_ptr->msgid_x202,
                                   msg_ptr->data,
                                   msg_ptr->length);
 

@@ -40,6 +40,7 @@ typedef struct
     TX_MUTEX state_mutex;
     bool broadcasts_valid;
     struct can_s_msgid_0_x201_t msgid_x201;
+    struct can_s_msgid_0_x202_t msgid_x202;
     uint16_t error;
     const config_canrx_t* config_ptr;
 } canrx_context_t;

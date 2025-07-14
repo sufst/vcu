@@ -27,6 +27,10 @@ typedef struct _torque_map_t
     uint16_t soc_min; // minimum Torque request at the end of the limit (Nm *10)
     uint8_t soc_start; // BMS temp to start limiting torque (Celcius)
     uint8_t soc_end;   // BMS temp for maximum toque limiting (Celcius)
+    uint16_t
+        temp_min; // minimum Torque request at the end of the limit (Nm *10)
+    uint8_t temp_start; // BMS temp to start limiting torque (Celcius)
+    uint8_t temp_end;   // BMS temp for maximum toque limiting (Celcius)
 } torque_map_t;
 
 /*
@@ -37,6 +41,7 @@ status_t torque_map_init(torque_map_t* map_ptr,
 uint16_t torque_map_apply(torque_map_t* map_ptr,
                           uint16_t input,
                           uint8_t soc,
+                          uint8_t bms_temp,
                           bool* power_saving);
 
 #endif
