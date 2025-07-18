@@ -81,7 +81,7 @@ static const config_t config_instance = {
             .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
         },
-        .fully_pressed_fraction = 0.5f
+        .fully_pressed_fraction = 0.4f
     },
     .ctrl = {
         .thread = {
