@@ -2,14 +2,14 @@
 
 #define BPS_LIGHT_THRESH 40
 
-static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout);
-static void unlock_tick_sensors(tick_context_t *tick_ptr);
-void tick_update_canbc_states(tick_context_t *tick_ptr);
+static status_t lock_tick_sensors(tick_context_t* tick_ptr, uint32_t timeout);
+static void unlock_tick_sensors(tick_context_t* tick_ptr);
+void tick_update_canbc_states(tick_context_t* tick_ptr);
 
 static void tick_thread_entry(ULONG input)
 {
-    tick_context_t *tick_ptr = (tick_context_t *)input;
-    const config_tick_t *config_ptr = tick_ptr->config_ptr;
+    tick_context_t* tick_ptr = (tick_context_t*) input;
+    const config_tick_t* config_ptr = tick_ptr->config_ptr;
 
     while (1)
     {
@@ -17,7 +17,8 @@ static void tick_thread_entry(ULONG input)
         tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
         tick_ptr->brakelight_pwr = (tick_ptr->bps_reading > BPS_LIGHT_THRESH);
 
-        tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
+        tick_ptr->apps_status
+            = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 
 /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
   tick_ptr->bps_reading, tick_ptr->bps_status);*/
@@ -32,12 +33,12 @@ static void tick_thread_entry(ULONG input)
     }
 }
 
-status_t tick_init(tick_context_t *tick_ptr,
-                   canbc_context_t *canbc_ptr,
-                   TX_BYTE_POOL *stack_pool_ptr,
-                   const config_tick_t *config_ptr,
-                   const config_apps_t *apps_config_ptr,
-                   const config_bps_t *bps_config_ptr)
+status_t tick_init(tick_context_t* tick_ptr,
+                   canbc_context_t* canbc_ptr,
+                   TX_BYTE_POOL* stack_pool_ptr,
+                   const config_tick_t* config_ptr,
+                   const config_apps_t* apps_config_ptr,
+                   const config_bps_t* bps_config_ptr)
 {
     tick_ptr->config_ptr = config_ptr;
     tick_ptr->canbc_ptr = canbc_ptr;
@@ -48,7 +49,7 @@ status_t tick_init(tick_context_t *tick_ptr,
 
     status_t status = STATUS_OK;
 
-    void *stack_ptr = NULL;
+    void* stack_ptr = NULL;
     UINT tx_status = tx_byte_allocate(stack_pool_ptr,
                                       &stack_ptr,
                                       config_ptr->thread.stack_size,
@@ -72,9 +73,9 @@ status_t tick_init(tick_context_t *tick_ptr,
     if (tx_status == TX_SUCCESS)
     {
         tx_status = tx_thread_create(&tick_ptr->thread,
-                                     (CHAR *)config_ptr->thread.name,
+                                     (CHAR*) config_ptr->thread.name,
                                      tick_thread_entry,
-                                     (ULONG)tick_ptr,
+                                     (ULONG) tick_ptr,
                                      stack_ptr,
                                      config_ptr->thread.stack_size,
                                      config_ptr->thread.priority,
@@ -96,9 +97,9 @@ status_t tick_init(tick_context_t *tick_ptr,
     return status;
 }
 
-void tick_update_canbc_states(tick_context_t *tick_ptr)
+void tick_update_canbc_states(tick_context_t* tick_ptr)
 {
-    canbc_states_t *states = canbc_lock_state(tick_ptr->canbc_ptr, TX_NO_WAIT);
+    canbc_states_t* states = canbc_lock_state(tick_ptr->canbc_ptr, TX_NO_WAIT);
 
     if (states != NULL)
     {
@@ -109,7 +110,7 @@ void tick_update_canbc_states(tick_context_t *tick_ptr)
     }
 }
 
-static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
+static status_t lock_tick_sensors(tick_context_t* tick_ptr, uint32_t timeout)
 {
     UINT tx_status = tx_mutex_get(&tick_ptr->sensor_mutex, timeout);
 
@@ -123,12 +124,12 @@ static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
     }
 }
 
-static void unlock_tick_sensors(tick_context_t *tick_ptr)
+static void unlock_tick_sensors(tick_context_t* tick_ptr)
 {
     tx_mutex_put(&tick_ptr->sensor_mutex);
 }
 
-status_t tick_get_bps_reading(tick_context_t *tick_ptr, uint16_t *result)
+status_t tick_get_bps_reading(tick_context_t* tick_ptr, uint16_t* result)
 {
     status_t status = STATUS_ERROR;
 
@@ -146,7 +147,7 @@ status_t tick_get_bps_reading(tick_context_t *tick_ptr, uint16_t *result)
     return status;
 }
 
-status_t tick_get_apps_reading(tick_context_t *tick_ptr, uint16_t *result)
+status_t tick_get_apps_reading(tick_context_t* tick_ptr, uint16_t* result)
 {
     status_t status = STATUS_ERROR;
 

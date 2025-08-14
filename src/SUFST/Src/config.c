@@ -69,7 +69,7 @@ static const config_t config_instance = {
             .max_mapped = 100,
             .outside_bounds_fraction = 0.05f
         },
-        .max_discrepancy = 15,
+        .max_discrepancy = 10,
 	
     },
     .bps = {
@@ -81,7 +81,7 @@ static const config_t config_instance = {
             .max_mapped = 200,
             .outside_bounds_fraction = 0.05f
         },
-        .fully_pressed_fraction = 0.5f
+        .fully_pressed_fraction = 0.4f
     },
     .ctrl = {
         .thread = {
@@ -110,8 +110,11 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 500,
-        .deadzone_fraction = 0.28f
+        .output_max = 700,
+        .deadzone_fraction = 0.28f,
+        .speed_min = 700,
+        .speed_start = 10000,
+        .speed_end = 20000
     },
     .pm100 = {
         .thread = {
