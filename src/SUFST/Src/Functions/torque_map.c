@@ -65,8 +65,9 @@ uint16_t torque_map_apply(torque_map_t* map_ptr, uint16_t input, int16_t speed)
 {
     const uint16_t input_deadzone = apply_deadzone(map_ptr, input);
     const uint16_t torque = map_ptr->map_func(map_ptr, input_deadzone);
-    const uint16_t limited_torque = apply_speed_limit(map_ptr, torque, speed);
-    return limited_torque;
+    // const uint16_t limited_torque = apply_speed_limit(map_ptr, torque,
+    // speed);
+    return torque;
 }
 
 /**
