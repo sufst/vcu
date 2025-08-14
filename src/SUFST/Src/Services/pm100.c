@@ -456,7 +456,9 @@ status_t pm100_request_torque(pm100_context_t* pm100_ptr, uint16_t torque)
                     = {.pm100_torque_command = torque,
                        .pm100_direction_command = PM100_DIRECTION_REVERSE,
                        .pm100_speed_mode_enable = PM100_SPEED_MODE_DISABLE,
-                       .pm100_inverter_enable = inverter_enable};
+                       .pm100_inverter_enable
+                       = PM100_INVERTER_ON}; // TO DO: change back to
+                                             // inverter_enabled
 
                 can_c_pm100_command_message_pack(msg.data, &cmd, msg.length);
 
