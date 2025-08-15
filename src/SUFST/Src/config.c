@@ -110,11 +110,11 @@ static const config_t config_instance = {
     .torque_map = {
         .function = TORQUE_MAP_LINEAR,
         .input_max = 100,
-        .output_max = 700,
+        .output_max = 1370, // maximum output value (Nm * 10)
         .deadzone_fraction = 0.28f,
-        .speed_min = 700,
-        .speed_start = 10000,
-        .speed_end = 20000
+        .speed_min = 700, // minimum Torque request at max speed (Nm *10)
+        .speed_start = 2000, // speed to start limiting torque (rpm)
+        .speed_end = 3000 // speed for max torque limiting (rpm)
     },
     .pm100 = {
         .thread = {
