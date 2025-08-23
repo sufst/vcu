@@ -102,8 +102,7 @@ status_t ctrl_init(ctrl_context_t* ctrl_ptr,
     }
 
     // make sure TS is disabled
-    trc_set_ts_on(GPIO_PIN_SET);
-    dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+    trc_set_ts_on(GPIO_PIN_RESET);
 
     // check all ok before starting
     if (status != STATUS_OK)
@@ -234,7 +233,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             {
                 LOG_INFO("TSON pressed & SHDN closed\n");
 
-                trc_set_ts_on(GPIO_PIN_RESET);
+                trc_set_ts_on(GPIO_PIN_SET);
 
                 next_state = CTRL_STATE_WAIT_NEG_AIR;
                 ctrl_ptr->neg_air_start = tx_time_get();
@@ -305,7 +304,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
             dash_ptr->tson_flag = false;
 
             ctrl_ptr->inverter_pwr = false; // Turn off inverter
-            trc_set_ts_on(GPIO_PIN_SET);    // Turn off AIRs
+            trc_set_ts_on(GPIO_PIN_RESET);  // Turn off AIRs
 
 #ifdef VCU_SIMULATION_MODE
             next_state = CTRL_STATE_SIM_WAIT_TS_OFF;
@@ -333,7 +332,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
                 if (r2d)
                 {
-                    dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
+                    dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
                     pm100_disable(ctrl_ptr->pm100_ptr);
                     rtds_activate(ctrl_ptr->rtds_config_ptr);
                     ctrl_ptr->pump_pwr = 1;
@@ -469,7 +468,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
 
     case CTRL_STATE_R2D_OFF_WAIT:
     {
-        dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+        dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
         ctrl_ptr->torque_request = 0;
         status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
 
@@ -621,7 +620,7 @@ void ctrl_state_machine_tick(ctrl_context_t* ctrl_ptr)
         }
         if (!dash_ptr->r2d_flag)
         {
-            dash_set_r2d_led_state(dash_ptr, GPIO_PIN_SET);
+            dash_set_r2d_led_state(dash_ptr, GPIO_PIN_RESET);
             next_state = CTRL_STATE_R2D_WAIT;
         }
         break;
@@ -650,7 +649,7 @@ void ctrl_handle_ts_fault(ctrl_context_t* ctrl_ptr)
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->fan_pwr = false;
 
-    trc_set_ts_on(GPIO_PIN_SET);
+    trc_set_ts_on(GPIO_PIN_RESET);
     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
     ctrl_update_canbc_states(ctrl_ptr);
 }
