@@ -222,6 +222,7 @@ void process_broadcast(pm100_context_t* pm100_ptr, const rtcan_msg_t* msg_ptr)
 
     case CAN_C_PM100_TEMPERATURE_SET_1_FRAME_ID:
     {
+        LOG_ERROR("PM100 TEMP 1;");
         can_c_pm100_temperature_set_1_unpack(&pm100_ptr->temp1,
                                              msg_ptr->data,
                                              msg_ptr->length);

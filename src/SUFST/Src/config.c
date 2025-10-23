@@ -168,7 +168,7 @@ static const config_t config_instance = {
             .priority = 15,
             .stack_size = 1024,
         },
-        .min_level = LOG_LEVEL_DEBUG,
+        .min_level = LOG_LEVEL_WARN,
         .uart = &huart1
     },
     .rtos = {
