@@ -18,6 +18,14 @@ SUFST Docs Site.
 
 # Setup / Development Environment
 
+## Using the setup script
+
+```sh
+curl https://raw.githubusercontent.com/sufst/vcu/refs/heads/main/vcu-setup-script.sh -o vcu-setup-script.sh
+chmod +x vcu-setup-script.sh
+./vcu-setup-script.sh
+```
+
 ## Submodules
 
 This project depends on middlewares in the `src/Middlewares/` folder, some of
