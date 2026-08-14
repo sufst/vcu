@@ -239,7 +239,6 @@ typedef struct
 
 typedef struct
 {
-    uint32_t sample_divider; // sample every Nth tick (1 = every tick), applies to all ext_inputs
     config_scs_t sagl;        // ADC configuration for the steering angle signal
     config_scs_t mode_switch; // ADC configuration for the dash mode selector switch
     config_scs_t current;     // ADC configuration for the current sensor

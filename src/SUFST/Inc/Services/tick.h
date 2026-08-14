@@ -27,7 +27,6 @@ typedef struct
     apps_context_t apps;
     status_t bps_status, apps_status, sagl_status, mode_adc_status, current_status;
     uint16_t bps_reading, apps_reading, sagl_reading, mode_adc_reading, current_reading;
-    uint32_t ext_inputs_counter;
 
     scs_t sagl;
     scs_t current;

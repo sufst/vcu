@@ -35,19 +35,11 @@ static void tick_thread_entry(ULONG input)
 
         tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 
-        // SAGL/current/mode ADC now convert continuously in the background
-        // (see adc_scan.c) regardless of this counter; sample_divider just
-        // throttles how often the tick thread reads/broadcasts them
-        if (tick_ptr->ext_inputs_counter == 0)
-        {
-            tick_ptr->sagl_status = scs_read(&tick_ptr->sagl, &tick_ptr->sagl_reading);
-            tick_ptr->current_status =
-                scs_read(&tick_ptr->current, &tick_ptr->current_reading);
-            tick_ptr->mode_adc_status =
-                scs_read(&tick_ptr->mode_adc, &tick_ptr->mode_adc_reading);
-        }
-        tick_ptr->ext_inputs_counter = (tick_ptr->ext_inputs_counter + 1) %
-            tick_ptr->ext_inputs_config_ptr->sample_divider;
+        tick_ptr->sagl_status = scs_read(&tick_ptr->sagl, &tick_ptr->sagl_reading);
+        tick_ptr->current_status =
+            scs_read(&tick_ptr->current, &tick_ptr->current_reading);
+        tick_ptr->mode_adc_status =
+            scs_read(&tick_ptr->mode_adc, &tick_ptr->mode_adc_reading);
 
         /*LOG_INFO(tick_ptr->log_ptr, "Brake pressure: %d   status: %d\n",
           tick_ptr->bps_reading, tick_ptr->bps_status);*/
@@ -78,7 +70,6 @@ status_t tick_init(tick_context_t *tick_ptr,
     tick_ptr->sagl_status = STATUS_ERROR;
     tick_ptr->current_status = STATUS_ERROR;
     tick_ptr->mode_adc_status = STATUS_ERROR;
-    tick_ptr->ext_inputs_counter = 0;
 
     tick_ptr->brakelight_pwr = false;
     tick_ptr->bps_prev_above = false;
