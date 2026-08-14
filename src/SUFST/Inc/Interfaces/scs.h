@@ -28,7 +28,7 @@
  */
 typedef struct
 {
-    uint16_t adc_reading;           // latest raw ADC reading
+    uint16_t adc_reading;           // latest ADC reading (~1ms rolling average)
     uint16_t mapped_reading;        // latest mapped reading
     bool is_valid;                  // true if signal is within bounds
     uint32_t invalid_start_tick;    // tick at which signal became invalid

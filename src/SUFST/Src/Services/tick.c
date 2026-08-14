@@ -35,6 +35,9 @@ static void tick_thread_entry(ULONG input)
 
         tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 
+        // SAGL/current/mode ADC now convert continuously in the background
+        // (see adc_scan.c) regardless of this counter; sample_divider just
+        // throttles how often the tick thread reads/broadcasts them
         if (tick_ptr->ext_inputs_counter == 0)
         {
             tick_ptr->sagl_status = scs_read(&tick_ptr->sagl, &tick_ptr->sagl_reading);

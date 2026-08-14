@@ -99,6 +99,7 @@ src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
 src/SUFST/Src/Services/mode_switch_values.c \
 src/SUFST/Src/Interfaces/usb_mass_storage_mode.c \
+src/SUFST/Src/Interfaces/adc_scan.c \
 src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/bps.c \
 src/SUFST/Src/Interfaces/io.c \

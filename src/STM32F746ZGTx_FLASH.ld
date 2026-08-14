@@ -146,9 +146,16 @@ SECTIONS
   } >RAM AT> FLASH
 
   
-  /* Uninitialized data section */
+  /* Uninitialized data section
+   *
+   * Explicitly marked NOLOAD so the whole output section (including
+   * .dma_bss below) is emitted as SHT_NOBITS: GCC only auto-classifies
+   * known bss-like input section names as NOBITS-eligible, and without
+   * this, merging the custom-named .dma_bss section in would force the
+   * *entire* .bss output section to PROGBITS, storing ~270K of real zero
+   * bytes in the flash image instead of just reserving the space. */
   . = ALIGN(4);
-  .bss :
+  .bss (NOLOAD) :
   {
     /* This is used by the startup in order to initialize the .bss secion */
     _sbss = .;         /* define a global symbol at bss start */
@@ -158,9 +165,21 @@ SECTIONS
     *(COMMON)
 
     . = ALIGN(4);
+    _sdma_bss = .;     /* DMA-target buffers: forced after all other bss so they
+                           always land past the 64K DTCM boundary, which DMA
+                           masters cannot reach (see adc_scan.c) */
+    *(.dma_bss)
+
+    . = ALIGN(4);
     _ebss = .;         /* define a global symbol at bss end */
     __bss_end__ = _ebss;
   } >RAM
+
+  /* Guard the assumption above: fail the build instead of silently placing
+   * DMA-target buffers in DTCM (0x20000000-0x2000FFFF), which DMA masters
+   * cannot access, if .bss usage ever shrinks enough to pull .dma_bss back
+   * into that range. */
+  ASSERT(_sdma_bss >= (ORIGIN(RAM) + 64K), ".dma_bss landed inside the 64K DTCM region, which DMA masters cannot access")
 
   /* User_heap_stack section, used to check that there is enough RAM left */
   ._user_heap_stack :

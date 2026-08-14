@@ -8,6 +8,7 @@
 
 #include <tx_api.h>
 
+#include "adc_scan.h"
 #include "clip_to_range.h"
 
 /*
@@ -60,15 +61,11 @@ status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
 {
 
     ADC_HandleTypeDef *hadc = scs_ptr->config_ptr->hadc;
-    ADC_ChannelConfTypeDef ch = { .Channel = scs_ptr->config_ptr->adc_channel,
-                                  .Rank = ADC_REGULAR_RANK_1,
-                                  .SamplingTime = ADC_SAMPLETIME_480CYCLES };
 
-    // configure port -> then read from the ADC and validate
-    if ((HAL_ADC_ConfigChannel(hadc, &ch) == HAL_OK) && (HAL_ADC_Start(hadc) == HAL_OK) &&
-        (HAL_ADC_PollForConversion(hadc, HAL_MAX_DELAY) == HAL_OK))
+    // read the current rolling average from the free-running ADC scan, and validate
+    if (adc_scan_is_ready(hadc))
     {
-        scs_ptr->adc_reading = HAL_ADC_GetValue(hadc);
+        scs_ptr->adc_reading = adc_scan_get_average(hadc, scs_ptr->config_ptr->scan_slot);
         scs_ptr->status_verbose =
             validate(scs_ptr->adc_reading, scs_ptr->config_ptr->max_adc,
                      scs_ptr->config_ptr->min_adc, scs_ptr->max_bounds_diff);
@@ -90,8 +87,8 @@ status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
     }
     else
     {
-        // TODO: HAL errors here behave as SCS errors, consider if they should
-        //       be treated differently for diagnostics
+        // ADC scan not yet primed (just after boot), or has faulted (e.g. DMA
+        // overrun); behaves as an SCS error until it recovers
         scs_ptr->status = STATUS_ERROR;
     }
 
