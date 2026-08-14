@@ -108,7 +108,7 @@
 
 /* #define FX_FAT_MAP_SIZE         128 */
 
-/* Defined, data sector write requests are flushed immediately to the driver. */
+/* Defined, data sector write requests are flushed immediately to the driver.  */
 
 /* #define FX_FAULT_TOLERANT */
 
@@ -117,7 +117,7 @@
 
 /* #define FX_FAULT_TOLERANT_BOOT_INDEX         116 */
 
-/* Defined, data sector write requests are flushed immediately to the driver. */
+/* Defined, data sector write requests are flushed immediately to the driver.  */
 
 /* #define FX_FAULT_TOLERANT_DATA */
 
@@ -175,7 +175,7 @@
    FX_UPDATE_RATE_IN_SECONDS defined previously. By default, the ThreadX timer tick is 10ms,
    so the default value for this constant is 1000.  */
 
-#define FX_UPDATE_RATE_IN_TICKS 10000
+#define FX_UPDATE_RATE_IN_TICKS     10000
 
 /* If defined, cache is disabled.  */
 

@@ -22,49 +22,48 @@
 #define __UX_DEVICE_MSC_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "ux_api.h"
 
-    /* Private includes ----------------------------------------------------------*/
-    /* USER CODE BEGIN Includes */
+/* Private includes ----------------------------------------------------------*/
+/* USER CODE BEGIN Includes */
 
-    /* USER CODE END Includes */
+/* USER CODE END Includes */
 
-    /* Exported types ------------------------------------------------------------*/
-    /* USER CODE BEGIN ET */
+/* Exported types ------------------------------------------------------------*/
+/* USER CODE BEGIN ET */
 
-    /* USER CODE END ET */
+/* USER CODE END ET */
 
-    /* Exported constants --------------------------------------------------------*/
-    /* USER CODE BEGIN EC */
+/* Exported constants --------------------------------------------------------*/
+/* USER CODE BEGIN EC */
 
-    /* USER CODE END EC */
+/* USER CODE END EC */
 
-    /* Exported macro ------------------------------------------------------------*/
-    /* USER CODE BEGIN EM */
+/* Exported macro ------------------------------------------------------------*/
+/* USER CODE BEGIN EM */
 
-    /* USER CODE END EM */
+/* USER CODE END EM */
 
-    /* Exported functions prototypes ---------------------------------------------*/
+/* Exported functions prototypes ---------------------------------------------*/
 
-    /* USER CODE BEGIN EFP */
+/* USER CODE BEGIN EFP */
 
-    /* USER CODE END EFP */
+/* USER CODE END EFP */
 
-    /* Private defines -----------------------------------------------------------*/
-    /* USER CODE BEGIN PD */
+/* Private defines -----------------------------------------------------------*/
+/* USER CODE BEGIN PD */
 
-    /* USER CODE END PD */
+/* USER CODE END PD */
 
-    /* USER CODE BEGIN 1 */
+/* USER CODE BEGIN 1 */
 
-    /* USER CODE END 1 */
+/* USER CODE END 1 */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* __UX_DEVICE_MSC_H__ */
+#endif  /* __UX_DEVICE_MSC_H__ */

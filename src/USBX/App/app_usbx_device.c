@@ -51,24 +51,24 @@
 
 /* USER CODE END PFP */
 /**
- * @brief  Application USBX Device Initialization.
- * @param memory_ptr: memory pointer
- * @retval int
- */
+  * @brief  Application USBX Device Initialization.
+  * @param memory_ptr: memory pointer
+  * @retval int
+  */
 UINT MX_USBX_Device_Init(VOID *memory_ptr)
 {
-    UINT ret = UX_SUCCESS;
-    TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL *)memory_ptr;
+  UINT ret = UX_SUCCESS;
+  TX_BYTE_POOL *byte_pool = (TX_BYTE_POOL*)memory_ptr;
 
-    /* USER CODE BEGIN MX_USBX_Device_MEM_POOL */
+  /* USER CODE BEGIN MX_USBX_Device_MEM_POOL */
     (void)byte_pool;
-    /* USER CODE END MX_USBX_Device_MEM_POOL */
+  /* USER CODE END MX_USBX_Device_MEM_POOL */
 
-    /* USER CODE BEGIN MX_USBX_Device_Init */
+  /* USER CODE BEGIN MX_USBX_Device_Init */
 
-    /* USER CODE END MX_USBX_Device_Init */
+  /* USER CODE END MX_USBX_Device_Init */
 
-    return ret;
+  return ret;
 }
 
 /* USER CODE BEGIN 1 */

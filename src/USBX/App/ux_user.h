@@ -49,17 +49,16 @@
 #ifndef UX_USER_H
 #define UX_USER_H
 
-/* Define various build options for the USBX port.  The application should
-   either make changes here by commenting or un-commenting the conditional
-   compilation defined OR supply the defines through the compiler's equivalent
-   of the -D option. Override various options with default values already
-   assigned in ux_api.h or ux_port.h. Please also refer to ux_port.h for
-   descriptions on each of these options. */
+/* Define various build options for the USBX port.  The application should either make changes
+   here by commenting or un-commenting the conditional compilation defined OR supply the defines
+   through the compiler's equivalent of the -D option. Override various options with default values
+   already assigned in ux_api.h or ux_port.h. Please also refer to ux_port.h for descriptions on
+   each of these options. */
 
 /* This value is the size of the stack in bytes for the USBX threads. It can be typically 1024 bytes
    or 2048 bytes depending on the processor used and the host controller. */
 
-#define UX_THREAD_STACK_SIZE 4096
+#define UX_THREAD_STACK_SIZE                                4096
 
 /* Define USBX Host Enum Thread Stack Size. The default is to use UX_THREAD_STACK_SIZE */
 /*
@@ -76,36 +75,34 @@
 #define UX_HOST_HNP_POLLING_THREAD_STACK                    UX_THREAD_STACK_SIZE
 */
 
-/* Defined, this value represents how many ticks per seconds for a specific
-   hardware platform. The default is 1000 indicating 1 tick per millisecond.  */
+/* Defined, this value represents how many ticks per seconds for a specific hardware platform.
+   The default is 1000 indicating 1 tick per millisecond.  */
 
 /* #define UX_PERIODIC_RATE (TX_TIMER_TICKS_PER_SECOND)*/
 
-/* Defined, this value is the maximum number of classes that can be loaded by
-   USBX. This value represents the class container and not the number of
-   instances of a class. For instance, if a particular implementation of USBX
-   needs the hub class, the printer class, and the storage class, then the
-   UX_MAX_CLASSES value can be set to 3 regardless of the number of devices that
-   belong to these classes.  */
+/* Defined, this value is the maximum number of classes that can be loaded by USBX. This value
+   represents the class container and not the number of instances of a class. For instance, if a
+   particular implementation of USBX needs the hub class, the printer class, and the storage
+   class, then the UX_MAX_CLASSES value can be set to 3 regardless of the number of devices
+   that belong to these classes.  */
 
 /* #define UX_MAX_CLASS_DRIVER  3 */
 
-/* Defined, this value is the maximum number of classes in the device stack that
-   can be loaded by USBX.  */
-#define UX_MAX_SLAVE_CLASS_DRIVER 1
+/* Defined, this value is the maximum number of classes in the device stack that can be loaded by
+   USBX.  */
+#define UX_MAX_SLAVE_CLASS_DRIVER                         1
 
-/* Defined, this value is the maximum number of interfaces in the device framework. */
+/* Defined, this value is the maximum number of interfaces in the device framework.  */
 
 /* #define UX_MAX_SLAVE_INTERFACES    16 */
 
-/* Defined, this value represents the number of different host controllers
-   available in the system. For USB 1.1 support, this value will usually be 1.
-   For USB 2.0 support, this value can be more than 1. This value represents the
-   number of concurrent host controllers running at the same time. If for
-   instance there are two instances of OHCI running, or one EHCI and one OHCI
-   controller running, the UX_MAX_HCD should be set to 2.  */
+/* Defined, this value represents the number of different host controllers available in the system.
+   For USB 1.1 support, this value will usually be 1. For USB 2.0 support, this value can be more
+   than 1. This value represents the number of concurrent host controllers running at the same time.
+   If for instance there are two instances of OHCI running, or one EHCI and one OHCI controller
+   running, the UX_MAX_HCD should be set to 2.  */
 
-#define UX_MAX_HCD 2
+#define UX_MAX_HCD                                       2
 
 /* Defined, this value represents the maximum number of devices that can be attached to the USB.
    Normally, the theoretical maximum number on a single USB is 127 devices. This value can be
@@ -114,13 +111,13 @@
 
 /* #define UX_MAX_DEVICES  127 */
 
-/* Defined, this value represents the current number of SCSI logical units
-   represented in the device storage class driver.  */
+/* Defined, this value represents the current number of SCSI logical units represented in the device
+   storage class driver.  */
 
 /* #define UX_MAX_SLAVE_LUN    1 */
 
-/* Defined, this value represents the maximum number of SCSI logical units
-   represented in the host storage class driver.  */
+/* Defined, this value represents the maximum number of SCSI logical units represented in the
+   host storage class driver.  */
 
 /* #define UX_MAX_HOST_LUN  1 */
 
@@ -129,10 +126,9 @@
 
 /* #define UX_SLAVE_REQUEST_CONTROL_MAX_LENGTH        256 */
 
-/* Defined, this value represents the maximum number of bytes that can be
-   received or transmitted on any endpoint. This value cannot be less than the
-   maximum packet size of any endpoint. The default is 4096 bytes but can be
-   reduced in memory constraint environments. For cd-rom support in the storage
+/* Defined, this value represents the maximum number of bytes that can be received or transmitted
+   on any endpoint. This value cannot be less than the maximum packet size of any endpoint. The default
+   is 4096 bytes but can be reduced in memory constraint environments. For cd-rom support in the storage
    class, this value cannot be less than 2048.  */
 
 /* #define UX_SLAVE_REQUEST_DATA_MAX_LENGTH        4096 */
@@ -142,13 +138,13 @@
 /* #define UX_SLAVE_CLASS_STORAGE_INCLUDE_MMC */
 
 /* Defined, this value represents the maximum number of bytes that a storage payload can send/receive.
-   The default is 8K bytes but can be reduced in memory constraint environments. */
+   The default is 8K bytes but can be reduced in memory constraint environments.  */
 
 /* #define UX_HOST_CLASS_STORAGE_MEMORY_BUFFER_SIZE        8192 */
 
 /* Define USBX Mass Storage Thread Stack Size. The default is to use UX_THREAD_STACK_SIZE. */
 
-/* #define UX_HOST_CLASS_STORAGE_THREAD_STACK_SIZE UX_THREAD_STACK_SIZE */
+/* #define UX_HOST_CLASS_STORAGE_THREAD_STACK_SIZE             UX_THREAD_STACK_SIZE */
 
 /* Defined, this value represents the maximum number of Ed, regular TDs and Isochronous TDs. These values
    depend on the type of host controller and can be reduced in memory constraint environments.  */
@@ -159,34 +155,31 @@
 
 /* #define UX_MAX_ISO_TD                                           1 */
 
-/* Defined, this value represents the maximum size of the HID decompressed
-   buffer. This cannot be determined in advance so we allocate a big block,
-   usually 4K but for simple HID devices like keyboard and mouse it can be
-   reduced a lot. */
+/* Defined, this value represents the maximum size of the HID decompressed buffer. This cannot be determined
+   in advance so we allocate a big block, usually 4K but for simple HID devices like keyboard and mouse
+   it can be reduced a lot. */
 
-/* #define UX_HOST_CLASS_HID_DECOMPRESSION_BUFFER 4096 */
+/* #define UX_HOST_CLASS_HID_DECOMPRESSION_BUFFER                                           4096 */
 
 /* Defined, this value represents the maximum number of HID usages for a HID device.
    Default is 2048 but for simple HID devices like keyboard and mouse it can be reduced a lot. */
 
-/* #define UX_HOST_CLASS_HID_USAGES 2048 */
+/* #define UX_HOST_CLASS_HID_USAGES                                           2048 */
 
-/* By default, each key in each HID report from the device is reported by
-   ux_host_class_hid_keyboard_key_get (a HID report from the device is received
-   whenever there is a change in a key state i.e. when a key is pressed or
-   released. The report contains every key that is down). There are limitations
-   to this method such as not being able to determine when a key has been
-   released.
+/* By default, each key in each HID report from the device is reported by ux_host_class_hid_keyboard_key_get
+   (a HID report from the device is received whenever there is a change in a key state i.e. when a key is pressed
+   or released. The report contains every key that is down). There are limitations to this method such as not being
+   able to determine when a key has been released.
 
-   Defined, this value causes ux_host_class_hid_keyboard_key_get to only report
-   key changes i.e. key presses and key releases. */
+   Defined, this value causes ux_host_class_hid_keyboard_key_get to only report key changes i.e. key presses
+   and key releases. */
 
 /* #define UX_HOST_CLASS_HID_KEYBOARD_EVENTS_KEY_CHANGES_MODE */
 
 /* Works when UX_HOST_CLASS_HID_KEYBOARD_EVENTS_KEY_CHANGES_MODE is defined.
 
-   Defined, this value causes ux_host_class_hid_keyboard_key_get to only report
-   key pressed/down changes; key released/up changes are not reported.
+   Defined, this value causes ux_host_class_hid_keyboard_key_get to only report key pressed/down changes;
+   key released/up changes are not reported.
  */
 
 /* #define UX_HOST_CLASS_HID_KEYBOARD_EVENTS_KEY_CHANGES_MODE_REPORT_KEY_DOWN_ONLY */
@@ -208,12 +201,12 @@
 /* Defined, this value represents the maximum number of media for the host storage class.
    Default is 8 but for memory constrained resource systems this can ne reduced to 1. */
 
-/* #define UX_HOST_CLASS_STORAGE_MAX_MEDIA 2 */
+/* #define UX_HOST_CLASS_STORAGE_MAX_MEDIA                                           2 */
 
 /* Defined, this value includes code to handle storage devices that use the CB
    or CBI protocol (such as floppy disks). It is off by default because these
-   protocols are obsolete, being superseded by the Bulk Only Transport (BOT)
-   protocol which virtually all modern storage devices use.
+   protocols are obsolete, being superseded by the Bulk Only Transport (BOT) protocol
+   which virtually all modern storage devices use.
 */
 
 /* #define UX_HOST_CLASS_STORAGE_INCLUDE_LEGACY_PROTOCOL_SUPPORT */
@@ -224,45 +217,45 @@
 
 /* #define UX_ENFORCE_SAFE_ALIGNMENT */
 
-/* Defined, this value represents the number of packets in the CDC_ECM device
-   class. The default is 16.
+/* Defined, this value represents the number of packets in the CDC_ECM device class.
+   The default is 16.
 */
 
 /* #define UX_DEVICE_CLASS_CDC_ECM_NX_PKPOOL_ENTRIES           4 */
 
-/* Defined, this value represents the number of packets in the CDC_ECM host
-   class. The default is 16.
+/* Defined, this value represents the number of packets in the CDC_ECM host class.
+   The default is 16.
 */
-/* #define UX_HOST_CLASS_CDC_ECM_NX_PKPOOL_ENTRIES 16 */
+/* #define UX_HOST_CLASS_CDC_ECM_NX_PKPOOL_ENTRIES                                           16 */
 
 /* Defined, this value represents the number of milliseconds to wait for packet
    allocation until invoking the application's error callback and retrying.
    The default is 1000 milliseconds.
 */
-/* #define UX_HOST_CLASS_CDC_ECM_PACKET_POOL_WAIT 10 */
+/* #define UX_HOST_CLASS_CDC_ECM_PACKET_POOL_WAIT                                           10 */
 
 /* Defined, this value represents the number of milliseconds to wait for packet
    allocation until invoking the application's error callback and retrying.
 */
-/* #define UX_DEVICE_CLASS_CDC_ECM_PACKET_POOL_WAIT 1000 */
+/* #define UX_DEVICE_CLASS_CDC_ECM_PACKET_POOL_WAIT                                           1000 */
 
 /* Defined, this value represents the the maximum length of HID reports on the
    device.
  */
 
-/* #define UX_DEVICE_CLASS_HID_EVENT_BUFFER_LENGTH 64 */
+/* #define UX_DEVICE_CLASS_HID_EVENT_BUFFER_LENGTH                                           64 */
 
 /* Defined, this value represents the the maximum number of HID events/reports
    that can be queued at once.
  */
 
-/* #define UX_DEVICE_CLASS_HID_MAX_EVENTS_QUEUE 8 */
+/* #define UX_DEVICE_CLASS_HID_MAX_EVENTS_QUEUE                                           8 */
 
 /* Defined, this macro will disable DFU_UPLOAD support.  */
 
 /* #define UX_DEVICE_CLASS_DFU_UPLOAD_DISABLE  */
 
-/* Defined, this macro will enable DFU_GETSTATUS and DFU_GETSTATE in dfuERROR. */
+/* Defined, this macro will enable DFU_GETSTATUS and DFU_GETSTATE in dfuERROR.  */
 
 /* #define UX_DEVICE_CLASS_DFU_ERROR_GET_ENABLE  */
 
@@ -277,14 +270,14 @@
        bwPollTimeout supported.
 */
 
-#define UX_DEVICE_CLASS_DFU_STATUS_MODE 1
+#define UX_DEVICE_CLASS_DFU_STATUS_MODE                  1
 
 /* Defined, this value represents the default DFU status bwPollTimeout.
    The value is 3 bytes long (max 0xFFFFFFu).
    By default the bwPollTimeout is 1 (means 1ms).
  */
 
-#define UX_DEVICE_CLASS_DFU_STATUS_POLLTIMEOUT 0
+#define UX_DEVICE_CLASS_DFU_STATUS_POLLTIMEOUT             0
 
 /* Defined, this macro will enable custom request process callback.  */
 
@@ -297,7 +290,7 @@
 #define UX_DEVICE_SIDE_ONLY
 
 /* Defined, this value will include the OTG polling thread. OTG can only be active if both host/device are present.
- */
+*/
 
 #ifndef UX_HOST_SIDE_ONLY
 #ifndef UX_DEVICE_SIDE_ONLY
@@ -308,12 +301,12 @@
 #endif
 
 /* Defined, this value represents the maximum size of single tansfers for the SCSI data phase.
- */
+*/
 
 /* #define UX_HOST_CLASS_STORAGE_MAX_TRANSFER_SIZE             (1024 * 1) */
 
 /* Defined, this value represents the size of the log pool.
- */
+*/
 /* #define UX_DEBUG_LOG_SIZE                                   (1024 * 16) */
 
 /* This is the ThreadX priority value for the USBX enumeration threads that monitors the bus topology */
@@ -357,3 +350,4 @@
 #define UX_DEVICE_BIDIRECTIONAL_ENDPOINT_SUPPORT
 
 #endif
+

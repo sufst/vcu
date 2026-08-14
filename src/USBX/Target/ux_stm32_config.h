@@ -22,30 +22,29 @@
 #define __UX_STM32_CONFIG_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
 
-    /* USER CODE BEGIN Private Includes */
+/* USER CODE BEGIN Private Includes */
 
-    /* USER CODE BEGIN Private Includes */
+/* USER CODE BEGIN Private Includes */
 
-    /* Private defines -----------------------------------------------------------*/
+/* Private defines -----------------------------------------------------------*/
 
-#define UX_DCD_STM32_MAX_ED 9
+#define UX_DCD_STM32_MAX_ED                                     9
 
-    /* USER CODE BEGIN Private defines */
+/* USER CODE BEGIN Private defines */
 
-    /* USER CODE END Private defines */
+/* USER CODE END Private defines */
 
-    /* USER CODE BEGIN 1 */
+/* USER CODE BEGIN 1 */
 
-    /* USER CODE END 1 */
+/* USER CODE END 1 */
 
 #ifdef __cplusplus
 }
 #endif
-#endif /* __UX_STM32_CONFIG_H__ */
+#endif  /* __UX_STM32_CONFIG_H__ */
