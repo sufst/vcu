@@ -356,15 +356,15 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
                 torque_cap = ctrl_ptr->config_ptr->hard_max_torque;
             }
 
-            if (ctrl_ptr->current_mode == CTRL_MODE_REVERSE)
-            {
-                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = true;
-                LOG_WARN("Reverse active");
-            }
-            else
-            {
-                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = false;
-            }
+            // if (ctrl_ptr->current_mode == CTRL_MODE_REVERSE)
+            // {
+            //     ctrl_ptr->pm100_ptr->reverse_mode_dangerous = true;
+            //     LOG_WARN("Reverse active");
+            // }
+            // else
+            // {
+            ctrl_ptr->pm100_ptr->reverse_mode_dangerous = false;
+            // }
 
             torque_map_set_output_max(&ctrl_ptr->torque_map, torque_cap);
             LOG_INFO("Torque cap (nm x10)%d\n", ctrl_ptr->torque_map.output_max);
