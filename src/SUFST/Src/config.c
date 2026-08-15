@@ -108,7 +108,7 @@ static const config_t config_instance = {
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2300,
         .endurance_max_torque = 1100,
-        .crawl_max_torque = 1500,
+        .crawl_max_torque = 1900,
         .torque_ctrl_max_slip_percent = 10
     },
     .rtds = {
