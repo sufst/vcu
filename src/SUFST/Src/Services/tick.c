@@ -36,8 +36,7 @@ static void tick_thread_entry(ULONG input)
         tick_ptr->apps_status = apps_read(&tick_ptr->apps, &tick_ptr->apps_reading);
 
         tick_ptr->sagl_status = scs_read(&tick_ptr->sagl, &tick_ptr->sagl_reading);
-        tick_ptr->current_status =
-            scs_read(&tick_ptr->current, &tick_ptr->current_reading);
+        tick_ptr->current_status = scs_read(&tick_ptr->current, &tick_ptr->current_reading);
         tick_ptr->mode_adc_status =
             scs_read(&tick_ptr->mode_adc, &tick_ptr->mode_adc_reading);
 
