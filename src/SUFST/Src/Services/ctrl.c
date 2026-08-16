@@ -356,15 +356,15 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
                 torque_cap = ctrl_ptr->config_ptr->hard_max_torque;
             }
 
-            // if (ctrl_ptr->current_mode == CTRL_MODE_REVERSE)
-            // {
-            //     ctrl_ptr->pm100_ptr->reverse_mode_dangerous = true;
-            //     LOG_WARN("Reverse active");
-            // }
-            // else
-            // {
-            ctrl_ptr->pm100_ptr->reverse_mode_dangerous = false;
-            // }
+            if (ctrl_ptr->current_mode == CTRL_MODE_REVERSE)
+            {
+                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = true;
+                LOG_WARN("Reverse active");
+            }
+            else
+            {
+                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = false;
+            }
 
             torque_map_set_output_max(&ctrl_ptr->torque_map, torque_cap);
             LOG_INFO("Torque cap (nm x10)%d\n", ctrl_ptr->torque_map.output_max);
@@ -412,22 +412,22 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr)
     if (ctrl_ptr->current_mode != CTRL_MODE_REMOTE_CTRL)
     {
         // Check for brake + accel pedal pressed
-        // if (ctrl_ptr->apps_reading >= ctrl_ptr->config_ptr->apps_bps_high_threshold &&
-        //     ctrl_ptr->tick_ptr->brakelight_pwr)
-        // {
-        //     LOG_ERROR("BP and AP pressed\n");
+        if (ctrl_ptr->apps_reading >= ctrl_ptr->config_ptr->apps_bps_high_threshold &&
+            ctrl_ptr->tick_ptr->brakelight_pwr)
+        {
+            LOG_ERROR("BP and AP pressed\n");
 
-        //     if (tx_time_get() >= ctrl_ptr->apps_bps_start + (TX_TIMER_TICKS_PER_SECOND / 50))
-        //     {
-        //         LOG_ERROR("BP-AP fault\n");
-        //         ctrl_ptr->apps_bps_fault_start = tx_time_get();
-        //         return CTRL_STATE_APPS_BPS_FAULT;
-        //     }
-        // }
-        // else
-        // {
-        //     ctrl_ptr->apps_bps_start = tx_time_get();
-        // }
+            if (tx_time_get() >= ctrl_ptr->apps_bps_start + (TX_TIMER_TICKS_PER_SECOND / 50))
+            {
+                LOG_ERROR("BP-AP fault\n");
+                ctrl_ptr->apps_bps_fault_start = tx_time_get();
+                return CTRL_STATE_APPS_BPS_FAULT;
+            }
+        }
+        else
+        {
+            ctrl_ptr->apps_bps_start = tx_time_get();
+        }
 
         ctrl_ptr->torque_request =
             torque_map_apply(&ctrl_ptr->torque_map, ctrl_ptr->apps_reading);

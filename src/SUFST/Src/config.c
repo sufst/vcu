@@ -97,8 +97,8 @@ static const config_t config_instance = {
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = true,
         .bps_on_threshold = 50,
-	    .apps_bps_low_threshold = 5,
-	    .apps_bps_high_threshold = 30, // set this to 2000 (i.e. 200%), instead of default 30 (3%) to temporarily disable for scrut hardware demos
+	    .apps_bps_low_threshold = 50,
+	    .apps_bps_high_threshold = 300, // set this to 2000 (i.e. 200%), instead of default 300 (30%) to temporarily disable for scrut hardware demos
         .fan_on_threshold = 60, // to be adjusted to the actual value
         .fan_off_threshold = 50, // to be adjusted to the actual value
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
@@ -106,9 +106,9 @@ static const config_t config_instance = {
         .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
         .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
-        .hard_max_torque = 2300,
+        .hard_max_torque = 2500,
         .endurance_max_torque = 1100,
-        .crawl_max_torque = 1300,
+        .crawl_max_torque = 200,
         .torque_ctrl_max_slip_percent = 10
     },
     .rtds = {
@@ -215,7 +215,7 @@ static const config_t config_instance = {
         },
         .ticks_per_wheel = 48,
         .wheel_circumference_meters = 1.305,
-        .sample_period_ticks = SECONDS_TO_TICKS(0.1)
+        .sample_period_ticks = SECONDS_TO_TICKS(0.01)
     },
     .usb_msc = {
         .thread = {
