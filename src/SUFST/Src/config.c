@@ -108,7 +108,7 @@ static const config_t config_instance = {
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2300,
         .endurance_max_torque = 1100,
-        .crawl_max_torque = 1900,
+        .crawl_max_torque = 1300,
         .torque_ctrl_max_slip_percent = 10
     },
     .rtds = {
@@ -123,7 +123,7 @@ static const config_t config_instance = {
         .input_max = 1000, // percent * 10 so 100%
         .output_max = 1000, // initial default before R2D; torque_map_set_output_max() is called with .ctrl.{hard,endurance,crawl}_max_torque when entering R2D depending on the current mode
         .deadzone_fraction = 0.05f,
-        .exponent = 2.5f
+        .exponent = 1.7f
     },
     .pm100 = {
         .thread = {
