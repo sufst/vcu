@@ -18,11 +18,6 @@
 
 #include "torque_map_funcs.h"
 
-// Should be defined if remote control (CTRL_MODE_REMOTE_CTRL) support is
-// compiled in. When not defined (commented out), selecting the remote control
-// mode on the switch is harmless but always requests 0 torque and ignores R2D
-#define ENABLE_VCU_SIMULATION_MODE
-
 /**
  * @brief  Threads
  */
@@ -62,8 +57,7 @@ typedef struct
     uint32_t error_led_toggle_ticks; // ticks between toggling TS on LED in activation error
     uint16_t apps_bps_high_threshold; // apps reading to fault when brake also pressed
     uint16_t apps_bps_low_threshold; // apps reading to recover from fault
-    uint16_t fan_on_threshold;       // temperature at which to turn on the fan
-    uint16_t fan_off_threshold;      // temperature at which to turn off the fan
+    uint16_t apps_bps_fault_bps_threshold; // live BPS reading threshold for apps/bps plausibility fault
     uint16_t bps_on_threshold;       // BPS reading to consider BPS 'on'
     uint16_t hard_max_torque;        // Hard maximum torque value (e.g. accel)
     uint16_t endurance_max_torque;   // Max torque in endurance mode
@@ -163,7 +157,7 @@ typedef struct
 {
     config_thread_t thread;
     uint16_t period;
-    uint32_t bps_threshold; // BPS (% * 10) threshold
+    uint32_t bps_light_threshold; // BPS (% * 10) threshold
     uint32_t bps_active_ticks; // time BPS must stay above threshold before treating as high
 } config_tick_t;
 
@@ -250,6 +244,8 @@ typedef struct
     uint32_t broadcast_timeout_ticks; // maximum number of ticks to wait for a broadcast
     bool enable;
     bool inverted;
+    uint16_t fan_on_threshold;  // temperature at which to turn on the fan
+    uint16_t fan_off_threshold; // temperature at which to turn off the fan
 } config_fans_t;
 
 /**

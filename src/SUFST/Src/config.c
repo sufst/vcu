@@ -96,11 +96,10 @@ static const config_t config_instance = {
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = true,
-        .bps_on_threshold = 50,
-	    .apps_bps_low_threshold = 50,
-	    .apps_bps_high_threshold = 300, // set this to 2000 (i.e. 200%), instead of default 300 (30%) to temporarily disable for scrut hardware demos
-        .fan_on_threshold = 50, // to be adjusted to the actual value
-        .fan_off_threshold = 48, // to be adjusted to the actual value
+        .bps_on_threshold = 50, // brake threshold (% * 10) for entering R2D when r2d_requires_brake = true
+        .apps_bps_fault_bps_threshold = 150, // brake threshold (% * 10) to trigger apps bps fault
+	    .apps_bps_low_threshold = 50, // required APPS (% * 10) to go out of a APPS bps fault
+	    .apps_bps_high_threshold = 300, // required APPS (% * 10) to go into a APPS bps fault - set this to a big number (e.g. 2000), instead of default 300 (30%) to temporarily disable for scrut hardware demos
         .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
         .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
@@ -143,7 +142,7 @@ static const config_t config_instance = {
             .stack_size = 1024
         },
         .period = SECONDS_TO_TICKS(0.01),
-        .bps_threshold = 200, // Turn breaklight on at 2%
+        .bps_light_threshold = 200, // Turn breaklight on at 2%
         .bps_active_ticks = SECONDS_TO_TICKS(0.3), // debounce: BPS must be above threshold for 0.3s
 
     },
@@ -261,7 +260,9 @@ static const config_t config_instance = {
         },
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
         .enable = true,
-        .inverted = true
+        .inverted = true,
+        .fan_on_threshold = 50, // to be adjusted to the actual value
+        .fan_off_threshold = 48 // to be adjusted to the actual value
     }
 };
 

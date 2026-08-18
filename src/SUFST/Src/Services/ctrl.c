@@ -6,6 +6,7 @@
  ****************************************************************************/
 
 #include "ctrl.h"
+#include "clip_to_range.h"
 
 #include <stdbool.h>
 
@@ -19,8 +20,6 @@
 void ctrl_thread_entry(ULONG input);
 void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr);
 void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
-bool ctrl_fan_passed_on_threshold(ctrl_context_t *ctrl_ptr);
-bool ctrl_fan_passed_off_threshold(ctrl_context_t *ctrl_ptr);
 
 /**
  * @brief       Initialises control service
@@ -63,12 +62,12 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->bps_reading = 0;
     ctrl_ptr->sagl_reading = 0;
     ctrl_ptr->current_reading = 0;
+    ctrl_ptr->motor_speed_reading = 0;
     ctrl_ptr->torque_request = 0;
     ctrl_ptr->shdn_reading = 0;
     ctrl_ptr->precharge_start = 0;
     ctrl_ptr->inverter_pwr = false;
     ctrl_ptr->pump_pwr = false;
-    ctrl_ptr->fan_pwr = false;
     ctrl_ptr->remote_ctrl_ptr = remote_ctrl_ptr;
 
     // create the thread
@@ -138,6 +137,7 @@ void ctrl_thread_entry(ULONG input)
 
         ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
         ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
+        ctrl_ptr->motor_speed_reading = pm100_motor_speed(ctrl_ptr->pm100_ptr);
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ?
             ctrl_ptr->motor_temp :
             ctrl_ptr->inv_temp;
@@ -148,21 +148,7 @@ void ctrl_thread_entry(ULONG input)
                  ctrl_ptr->inv_temp,
                  ctrl_ptr->max_temp);
         */
-        if (ctrl_fan_passed_on_threshold(ctrl_ptr))
-        {
-            ctrl_ptr->fan_pwr = 1;
-        }
-        else if (ctrl_ptr->fan_pwr)
-        {
-            if (ctrl_fan_passed_off_threshold(ctrl_ptr))
-            {
-                ctrl_ptr->fan_pwr = 0;
-            }
-        }
-        else
-        {
-            ctrl_ptr->fan_pwr = 0;
-        }
+        fans_update_thermal(ctrl_ptr->fans_ptr, ctrl_ptr->max_temp);
 
         ctrl_state_machine_tick(ctrl_ptr);
 
@@ -177,29 +163,75 @@ void ctrl_thread_entry(ULONG input)
 }
 
 /**
- * @brief       Checks the motor and inverter temperatures to determine if the
- * fan should be turned on
+ * @brief       Samples the physical dash buttons and remote control overrides for this tick
  *
- * @param[in]   ctrl_ptr    Control service pointer
- *
- * @return      True if the fan should be turned on
+ * @param[in]   ctrl_ptr        Control context
+ * @param[out]  tson_pressed    TS input for this tick (dash button + remote control)
+ * @param[out]  r2d_pressed     R2D input for this tick (dash button + remote control)
  */
-bool ctrl_fan_passed_on_threshold(ctrl_context_t *ctrl_ptr)
+static void ctrl_sample_driver_inputs(ctrl_context_t *ctrl_ptr, bool *tson_pressed, bool *r2d_pressed)
 {
-    return ctrl_ptr->max_temp > ctrl_ptr->config_ptr->fan_on_threshold;
+    *tson_pressed = ctrl_ptr->dash_ptr->tson_flag;
+    *r2d_pressed = ctrl_ptr->dash_ptr->r2d_flag;
+
+    if (ctrl_ptr->current_mode == CTRL_MODE_REMOTE_CTRL)
+    {
+        *tson_pressed = *tson_pressed || remote_get_ts_on_pressed(ctrl_ptr->remote_ctrl_ptr);
+        *r2d_pressed = *r2d_pressed || remote_get_r2d_pressed(ctrl_ptr->remote_ctrl_ptr);
+    }
 }
 
 /**
- * @brief       Checks the motor and inverter temperatures to determine if the
- * fan should be turned off
+ * @brief       Zeroes the torque request and commands the pm100 to 0
  *
- * @param[in]   ctrl_ptr    Control service pointer
+ * @param[in]   ctrl_ptr    Control context
  *
- * @return      True if the fan should be turned off
+ * @return      False if the pm100 request itself failed (caller should
+ *              escalate to CTRL_STATE_TS_RUN_FAULT)
  */
-bool ctrl_fan_passed_off_threshold(ctrl_context_t *ctrl_ptr)
+static bool ctrl_fault_zero_torque_ok(ctrl_context_t *ctrl_ptr)
 {
-    return ctrl_ptr->max_temp < ctrl_ptr->config_ptr->fan_off_threshold;
+    ctrl_ptr->torque_request = 0;
+    return pm100_request_torque(ctrl_ptr->pm100_ptr, 0) == STATUS_OK;
+}
+
+/**
+ * @brief       Re-reads APPS and BPS into ctrl_ptr
+ *
+ * @param[in]   ctrl_ptr    Control context
+ *
+ * @return      True if both readings succeeded
+ */
+static bool ctrl_refresh_apps_bps_ok(ctrl_context_t *ctrl_ptr)
+{
+    status_t apps_status =
+        tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading);
+    status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->bps_reading);
+
+    return apps_status == STATUS_OK && bps_status == STATUS_OK;
+}
+
+/**
+ * @brief       Clears the fault/error state if the driver has pressed TS
+ *
+ * @param[in]   ctrl_ptr    Control context
+ * @param[in]   tson_pressed  TS input for this tick
+ *
+ * @return      True if the fault was acknowledged and cleared (caller
+ *              should return CTRL_STATE_TS_BUTTON_WAIT)
+ */
+static bool ctrl_try_driver_fault_ack(ctrl_context_t *ctrl_ptr, bool tson_pressed)
+{
+    if (!tson_pressed)
+    {
+        return false;
+    }
+
+    ctrl_ptr->error = CTRL_ERROR_NONE;
+    pm100_clear_error(ctrl_ptr->pm100_ptr);
+    tick_clear_apps_scs_error(ctrl_ptr->tick_ptr);
+
+    return true;
 }
 
 /**
@@ -207,16 +239,15 @@ bool ctrl_fan_passed_off_threshold(ctrl_context_t *ctrl_ptr)
  * then begin activating the TS
  *
  * @param ctrl_ptr
+ * @param tson_pressed    TS input for this tick
  * @return ctrl_state_t next state
  */
-static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr, bool tson_pressed)
 {
     ctrl_ptr->current_mode = ctrl_ptr->requested_mode;
     dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_SET);
-    if (ctrl_ptr->dash_ptr->tson_flag)
+    if (tson_pressed)
     {
-        dash_clear_buttons(ctrl_ptr->dash_ptr);
-
         if (trc_ready())
         {
             LOG_INFO("TSON pressed & SHDN closed\n");
@@ -236,7 +267,7 @@ static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr)
         // Turn off inverter if TS button is not pressed
         ctrl_ptr->inverter_pwr = false;
     }
-    return ctrl_ptr->state;
+    return CTRL_STATE_TS_BUTTON_WAIT;
 }
 
 /**
@@ -254,7 +285,7 @@ static ctrl_state_t ctrl_proc_wait_neg_air(ctrl_context_t *ctrl_ptr)
         ctrl_ptr->precharge_start = tx_time_get();
         return CTRL_STATE_PRECHARGE_WAIT;
     }
-    return ctrl_ptr->state;
+    return CTRL_STATE_WAIT_NEG_AIR;
 }
 
 /**
@@ -269,7 +300,6 @@ static ctrl_state_t ctrl_proc_precharge_wait(ctrl_context_t *ctrl_ptr)
     const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
     if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
     {
-        dash_clear_buttons(ctrl_ptr->dash_ptr);
         LOG_INFO("Precharge complete\n");
         return CTRL_STATE_R2D_WAIT;
     }
@@ -279,7 +309,7 @@ static ctrl_state_t ctrl_proc_precharge_wait(ctrl_context_t *ctrl_ptr)
         LOG_ERROR("Precharge timeout reached\n");
         return CTRL_STATE_TS_ACTIVATION_FAILURE;
     }
-    return ctrl_ptr->state;
+    return CTRL_STATE_PRECHARGE_WAIT;
 }
 
 /**
@@ -287,9 +317,11 @@ static ctrl_state_t ctrl_proc_precharge_wait(ctrl_context_t *ctrl_ptr)
  * also wait for brake to be fully pressed (if enabled)
  *
  * @param ctrl_ptr
+ * @param tson_pressed    TS input for this tick
+ * @param r2d_pressed   R2D input for this tick
  * @return ctrl_state_t next state
  */
-static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr, bool tson_pressed, bool r2d_pressed)
 {
     if (!trc_ready())
     {
@@ -299,26 +331,23 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
 
     dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_SET);
     ctrl_ptr->current_mode = ctrl_ptr->requested_mode;
-    // Stay in R2D_Wait on an unknown mode (e.g. blank spot or inverter programming)s
+
+    // Stay in R2D_Wait on an unknown mode (e.g. undefined mode or inverter programming)
     if (ctrl_ptr->current_mode == CTRL_MODE_UNKNOWN || ctrl_ptr->current_mode > CTRL_MODE_REMOTE_CTRL)
     {
-        return ctrl_ptr->state;
+        return CTRL_STATE_R2D_WAIT;
     }
 
-    if (ctrl_ptr->dash_ptr->tson_flag) // TSON pressed, disable TS
+    if (tson_pressed)
     {
-        ctrl_ptr->dash_ptr->tson_flag = false;
-
         ctrl_ptr->inverter_pwr = false; // Turn off inverter
         trc_set_ts_on(GPIO_PIN_RESET);  // Turn off AIRs
 
         return CTRL_STATE_TS_BUTTON_WAIT;
     }
 
-    if (ctrl_ptr->dash_ptr->r2d_flag) // R2D pressed
+    if (r2d_pressed)
     {
-        ctrl_ptr->dash_ptr->r2d_flag = false;
-
         bool r2d = true;
 
         if (ctrl_ptr->current_mode != CTRL_MODE_REMOTE_CTRL)
@@ -351,19 +380,13 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
                 ctrl_ptr->config_ptr->endurance_max_torque :
                 ctrl_ptr->config_ptr->hard_max_torque;
 
-            if (torque_cap > ctrl_ptr->config_ptr->hard_max_torque)
-            {
-                torque_cap = ctrl_ptr->config_ptr->hard_max_torque;
-            }
+            torque_cap = clip_to_range(torque_cap, 0, ctrl_ptr->config_ptr->hard_max_torque);
 
-            if (ctrl_ptr->current_mode == CTRL_MODE_REVERSE)
+            ctrl_ptr->pm100_ptr->reverse_mode_dangerous =
+                ctrl_ptr->current_mode == CTRL_MODE_REVERSE;
+            if (ctrl_ptr->pm100_ptr->reverse_mode_dangerous)
             {
-                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = true;
                 LOG_WARN("Reverse active");
-            }
-            else
-            {
-                ctrl_ptr->pm100_ptr->reverse_mode_dangerous = false;
             }
 
             torque_map_set_output_max(&ctrl_ptr->torque_map, torque_cap);
@@ -372,48 +395,39 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr)
             LOG_INFO("R2D active\n");
             return CTRL_STATE_TS_ON;
         }
-        return ctrl_ptr->state;
     }
 
-    return ctrl_ptr->state;
+    return CTRL_STATE_R2D_WAIT;
 }
 
 /**
  * @brief the TS is on
  *
  * @param ctrl_ptr
+ * @param r2d_pressed   R2D input for this tick
  * @return ctrl_state_t next state
  */
-static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 {
     status_t pm100_status;
 
-    if (ctrl_ptr->dash_ptr->r2d_flag)
+    if (r2d_pressed)
     {
-        dash_clear_buttons(ctrl_ptr->dash_ptr);
         return CTRL_STATE_R2D_OFF;
     }
 
     if (ctrl_ptr->current_mode != CTRL_MODE_REMOTE_CTRL)
     {
         // read from the APPS
-        status_t apps_status =
-            tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading);
-        status_t bps_status =
-            tick_get_bps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->bps_reading);
-
-        if (apps_status != STATUS_OK || bps_status != STATUS_OK)
+        if (!ctrl_refresh_apps_bps_ok(ctrl_ptr))
         {
             LOG_ERROR("APPS / BPS fault\n");
             return CTRL_STATE_APPS_SCS_FAULT;
         }
-    }
 
-    if (ctrl_ptr->current_mode != CTRL_MODE_REMOTE_CTRL)
-    {
         // Check for brake + accel pedal pressed
         if (ctrl_ptr->apps_reading >= ctrl_ptr->config_ptr->apps_bps_high_threshold &&
-            ctrl_ptr->tick_ptr->brakelight_pwr)
+            ctrl_ptr->bps_reading > ctrl_ptr->config_ptr->apps_bps_fault_bps_threshold)
         {
             LOG_ERROR("BP and AP pressed\n");
 
@@ -439,17 +453,17 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr)
 
     LOG_INFO("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
 
-    if (ctrl_ptr->torque_request > (ctrl_ptr->config_ptr->hard_max_torque))
-    {
-        ctrl_ptr->torque_request = (ctrl_ptr->config_ptr->hard_max_torque);
-    }
+    ctrl_ptr->torque_request =
+        clip_to_range(ctrl_ptr->torque_request, 0, ctrl_ptr->config_ptr->hard_max_torque);
+
     pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, ctrl_ptr->torque_request);
 
     if (pm100_status != STATUS_OK)
     {
         return CTRL_STATE_TS_RUN_FAULT;
     }
-    return ctrl_ptr->state;
+
+    return CTRL_STATE_TS_ON;
 }
 
 /**
@@ -495,7 +509,7 @@ static ctrl_state_t ctrl_proc_r2d_off_wait(ctrl_context_t *ctrl_ptr)
         return CTRL_STATE_R2D_WAIT;
     }
 
-    return ctrl_ptr->state;
+    return CTRL_STATE_R2D_OFF_WAIT;
 }
 
 /**
@@ -505,52 +519,44 @@ static ctrl_state_t ctrl_proc_r2d_off_wait(ctrl_context_t *ctrl_ptr)
  * @param ctrl_ptr
  * @return ctrl_state_t next state
  */
-static ctrl_state_t ctrl_proc_apps_scs_fault(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_proc_apps_scs_fault(ctrl_context_t *ctrl_ptr, bool tson_pressed)
 {
-    ctrl_ptr->torque_request = 0;
-    status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-
-    if (pm100_status != STATUS_OK)
+    if (!ctrl_fault_zero_torque_ok(ctrl_ptr))
     {
         return CTRL_STATE_TS_RUN_FAULT;
     }
 
-    status_t apps_status =
-        tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading);
-    status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->bps_reading);
-
-    if (apps_status == STATUS_OK && bps_status == STATUS_OK)
+    if (ctrl_refresh_apps_bps_ok(ctrl_ptr))
     {
         return CTRL_STATE_TS_ON;
     }
 
-    return ctrl_ptr->state;
+    if (ctrl_try_driver_fault_ack(ctrl_ptr, tson_pressed))
+    {
+        return CTRL_STATE_TS_BUTTON_WAIT;
+    }
+
+    return CTRL_STATE_APPS_SCS_FAULT;
 }
 
 /**
  * @brief
  *
  * @param ctrl_ptr
+ * @param tson_pressed    TS input for this tick
  * @return ctrl_state_t next state
  */
-static ctrl_state_t ctrl_proc_apps_bps_fault(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_proc_apps_bps_fault(ctrl_context_t *ctrl_ptr, bool tson_pressed)
 {
-    ctrl_ptr->torque_request = 0;
-    status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-
-    if (pm100_status != STATUS_OK)
+    if (!ctrl_fault_zero_torque_ok(ctrl_ptr))
     {
         return CTRL_STATE_TS_RUN_FAULT;
     }
 
-    status_t apps_status =
-        tick_get_apps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->apps_reading);
-    status_t bps_status = tick_get_bps_reading(ctrl_ptr->tick_ptr, &ctrl_ptr->bps_reading);
-
-    if (apps_status == STATUS_OK && bps_status == STATUS_OK)
+    if (ctrl_refresh_apps_bps_ok(ctrl_ptr))
     {
         if ((ctrl_ptr->apps_reading < ctrl_ptr->config_ptr->apps_bps_low_threshold) &&
-            !ctrl_ptr->tick_ptr->brakelight_pwr)
+            ctrl_ptr->bps_reading <= ctrl_ptr->config_ptr->apps_bps_fault_bps_threshold)
         {
             if (tx_time_get() > ctrl_ptr->apps_bps_fault_start + TX_TIMER_TICKS_PER_SECOND / 10)
             {
@@ -563,18 +569,12 @@ static ctrl_state_t ctrl_proc_apps_bps_fault(ctrl_context_t *ctrl_ptr)
         }
     }
 
-    if (ctrl_ptr->dash_ptr->tson_flag)
+    if (ctrl_try_driver_fault_ack(ctrl_ptr, tson_pressed))
     {
-        ctrl_ptr->dash_ptr->tson_flag = false;
-
-        ctrl_ptr->error = CTRL_ERROR_NONE;
-        pm100_clear_error(ctrl_ptr->pm100_ptr);
-        tick_clear_apps_scs_error(ctrl_ptr->tick_ptr);
-
         return CTRL_STATE_TS_BUTTON_WAIT;
     }
 
-    return ctrl_ptr->state;
+    return CTRL_STATE_APPS_BPS_FAULT;
 }
 
 /**
@@ -582,32 +582,30 @@ static ctrl_state_t ctrl_proc_apps_bps_fault(ctrl_context_t *ctrl_ptr)
  *              down the service
  *
  * @param[in]   ctrl_ptr    Control context
+ * @param[in]   tson_pressed  TS input for this tick
  */
-static ctrl_state_t ctrl_handle_ts_fault(ctrl_context_t *ctrl_ptr)
+static ctrl_state_t ctrl_handle_ts_fault(ctrl_context_t *ctrl_ptr, bool tson_pressed)
 {
 
     dash_context_t *dash_ptr = ctrl_ptr->dash_ptr;
     const config_ctrl_t *config_ptr = ctrl_ptr->config_ptr;
 
     pm100_lvs_off(ctrl_ptr->pm100_ptr);
-    // ctrl_ptr->inverter_pwr = false;
+
+    // Don't turn off the inverter while the motor could be still spinning (or
+    // you might blow up a PCB like stag-11) ctrl_ptr->inverter_pwr = false;
+
+    ctrl_ptr->torque_request = 0;
     pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
     ctrl_ptr->pump_pwr = false;
-    ctrl_ptr->fan_pwr = false;
+    ctrl_ptr->fans_ptr->fan_thermal_pwr = false;
 
     trc_set_ts_on(GPIO_PIN_RESET);
     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
     dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_SET);
-    ctrl_update_canbc_states(ctrl_ptr);
 
-    if (ctrl_ptr->dash_ptr->tson_flag)
+    if (ctrl_try_driver_fault_ack(ctrl_ptr, tson_pressed))
     {
-        ctrl_ptr->dash_ptr->tson_flag = false;
-
-        ctrl_ptr->error = CTRL_ERROR_NONE;
-        pm100_clear_error(ctrl_ptr->pm100_ptr);
-        tick_clear_apps_scs_error(ctrl_ptr->tick_ptr);
-
         return CTRL_STATE_TS_BUTTON_WAIT;
     }
     return CTRL_STATE_TS_RUN_FAULT;
@@ -621,25 +619,15 @@ static ctrl_state_t ctrl_handle_ts_fault(ctrl_context_t *ctrl_ptr)
 void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 {
     ctrl_state_t next_state = ctrl_ptr->state;
-
-// In remote control mode, the TS and R2D buttons can additionally be
-// triggered by the remote control, but the dash button is still in effect.
-// In every other mode, TS and R2D must be physically pressed.
-#ifdef ENABLE_VCU_SIMULATION_MODE
-    if (ctrl_ptr->current_mode == CTRL_MODE_REMOTE_CTRL)
-    {
-        ctrl_ptr->dash_ptr->tson_flag = ctrl_ptr->dash_ptr->tson_flag ||
-            remote_get_ts_on_pressed(ctrl_ptr->remote_ctrl_ptr);
-        ctrl_ptr->dash_ptr->r2d_flag = ctrl_ptr->dash_ptr->r2d_flag ||
-            remote_get_r2d_pressed(ctrl_ptr->remote_ctrl_ptr);
-    }
-#endif
+    bool tson_pressed;
+    bool r2d_pressed;
+    ctrl_sample_driver_inputs(ctrl_ptr, &tson_pressed, &r2d_pressed);
 
     switch (ctrl_ptr->state)
     {
     case CTRL_STATE_TS_BUTTON_WAIT:
     {
-        next_state = ctrl_proc_ts_button_wait(ctrl_ptr);
+        next_state = ctrl_proc_ts_button_wait(ctrl_ptr, tson_pressed);
         break;
     }
     case CTRL_STATE_WAIT_NEG_AIR:
@@ -654,12 +642,12 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
     }
     case CTRL_STATE_R2D_WAIT:
     {
-        next_state = ctrl_proc_r2d_wait(ctrl_ptr);
+        next_state = ctrl_proc_r2d_wait(ctrl_ptr, tson_pressed, r2d_pressed);
         break;
     }
     case CTRL_STATE_TS_ON:
     {
-        next_state = ctrl_proc_ts_on(ctrl_ptr);
+        next_state = ctrl_proc_ts_on(ctrl_ptr, r2d_pressed);
         break;
     }
     case CTRL_STATE_R2D_OFF:
@@ -677,7 +665,7 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
     case CTRL_STATE_TS_RUN_FAULT:
     {
         LOG_ERROR("TS fault during activation or runtime\n");
-        next_state = ctrl_handle_ts_fault(ctrl_ptr);
+        next_state = ctrl_handle_ts_fault(ctrl_ptr, tson_pressed);
         break;
     }
     case CTRL_STATE_SPIN:
@@ -687,16 +675,18 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
     }
     case CTRL_STATE_APPS_SCS_FAULT:
     {
-        next_state = ctrl_proc_apps_scs_fault(ctrl_ptr);
+        next_state = ctrl_proc_apps_scs_fault(ctrl_ptr, tson_pressed);
         break;
     }
     case CTRL_STATE_APPS_BPS_FAULT:
     {
-        next_state = ctrl_proc_apps_bps_fault(ctrl_ptr);
+        next_state = ctrl_proc_apps_bps_fault(ctrl_ptr, tson_pressed);
         break;
     }
     default: break;
     }
+
+    dash_clear_buttons(ctrl_ptr->dash_ptr);
 
     ctrl_ptr->state = next_state;
 }
@@ -724,7 +714,7 @@ void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr)
         states->errors.vcu_pm100_error = ctrl_ptr->pm100_ptr->error;
         states->pdm.inverter = ctrl_ptr->inverter_pwr;
         states->pdm.pump = ctrl_ptr->pump_pwr || ctrl_ptr->fans_ptr->fan_switch_status;
-        states->pdm.fan = ctrl_ptr->fan_pwr || ctrl_ptr->fans_ptr->fan_switch_status;
+        states->pdm.fan = fans_output_pwr(ctrl_ptr->fans_ptr);
         canbc_unlock_state(ctrl_ptr->canbc_ptr);
     }
 }

@@ -14,14 +14,13 @@ static void tick_thread_entry(ULONG input)
         lock_tick_sensors(tick_ptr, 100);
         tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
 
-        bool bps_above_threshold = (tick_ptr->bps_reading > config_ptr->bps_threshold);
+        bool bps_above_threshold = (tick_ptr->bps_reading > config_ptr->bps_light_threshold);
 
         if (bps_above_threshold && !tick_ptr->bps_prev_above)
         {
             tick_ptr->bps_active_start = tx_time_get();
         }
-
-        if (bps_above_threshold)
+        else if (bps_above_threshold)
         {
             uint32_t active_ticks = tx_time_get() - tick_ptr->bps_active_start;
             tick_ptr->brakelight_pwr = (active_ticks >= config_ptr->bps_active_ticks);
