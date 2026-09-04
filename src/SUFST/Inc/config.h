@@ -62,7 +62,6 @@ typedef struct
     uint16_t hard_max_torque;        // Hard maximum torque value (e.g. accel)
     uint16_t endurance_max_torque;   // Max torque in endurance mode
     uint16_t crawl_max_torque;       // Max torque in crawl/reverse mode
-    uint16_t torque_ctrl_max_slip_percent; // Max slip percent between rear and front wheels in accel mode
 } config_ctrl_t;
 
 /**
@@ -219,6 +218,36 @@ typedef struct
     uint32_t sample_period_ticks;
 } config_wheelspeed_t;
 
+/**
+ * @brief   Audio-compressor-style soft-knee PI controller (deramp + gentle integral gain)
+ */
+typedef struct
+{
+    float threshold;       // knee - measured value below this is untouched
+    float p_gain;           // proportional de-ramp strength above threshold
+    float i_gain;           // integral gain (unused without integral_enabled)
+    float integral_decay;   // per-tick multiplicative leak, 0..1 (100Hz loop tick, no explicit dt)
+    float integral_max;     // hard ceiling on accumulated integral, Nm*10 units (same as derate/torque_request)
+    bool integral_enabled;  // explicit on/off switch, rather than zeroing i_gain
+} config_compressor_t;
+
+/**
+ * @brief   Torque limiters applied after the torque map: slip-ratio-based
+ *          traction/launch control, and inverter DC-bus electrical power
+ *          de-ramp
+ */
+typedef struct
+{
+    float gear_ratio;          // motor : wheel reduction ratio (e.g. 120 motor rpm -> 37.7 wheel rpm)
+    float min_motor_speed_rpm; // motor rpm floor below which slip limiting holds off entirely
+    float min_denominator_rpm; // baseline min wheel rpm for the slip-ratio denominator / front-speed
+                                // reliability gate; raised at init to >= min_motor_speed_rpm /
+                                // gear_ratio so slip control can never engage before front wheel
+                                // speed is itself reliably measurable (see torque_limiters_init)
+    config_compressor_t slip;  // slip de-ramp tuning (threshold is in slip %, unaffected by units)
+    config_compressor_t power; // power de-ramp tuning (threshold in Watts, DC-bus)
+} config_torque_limiters_t;
+
 typedef struct
 {
     config_thread_t thread;
@@ -273,6 +302,7 @@ typedef struct
     config_rtos_t rtos;
     config_testbenches testbenches;
     config_wheelspeed_t wheelspeed;
+    config_torque_limiters_t torque_limiters;
     config_sd_t sd;
     config_usb_msc_t usb_msc;
     config_ext_inputs_t ext_inputs;

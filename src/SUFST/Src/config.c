@@ -107,8 +107,7 @@ static const config_t config_instance = {
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2500,
         .endurance_max_torque = 1100,
-        .crawl_max_torque = 200,
-        .torque_ctrl_max_slip_percent = 10
+        .crawl_max_torque = 200
     },
     .rtds = {
         .active_ticks = SECONDS_TO_TICKS(2),
@@ -168,7 +167,7 @@ static const config_t config_instance = {
     .heartbeat = {
         .thread = {
             .name = "HEARTBEAT",
-            .priority = 10,
+            .priority = 16,
             .stack_size = 512
         },
         .blink_period_ticks = SECONDS_TO_TICKS(0.25),
@@ -209,17 +208,38 @@ static const config_t config_instance = {
     .wheelspeed = {
         .thread = {
             .name = "WHEELSPEED",
-            .priority = 14,
+            .priority = 4,
             .stack_size = 1024,
         },
         .ticks_per_wheel = 48,
         .wheel_circumference_meters = 1.305,
-        .sample_period_ticks = SECONDS_TO_TICKS(0.01)
+        .sample_period_ticks = SECONDS_TO_TICKS(0.02) // min viable speed approx 100rpm
+    },
+    .torque_limiters = {
+        .gear_ratio = 3.18,
+        .min_motor_speed_rpm = 120,
+        .min_denominator_rpm = 40, // baseline only - auto-raised to ~37.7 (120/3.18) at init
+        .slip = {
+            .threshold = 10, // 10% slip -> start of deramp
+            .p_gain = 62.5, // Nm*10, so 62.5 -> -6.25 Nm per % slip above threshold
+            .i_gain = 0.5,
+            .integral_decay = 0.90, // 90% -> 10 * ln(0.5) / ln(0.90) ~= 65.8ms half life
+            .integral_max = 200, // 200 (Nm*10) -> clamp integral contribution to 20 Nm
+            .integral_enabled = false // P-only
+        },
+        .power = {
+            .threshold = 75000.0, // 75 kW -> start of deramp
+            .p_gain = 0.2, // 0.2 -> -100 Nm at 80 kW applied over 5kW
+            .i_gain = 0.003, 
+            .integral_decay = 0.90, // 90% -> 10 * ln(0.5) / ln(0.90) ~= 65.8ms half life
+            .integral_max = 1000, // 1000 (Nm*10) -> clamp integral contribution to 100 Nm
+            .integral_enabled = false // P-only
+        }
     },
     .usb_msc = {
         .thread = {
             .name = "USB_MSC",
-            .priority = 5,
+            .priority = 16,
             .stack_size = 8192
         }
     },

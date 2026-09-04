@@ -23,6 +23,11 @@ status_t wheelspeed_init(wheelspeed_context_t *wh,
 
     if (tx_status == TX_SUCCESS)
     {
+        tx_status = tx_mutex_create(&wh->reading_mutex, NULL, TX_INHERIT);
+    }
+
+    if (tx_status == TX_SUCCESS)
+    {
         tx_status =
             tx_semaphore_create(&wh->sample_semaphore, (CHAR *)"wheelspeed_sem", 0);
     }
@@ -84,6 +89,28 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
     float rpm_rr = compute_wheel_rpm(&wh->wheel_rr, cfg);
     float rpm_rl = compute_wheel_rpm(&wh->wheel_rl, cfg);
 
+    float mps_fr = rpm_fr / 60.0 * cfg->wheel_circumference_meters;
+    float mps_fl = rpm_fl / 60.0 * cfg->wheel_circumference_meters;
+    float mps_rr = rpm_rr / 60.0 * cfg->wheel_circumference_meters;
+    float mps_rl = rpm_rl / 60.0 * cfg->wheel_circumference_meters;
+
+    if (tx_mutex_get(&wh->reading_mutex, 100) == TX_SUCCESS)
+    {
+        wh->last_reading.fl_mps = mps_fl;
+        wh->last_reading.fr_mps = mps_fr;
+        wh->last_reading.rl_mps = mps_rl;
+        wh->last_reading.rr_mps = mps_rr;
+        wh->last_reading.fl_rpm = rpm_fl;
+        wh->last_reading.fr_rpm = rpm_fr;
+        wh->last_reading.rl_rpm = rpm_rl;
+        wh->last_reading.rr_rpm = rpm_rr;
+        tx_mutex_put(&wh->reading_mutex);
+    }
+    else
+    {
+        LOG_ERROR("wheelspeed: reading locking error\n");
+    }
+
     {
         struct can_s_wheel_rpm_t data = {
             .wheel_fr_rpm = can_s_wheel_rpm_wheel_fr_rpm_encode(rpm_fr),
@@ -103,14 +130,10 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
 
     {
         struct can_s_wheel_speeds_t data = {
-            .wheel_fr_speed = can_s_wheel_speeds_wheel_fr_speed_encode(
-                rpm_fr / 60.0 * cfg->wheel_circumference_meters),
-            .wheel_fl_speed = can_s_wheel_speeds_wheel_fl_speed_encode(
-                rpm_fl / 60.0 * cfg->wheel_circumference_meters),
-            .wheel_rr_speed = can_s_wheel_speeds_wheel_rr_speed_encode(
-                rpm_rr / 60.0 * cfg->wheel_circumference_meters),
-            .wheel_rl_speed = can_s_wheel_speeds_wheel_rl_speed_encode(
-                rpm_rl / 60.0 * cfg->wheel_circumference_meters),
+            .wheel_fr_speed = can_s_wheel_speeds_wheel_fr_speed_encode(mps_fr),
+            .wheel_fl_speed = can_s_wheel_speeds_wheel_fl_speed_encode(mps_fl),
+            .wheel_rr_speed = can_s_wheel_speeds_wheel_rr_speed_encode(mps_rr),
+            .wheel_rl_speed = can_s_wheel_speeds_wheel_rl_speed_encode(mps_rl),
         };
         rtcan_msg_t msg = {
             .identifier = CAN_S_WHEEL_SPEEDS_FRAME_ID,
@@ -133,4 +156,22 @@ void wheelspeed_handle_exti(wheelspeed_context_t *wh, uint16_t gpio_pin)
         wh->wheel_rr.isr_count++;
     else if (gpio_pin == WHEELSPEED_RL_Pin)
         wh->wheel_rl.isr_count++;
+}
+
+status_t wheelspeed_get_speeds(wheelspeed_context_t *wh, wheelspeed_reading_t *result)
+{
+    status_t status = STATUS_ERROR;
+
+    if (tx_mutex_get(&wh->reading_mutex, 100) == TX_SUCCESS)
+    {
+        *result = wh->last_reading;
+        status = STATUS_OK;
+        tx_mutex_put(&wh->reading_mutex);
+    }
+    else
+    {
+        LOG_ERROR("wheelspeed: reading locking error\n");
+    }
+
+    return status;
 }

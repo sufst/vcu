@@ -1,5 +1,7 @@
 #include "pm100.h"
 
+#include <math.h>
+
 #include <can_s.h>
 #include <can_t.h>
 
@@ -127,7 +129,9 @@ void pm100_thread_entry(ULONG input)
                                  CAN_T_PM100_TEMPERATURE_SET_1_FRAME_ID,
                                  CAN_T_PM100_TEMPERATURE_SET_2_FRAME_ID,
                                  CAN_T_PM100_TEMPERATURE_SET_3_FRAME_ID,
-                                 CAN_T_PM100_MOTOR_POSITION_INFO_FRAME_ID };
+                                 CAN_T_PM100_MOTOR_POSITION_INFO_FRAME_ID,
+                                 CAN_T_PM100_VOLTAGE_INFO_FRAME_ID,
+                                 CAN_T_PM100_CURRENT_INFO_FRAME_ID };
 
     for (uint32_t i = 0; i < sizeof(subscriptions) / sizeof(subscriptions[0]); i++)
     {
@@ -236,6 +240,20 @@ void process_broadcast(pm100_context_t *pm100_ptr, const rtcan_msg_t *msg_ptr)
     {
         can_t_pm100_motor_position_info_unpack(&pm100_ptr->info, msg_ptr->data,
                                                msg_ptr->length);
+        break;
+    }
+
+    case CAN_T_PM100_VOLTAGE_INFO_FRAME_ID:
+    {
+        can_t_pm100_voltage_info_unpack(&pm100_ptr->voltage_info, msg_ptr->data,
+                                        msg_ptr->length);
+        break;
+    }
+
+    case CAN_T_PM100_CURRENT_INFO_FRAME_ID:
+    {
+        can_t_pm100_current_info_unpack(&pm100_ptr->current_info, msg_ptr->data,
+                                        msg_ptr->length);
         break;
     }
 
@@ -366,6 +384,31 @@ int16_t pm100_motor_speed(pm100_context_t *pm100_ptr)
     }
 
     return speed;
+}
+
+float pm100_electrical_power_w(pm100_context_t *pm100_ptr)
+{
+    // return infinity on failure
+    float power_w = INFINITY;
+
+    UINT tx_status = tx_mutex_get(&pm100_ptr->state_mutex, 100);
+
+    if (tx_status == TX_SUCCESS)
+    {
+        float voltage = (float)can_t_pm100_voltage_info_pm100_dc_bus_voltage_decode(
+            pm100_ptr->voltage_info.pm100_dc_bus_voltage);
+        float current = (float)can_t_pm100_current_info_pm100_dc_bus_current_decode(
+            pm100_ptr->current_info.pm100_dc_bus_current);
+
+        power_w = voltage * current;
+        tx_mutex_put(&pm100_ptr->state_mutex);
+    }
+    else
+    {
+        LOG_ERROR("Failed to get electrical power\n");
+    }
+
+    return power_w;
 }
 
 /**

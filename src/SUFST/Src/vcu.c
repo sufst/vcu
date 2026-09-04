@@ -154,8 +154,10 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     {
         status = ctrl_init(&vcu_ptr->ctrl, &vcu_ptr->dash, &vcu_ptr->pm100,
                            &vcu_ptr->tick, &vcu_ptr->remote_ctrl, &vcu_ptr->canbc,
-                           &vcu_ptr->fans, app_mem_pool, &vcu_ptr->config_ptr->ctrl,
-                           &vcu_ptr->config_ptr->rtds, &vcu_ptr->config_ptr->torque_map);
+                           &vcu_ptr->fans, &vcu_ptr->wheelspeed, app_mem_pool,
+                           &vcu_ptr->config_ptr->ctrl, &vcu_ptr->config_ptr->rtds,
+                           &vcu_ptr->config_ptr->torque_map,
+                           &vcu_ptr->config_ptr->torque_limiters);
     }
 
     // remote control

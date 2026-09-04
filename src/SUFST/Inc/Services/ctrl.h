@@ -24,7 +24,9 @@
 #include "rtds.h"
 #include "status.h"
 #include "tick.h"
+#include "torque_limiters.h"
 #include "torque_map.h"
+#include "wheelspeed.h"
 
 /*
  * error codes
@@ -87,7 +89,9 @@ typedef struct
     uint16_t sagl_reading;       // steering angle reading (% * 40)
     uint16_t current_reading;    // current reading (% * 40)
     int16_t motor_speed_reading; // motor speed reading (rpm)
-    uint16_t torque_request;     // last torque request
+    float front_wheel_rpm;    // max(FL, FR) wheel rpm, ground speed reference
+    float electrical_power_w; // DC-bus power reading (W)
+    uint16_t torque_request;  // last torque request
     uint8_t shdn_reading;
     int16_t motor_temp;
     int16_t inv_temp;
@@ -107,7 +111,9 @@ typedef struct
     fans_context_t *fans_ptr;   // Fans service (reads sensor hub fan switch)
     tick_context_t *tick_ptr;   // tick thread (reads certain sensors)
     remote_ctrl_context_t *remote_ctrl_ptr; // tick thread (reads certain sensors)
-    torque_map_t torque_map; // torque map (APPS -> torque request)
+    wheelspeed_context_t *wheelspeed_ptr; // wheelspeed service (front speed reference)
+    torque_map_t torque_map;              // torque map (APPS -> torque request)
+    torque_limiters_context_t torque_limiters; // slip / power de-ramp limiters
 
     const config_ctrl_t *config_ptr;      // config
     const config_rtds_t *rtds_config_ptr; // RTDS config
@@ -127,9 +133,11 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    remote_ctrl_context_t *remote_ctrl_ptr,
                    canbc_context_t *canbc_ptr,
                    fans_context_t *fans_ptr,
+                   wheelspeed_context_t *wheelspeed_ptr,
                    TX_BYTE_POOL *stack_pool_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
-                   const config_torque_map_t *torque_map_config_ptr);
+                   const config_torque_map_t *torque_map_config_ptr,
+                   const config_torque_limiters_t *torque_limiters_config_ptr);
 
 #endif

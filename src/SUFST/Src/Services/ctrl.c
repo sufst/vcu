@@ -42,10 +42,12 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    remote_ctrl_context_t *remote_ctrl_ptr,
                    canbc_context_t *canbc_ptr,
                    fans_context_t *fans_ptr,
+                   wheelspeed_context_t *wheelspeed_ptr,
                    TX_BYTE_POOL *stack_pool_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
-                   const config_torque_map_t *torque_map_config_ptr)
+                   const config_torque_map_t *torque_map_config_ptr,
+                   const config_torque_limiters_t *torque_limiters_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_BUTTON_WAIT;
     ctrl_ptr->current_mode = CTRL_MODE_ENDURANCE;
@@ -57,12 +59,14 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->config_ptr = config_ptr;
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->fans_ptr = fans_ptr;
+    ctrl_ptr->wheelspeed_ptr = wheelspeed_ptr;
     ctrl_ptr->error = CTRL_ERROR_NONE;
     ctrl_ptr->apps_reading = 0;
     ctrl_ptr->bps_reading = 0;
     ctrl_ptr->sagl_reading = 0;
     ctrl_ptr->current_reading = 0;
     ctrl_ptr->motor_speed_reading = 0;
+    ctrl_ptr->front_wheel_rpm = 0;
     ctrl_ptr->torque_request = 0;
     ctrl_ptr->shdn_reading = 0;
     ctrl_ptr->precharge_start = 0;
@@ -90,6 +94,12 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     if (status == STATUS_OK)
     {
         status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
+    }
+
+    // initialise the torque limiters (slip control, etc.)
+    if (status == STATUS_OK)
+    {
+        torque_limiters_init(&ctrl_ptr->torque_limiters, torque_limiters_config_ptr);
     }
 
     // make sure TS is disabled
@@ -138,6 +148,17 @@ void ctrl_thread_entry(ULONG input)
         ctrl_ptr->motor_temp = pm100_motor_temp(ctrl_ptr->pm100_ptr);
         ctrl_ptr->inv_temp = pm100_max_inverter_temp(ctrl_ptr->pm100_ptr);
         ctrl_ptr->motor_speed_reading = pm100_motor_speed(ctrl_ptr->pm100_ptr);
+        ctrl_ptr->electrical_power_w = pm100_electrical_power_w(ctrl_ptr->pm100_ptr);
+
+        wheelspeed_reading_t wheelspeed_reading;
+        if (wheelspeed_get_speeds(ctrl_ptr->wheelspeed_ptr, &wheelspeed_reading) == STATUS_OK)
+        {
+            ctrl_ptr->front_wheel_rpm =
+                (wheelspeed_reading.fl_rpm > wheelspeed_reading.fr_rpm) ?
+                wheelspeed_reading.fl_rpm :
+                wheelspeed_reading.fr_rpm;
+        }
+
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ?
             ctrl_ptr->motor_temp :
             ctrl_ptr->inv_temp;
@@ -453,6 +474,20 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 
     LOG_INFO("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
 
+    if (ctrl_ptr->torque_request == 0)
+    {
+        // off-throttle - reset integral part
+        torque_limiters_reset(&ctrl_ptr->torque_limiters);
+    }
+    else
+    {
+        bool slip_enabled = (ctrl_ptr->current_mode == CTRL_MODE_TORQUE_CTRL);
+        ctrl_ptr->torque_request =
+            torque_limiters_apply(&ctrl_ptr->torque_limiters, ctrl_ptr->torque_request,
+                                  slip_enabled, ctrl_ptr->motor_speed_reading,
+                                  ctrl_ptr->front_wheel_rpm, ctrl_ptr->electrical_power_w);
+    }
+
     ctrl_ptr->torque_request =
         clip_to_range(ctrl_ptr->torque_request, 0, ctrl_ptr->config_ptr->hard_max_torque);
 
@@ -684,6 +719,13 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
         break;
     }
     default: break;
+    }
+
+    if (next_state == CTRL_STATE_TS_ON && ctrl_ptr->state != CTRL_STATE_TS_ON)
+    {
+        // reset torque limiter integrator state on every entry to driving,
+        // including fault-recovery paths that skip ctrl_proc_r2d_wait
+        torque_limiters_reset(&ctrl_ptr->torque_limiters);
     }
 
     dash_clear_buttons(ctrl_ptr->dash_ptr);

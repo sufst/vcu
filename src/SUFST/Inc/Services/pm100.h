@@ -31,7 +31,7 @@
 #define PM100_ERROR_RUN_FAULT 0x08         // runtime fault
 
 #define PM100_RX_QUEUE_SIZE \
-    32 // items of headroom against bursts of the 6 subscribed frame types
+    48 // items of headroom against bursts of the 8 subscribed frame types
 
 /**
  * @brief   PM100 context
@@ -51,6 +51,8 @@ typedef struct
     struct can_t_pm100_temperature_set_2_t temp2;
     struct can_t_pm100_temperature_set_3_t temp3;
     struct can_t_pm100_motor_position_info_t info;
+    struct can_t_pm100_voltage_info_t voltage_info;
+    struct can_t_pm100_current_info_t current_info;
     uint16_t error;
     const config_pm100_t *config_ptr;
     bool reverse_mode_dangerous;
@@ -70,6 +72,7 @@ bool pm100_is_precharged(pm100_context_t *pm100_ptr);
 int16_t pm100_motor_temp(pm100_context_t *pm100_ptr);
 int16_t pm100_max_inverter_temp(pm100_context_t *pm100_ptr);
 int16_t pm100_motor_speed(pm100_context_t *pm100_ptr);
+float pm100_electrical_power_w(pm100_context_t *pm100_ptr);
 status_t pm100_disable(pm100_context_t *pm100_ptr);
 status_t pm100_request_torque(pm100_context_t *pm100_ptr, uint16_t torque);
 void pm100_clear_error(pm100_context_t *pm100_ptr);
