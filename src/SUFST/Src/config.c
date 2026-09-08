@@ -246,7 +246,7 @@ static const config_t config_instance = {
     .ext_inputs = {
         .sagl = {
             .hadc = &hadc1,
-            .scan_slot = 2, // ADC1 rank 3
+            .scan_slot = 3, // ADC1 rank 4
             .min_adc = 0,
             .max_adc = 4096,
             .min_mapped = 0,
@@ -255,7 +255,7 @@ static const config_t config_instance = {
         },
         .current = {
             .hadc = &hadc1,
-            .scan_slot = 3, // ADC1 rank 4
+            .scan_slot = 2, // ADC1 rank 3
             .min_adc = 0,
             .max_adc = 4096,
             .min_mapped = 0,
