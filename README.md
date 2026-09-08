@@ -23,7 +23,7 @@ SUFST Docs Site.
 Run the below command once to install dependencies, clone the repository and initialise submodules
 
 ```sh
-curl -LsSf https://raw.githubusercontent.com/sufst/vcu/refs/heads/main/vcu-setup-script.sh | bash
+curl -LsSf https://raw.githubusercontent.com/sufst/vcu/refs/heads/stag-12/vcu-setup-script.sh | bash
 ```
 
 ## Submodules
