@@ -10,7 +10,7 @@ Closes # (issue)
 
 - [ ] Code has been tested on STM32 hardware.
 - [ ] Changes do not generate any new compiler warnings.
-- [ ] Code has been formatted using `trunk fmt`.
+- [ ] Code has been formatted using `make format`.
 - [ ] Commit messages follow the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/#specification) specification.
 
 ### Additional Notes

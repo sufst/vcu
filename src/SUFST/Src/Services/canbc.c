@@ -1,6 +1,7 @@
 #include "canbc.h"
 
-#include <can_c.h>
+#include <can_s.h>
+#include <can_t.h>
 
 /*
  * internal function prototypes
@@ -13,44 +14,43 @@ static void send_bc_messages(canbc_context_t *canbc_h);
  * @brief       Initialise CANBC service
  *
  * @param[in]   canbc_h         CANBC handle
- * @param[in]   rtcan_h         RTCAN handle
+ * @param[in]   rtcan_t_h       RTCAN handle for the tractive bus
+ * @param[in]   rtcan_s_h       RTCAN handle for the sensor bus
  * @param[in]   stack_pool_ptr  Application memory pool
  * @param[in]   config_ptr      Configuration
  */
 status_t canbc_init(canbc_context_t *canbc_h,
-                    rtcan_handle_t *rtcan_h,
+                    rtcan_handle_t *rtcan_t_h,
+                    rtcan_handle_t *rtcan_s_h,
                     TX_BYTE_POOL *stack_pool_ptr,
                     const config_canbc_t *config_ptr)
 {
-    canbc_h->rtcan_h = rtcan_h;
+    canbc_h->rtcan_t_h = rtcan_t_h;
+    canbc_h->rtcan_s_h = rtcan_s_h;
     canbc_h->config_ptr = config_ptr;
     canbc_h->rolling_counter = 0;
+    canbc_h->rtcan1_error = 0;
+    canbc_h->rtcan2_error = 0;
+    canbc_h->canbc_error = 0;
 
     // create service thread
     void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr,
-                                      &stack_ptr,
-                                      config_ptr->thread.stack_size,
-                                      TX_NO_WAIT);
+    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
+                                      config_ptr->thread.stack_size, TX_NO_WAIT);
 
     if (tx_status == TX_SUCCESS)
     {
-        tx_status = tx_thread_create(&canbc_h->thread,
-                                     (CHAR *)config_ptr->thread.name,
-                                     canbc_thread_entry,
-                                     (ULONG)canbc_h,
-                                     stack_ptr,
-                                     config_ptr->thread.stack_size,
-                                     config_ptr->thread.priority,
-                                     config_ptr->thread.priority,
-                                     TX_NO_TIME_SLICE,
-                                     TX_AUTO_START);
+        tx_status =
+            tx_thread_create(&canbc_h->thread, (CHAR *)config_ptr->thread.name,
+                             canbc_thread_entry, (ULONG)canbc_h, stack_ptr,
+                             config_ptr->thread.stack_size, config_ptr->thread.priority,
+                             config_ptr->thread.priority, TX_NO_TIME_SLICE, TX_AUTO_START);
     }
 
     // create state mutex
     if (tx_status == TX_SUCCESS)
     {
-        tx_status = tx_mutex_create(&canbc_h->state_mutex, NULL, 0);
+        tx_status = tx_mutex_create(&canbc_h->state_mutex, NULL, TX_INHERIT);
     }
 
     return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
@@ -91,67 +91,103 @@ static void send_bc_messages(canbc_context_t *canbc_h)
 {
     UINT tx_status = tx_mutex_get(&canbc_h->state_mutex, TX_WAIT_FOREVER);
 
-    if (tx_status == TX_SUCCESS)
+    if (tx_status != TX_SUCCESS)
     {
-        // states
+        canbc_h->canbc_error = 1;
+        LOG_ERROR("canbc: failed to lock state\n");
+        return;
+    }
+
+    canbc_h->states.state.vcu_rolling_counter++;
+    canbc_states_t snapshot = canbc_h->states;
+    tx_mutex_put(&canbc_h->state_mutex);
+
+    // states
+    {
+        rtcan_msg_t message = { .identifier = CAN_T_VCU_STATE_FRAME_ID,
+                                .length = CAN_T_VCU_STATE_LENGTH,
+                                .extended = CAN_T_VCU_STATE_IS_EXTENDED };
+
+        can_t_vcu_state_pack(message.data, &snapshot.state, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_t_h, &message) != RTCAN_OK)
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_STATE_FRAME_ID,
-                                    .length = CAN_S_VCU_STATE_LENGTH,
-                                    .extended = CAN_S_VCU_STATE_IS_EXTENDED};
-
-            can_s_vcu_state_pack(message.data,
-                                 &canbc_h->states.state,
-                                 message.length);
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+            canbc_h->rtcan2_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU state\n");
         }
+    }
 
-        // sensors
+    // sensors
+    {
+        rtcan_msg_t message = { .identifier = CAN_S_VCU_SENSORS_FRAME_ID,
+                                .length = CAN_S_VCU_SENSORS_LENGTH,
+                                .extended = CAN_S_VCU_SENSORS_IS_EXTENDED };
+
+        can_s_vcu_sensors_pack(message.data, &snapshot.sensors, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_s_h, &message) != RTCAN_OK)
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_SENSORS_FRAME_ID,
-                                    .length = CAN_S_VCU_SENSORS_LENGTH,
-                                    .extended = CAN_S_VCU_SENSORS_IS_EXTENDED};
-
-            can_s_vcu_sensors_pack(message.data,
-                                   &canbc_h->states.sensors,
-                                   message.length);
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+            canbc_h->rtcan1_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU sensors\n");
         }
-        // temps
+    }
+
+    // temps
+    {
+        rtcan_msg_t message = { .identifier = CAN_S_VCU_TEMPS_FRAME_ID,
+                                .length = CAN_S_VCU_TEMPS_LENGTH,
+                                .extended = CAN_S_VCU_TEMPS_IS_EXTENDED };
+
+        can_s_vcu_temps_pack(message.data, &snapshot.temps, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_s_h, &message) != RTCAN_OK)
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_TEMPS_FRAME_ID,
-                                    .length = CAN_S_VCU_TEMPS_LENGTH,
-                                    .extended = CAN_S_VCU_TEMPS_IS_EXTENDED};
-
-            can_s_vcu_temps_pack(message.data,
-                                 &canbc_h->states.temps,
-                                 message.length);
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+            canbc_h->rtcan1_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU temps\n");
         }
+    }
 
-        // errors
+    // errors
+    {
+        rtcan_msg_t message = { .identifier = CAN_T_VCU_ERROR_FRAME_ID,
+                                .length = CAN_T_VCU_ERROR_LENGTH,
+                                .extended = CAN_T_VCU_ERROR_IS_EXTENDED };
+
+        snapshot.errors.vcu_rtcan1_error = canbc_h->rtcan1_error;
+        snapshot.errors.vcu_rtcan2_error = canbc_h->rtcan2_error;
+        snapshot.errors.vcu_canbc_error = canbc_h->canbc_error;
+
+        can_t_vcu_error_pack(message.data, &snapshot.errors, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_t_h, &message) != RTCAN_OK)
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_ERROR_FRAME_ID,
-                                    .length = CAN_S_VCU_ERROR_LENGTH,
-                                    .extended = CAN_S_VCU_ERROR_IS_EXTENDED};
-
-            can_s_vcu_error_pack(message.data,
-                                 &canbc_h->states.errors,
-                                 message.length);
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+            canbc_h->rtcan2_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU errors\n");
         }
+    }
 
+    // pdm
+    {
+        rtcan_msg_t message = { .identifier = CAN_T_VCU_PDM_FRAME_ID,
+                                .length = CAN_T_VCU_PDM_LENGTH,
+                                .extended = CAN_T_VCU_PDM_IS_EXTENDED };
+
+        can_t_vcu_pdm_pack(message.data, &snapshot.pdm, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_t_h, &message) != RTCAN_OK)
         {
-            rtcan_msg_t message = { .identifier = CAN_S_VCU_PDM_FRAME_ID,
-                                    .length = CAN_S_VCU_PDM_LENGTH,
-                                    .extended = CAN_S_VCU_PDM_IS_EXTENDED};
-
-            can_s_vcu_pdm_pack(message.data,
-                               &canbc_h->states.pdm,
-                               message.length);
-            rtcan_transmit(canbc_h->rtcan_h, &message);
+            canbc_h->rtcan2_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU PDM\n");
         }
+    }
 
-        tx_mutex_put(&canbc_h->state_mutex);
+    // raw sensors debug
+    {
+        rtcan_msg_t message = { .identifier = CAN_S_VCU_SENSORS_RAW_FRAME_ID,
+                                .length = CAN_S_VCU_SENSORS_RAW_LENGTH,
+                                .extended = CAN_S_VCU_SENSORS_RAW_IS_EXTENDED };
+
+        can_s_vcu_sensors_raw_pack(message.data, &snapshot.sensors_raw, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_s_h, &message) != RTCAN_OK)
+        {
+            canbc_h->rtcan1_error = 1;
+            LOG_ERROR("canbc: failed to transmit VCU raw sensors\n");
+        }
     }
 }
 

@@ -159,3 +159,6 @@ misra.txt
 
 # TraceX
 *.trx
+
+# CANoe
+*.cbf

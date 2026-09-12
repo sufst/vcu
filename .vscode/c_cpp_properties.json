@@ -11,7 +11,7 @@
         "${workspaceFolder}/src/Drivers/CMSIS/**",
         "${workspaceFolder}/src/Middlewares/ST/threadx/common/inc",
         "${workspaceFolder}/src/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc",
-        "${workspaceFolder}/src/SUFST/Inc/CAN",
+        "${workspaceFolder}/src/SUFST/Inc/",
         "${workspaceFolder}/src/Drivers/STM32F7xx_HAL_Driver/Inc"
       ],
       "defines": [

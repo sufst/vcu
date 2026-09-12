@@ -1,0 +1,111 @@
+/*@!Encoding:1252*/
+variables {
+}
+
+void AppendFault(char buffer[], long bufferSize, char faultStr[]) {
+  if ((strlen(buffer) + strlen(faultStr) + 3) < bufferSize) {
+    strncat(buffer, faultStr, bufferSize);
+    strncat(buffer, " | ", bufferSize);
+  }
+}
+
+on message PM100_Fault_Codes {
+  char text[2048]; 
+  dword postFaults;
+  dword runFaults;
+  int len;
+
+  // Clear buffer
+  strncpy(text, "", elCount(text));
+
+  // Reassemble 16-bit CAN signals into 32-bit fault words
+  postFaults = ((dword)this.PM100_Post_Fault_Hi << 16) | (dword)this.PM100_Post_Fault_Lo;
+  runFaults  = ((dword)this.PM100_Run_Fault_Hi << 16) | (dword)this.PM100_Run_Fault_Lo;
+
+  if (postFaults == 0 && runFaults == 0) {
+    snprintf(text, elCount(text), "OK");
+    sysSetVariableString(sysvar::PM100_Fault_Text, text);
+    return;
+  }
+
+  // --- POST FAULTS ---
+  if (postFaults != 0) {
+    if (postFaults & 0x00000001) AppendFault(text, elCount(text), "POST: Hardware Gate/Desaturation");
+    if (postFaults & 0x00000002) AppendFault(text, elCount(text), "POST: HW Over-current");
+    if (postFaults & 0x00000004) AppendFault(text, elCount(text), "POST: Accelerator Shorted");
+    if (postFaults & 0x00000008) AppendFault(text, elCount(text), "POST: Accelerator Open");
+    if (postFaults & 0x00000010) AppendFault(text, elCount(text), "POST: Current Sensor Low");
+    if (postFaults & 0x00000020) AppendFault(text, elCount(text), "POST: Current Sensor High");
+    if (postFaults & 0x00000040) AppendFault(text, elCount(text), "POST: Module Temperature Low");
+    if (postFaults & 0x00000080) AppendFault(text, elCount(text), "POST: Module Temperature High");
+    if (postFaults & 0x00000100) AppendFault(text, elCount(text), "POST: Control PCB Temperature Low");
+    if (postFaults & 0x00000200) AppendFault(text, elCount(text), "POST: Control PCB Temperature High");
+    if (postFaults & 0x00000400) AppendFault(text, elCount(text), "POST: Gate Drive PCB Temperature Low");
+    if (postFaults & 0x00000800) AppendFault(text, elCount(text), "POST: Gate Drive PCB Temperature High");
+    if (postFaults & 0x00001000) AppendFault(text, elCount(text), "POST: 5V Sense Voltage Low");
+    if (postFaults & 0x00002000) AppendFault(text, elCount(text), "POST: 5V Sense Voltage High");
+    if (postFaults & 0x00004000) AppendFault(text, elCount(text), "POST: 12V Sense Voltage Low");
+    if (postFaults & 0x00008000) AppendFault(text, elCount(text), "POST: 12V Sense Voltage High");
+    if (postFaults & 0x00010000) AppendFault(text, elCount(text), "POST: 2.5V Sense Voltage Low");
+    if (postFaults & 0x00020000) AppendFault(text, elCount(text), "POST: 2.5V Sense Voltage High");
+    if (postFaults & 0x00040000) AppendFault(text, elCount(text), "POST: 1.5V Sense Voltage Low");
+    if (postFaults & 0x00080000) AppendFault(text, elCount(text), "POST: 1.5V Sense Voltage High");
+    if (postFaults & 0x00100000) AppendFault(text, elCount(text), "POST: DC Bus Voltage High");
+    if (postFaults & 0x00200000) AppendFault(text, elCount(text), "POST: DC Bus Voltage Low");
+    if (postFaults & 0x00400000) AppendFault(text, elCount(text), "POST: Pre-charge Timeout");
+    if (postFaults & 0x00800000) AppendFault(text, elCount(text), "POST: Pre-charge Voltage Failure");
+    if (postFaults & 0x01000000) AppendFault(text, elCount(text), "POST: EEPROM Checksum Invalid");
+    if (postFaults & 0x02000000) AppendFault(text, elCount(text), "POST: EEPROM Data Out of Range");
+    if (postFaults & 0x04000000) AppendFault(text, elCount(text), "POST: EEPROM Update Required");
+    if (postFaults & 0x08000000) AppendFault(text, elCount(text), "POST: Hardware DC Bus Over-Voltage init");
+    if (postFaults & 0x10000000) AppendFault(text, elCount(text), "POST: Gen3 Reserved / Gen5 Gate Drv Init");
+    if (postFaults & 0x20000000) AppendFault(text, elCount(text), "POST: Reserved (0x20000000)");
+    if (postFaults & 0x40000000) AppendFault(text, elCount(text), "POST: Brake Shorted");
+    if (postFaults & 0x80000000) AppendFault(text, elCount(text), "POST: Brake Open");
+  }
+
+  // --- RUN FAULTS ---
+  if (runFaults != 0) {
+    if (runFaults & 0x00000001) AppendFault(text, elCount(text), "RUN: Motor Over-speed");
+    if (runFaults & 0x00000002) AppendFault(text, elCount(text), "RUN: Over-current");
+    if (runFaults & 0x00000004) AppendFault(text, elCount(text), "RUN: Over-voltage");
+    if (runFaults & 0x00000008) AppendFault(text, elCount(text), "RUN: Inverter Over-temperature");
+    if (runFaults & 0x00000010) AppendFault(text, elCount(text), "RUN: Accelerator Input Shorted");
+    if (runFaults & 0x00000020) AppendFault(text, elCount(text), "RUN: Accelerator Input Open");
+    if (runFaults & 0x00000040) AppendFault(text, elCount(text), "RUN: Direction Command");
+    if (runFaults & 0x00000080) AppendFault(text, elCount(text), "RUN: Inverter Response Time-out");
+    if (runFaults & 0x00000100) AppendFault(text, elCount(text), "RUN: Hardware Gate/Desaturation");
+    if (runFaults & 0x00000200) AppendFault(text, elCount(text), "RUN: Hardware Over-current");
+    if (runFaults & 0x00000400) AppendFault(text, elCount(text), "RUN: Under-voltage");
+    if (runFaults & 0x00000800) AppendFault(text, elCount(text), "RUN: CAN Command Message Lost");
+    if (runFaults & 0x00001000) AppendFault(text, elCount(text), "RUN: Motor Overtemperature");
+    if (runFaults & 0x00002000) AppendFault(text, elCount(text), "RUN: Reserved (0x00002000)");
+    if (runFaults & 0x00004000) AppendFault(text, elCount(text), "RUN: Reserved (0x00004000)");
+    if (runFaults & 0x00008000) AppendFault(text, elCount(text), "RUN: Reserved (0x00008000)");
+    if (runFaults & 0x00010000) AppendFault(text, elCount(text), "RUN: Brake Input Shorted");
+    if (runFaults & 0x00020000) AppendFault(text, elCount(text), "RUN: Brake Input Open");
+    if (runFaults & 0x00040000) AppendFault(text, elCount(text), "RUN: Module A Over-temperature");
+    if (runFaults & 0x00080000) AppendFault(text, elCount(text), "RUN: Module B Over-temperature");
+    if (runFaults & 0x00100000) AppendFault(text, elCount(text), "RUN: Module C Over-temperature");
+    if (runFaults & 0x00200000) AppendFault(text, elCount(text), "RUN: PCB Over-temperature");
+    if (runFaults & 0x00400000) AppendFault(text, elCount(text), "RUN: Gate Drive Board 1 Over-temp");
+    if (runFaults & 0x00800000) AppendFault(text, elCount(text), "RUN: Gate Drive Board 2 Over-temp");
+    if (runFaults & 0x01000000) AppendFault(text, elCount(text), "RUN: Gate Drive Board 3 Over-temp");
+    if (runFaults & 0x02000000) AppendFault(text, elCount(text), "RUN: Current Sensor Fault");
+    if (runFaults & 0x04000000) AppendFault(text, elCount(text), "RUN: Gen3 Rsvd / Gen5 Gate Drv Over-Volt");
+    if (runFaults & 0x08000000) AppendFault(text, elCount(text), "RUN: Gen3 HW DC Bus Over-Volt / Gen5 Rsvd");
+    if (runFaults & 0x10000000) AppendFault(text, elCount(text), "RUN: Gen3 Rsvd / Gen5 HW DC Bus Over-Volt");
+    if (runFaults & 0x20000000) AppendFault(text, elCount(text), "RUN: Reserved (0x20000000)");
+    if (runFaults & 0x40000000) AppendFault(text, elCount(text), "RUN: Resolver Not Connected");
+    if (runFaults & 0x80000000) AppendFault(text, elCount(text), "RUN: Reserved (0x80000000)");
+  }
+
+  // Clean up trailing delimiter " | "
+  len = strlen(text);
+  if (len >= 3) {
+    text[len - 3] = '\0';
+  }
+
+  // Assign to system variable
+  sysSetVariableString(sysvar::PM100_Fault_Text, text);
+}

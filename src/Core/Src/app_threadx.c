@@ -75,7 +75,7 @@ UINT App_ThreadX_Init(VOID *memory_ptr)
   // initialise system
   if (ret == TX_SUCCESS)
   {
-    status_t status = vcu_init(&vcu, &hcan1, &hcan2, byte_pool, config_get());
+    status_t status = vcu_init(&vcu, &hcan2, &hcan1, byte_pool, config_get());
 
     if (status != STATUS_OK)
     {
@@ -155,6 +155,11 @@ void HAL_CAN_RxFifo1MsgPendingCallback(CAN_HandleTypeDef* can_h)
 void HAL_CAN_ErrorCallback(CAN_HandleTypeDef* can_h)
 {
     vcu_handle_can_err(&vcu, can_h);
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+    vcu_handle_gpio_exti(&vcu, GPIO_Pin);
 }
 
 /* USER CODE END 1 */

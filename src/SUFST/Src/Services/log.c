@@ -16,17 +16,18 @@
 #include <usart.h>
 
 #include "config.h"
+#include "rs232.h"
+#include "sd_logging.h"
 #include "status.h"
 
 // internal function prototype
 static void log_thread_entry(ULONG thread_input);
 
 // log level names
-static const char* log_level_names[]
-    = {"DEBUG", "INFO", "WARN", "ERROR", "FATAL"};
+static const char *log_level_names[] = { "DEBUG", "INFO", "WARN", "ERROR", "FATAL" };
 
 // Global log Context
-static log_context_t* global_log_context;
+static log_context_t *global_log_context;
 
 /**
  * @brief initialises the logging service
@@ -36,31 +37,26 @@ static log_context_t* global_log_context;
  * @param config_ptr logging service configuration
  * @return status_t outcome of initialisation
  */
-status_t log_init(log_context_t *log_ptr,
-                  TX_BYTE_POOL *stack_pool_ptr,
-                  const config_log_t *config_ptr)
+status_t log_init(log_context_t *log_ptr, TX_BYTE_POOL *stack_pool_ptr, const config_log_t *config_ptr)
 {
     log_ptr->config_ptr = config_ptr;
     log_ptr->error = LOG_ERROR_NONE;
     global_log_context = log_ptr;
 
+    rs232_enable();
+
     status_t status = STATUS_OK;
 
     // allocate stack space
     void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr,
-                                      &stack_ptr,
-                                      config_ptr->thread.stack_size,
-                                      TX_NO_WAIT);
+    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
+                                      config_ptr->thread.stack_size, TX_NO_WAIT);
 
     // create log message queue
     if (tx_status == TX_SUCCESS)
     {
-        tx_status = tx_queue_create(&log_ptr->msg_queue,
-                                    NULL,
-                                    TX_16_ULONG,
-                                    log_ptr->msg_queue_mem,
-                                    LOG_MSG_QUEUE_SIZE);
+        tx_status = tx_queue_create(&log_ptr->msg_queue, NULL, TX_16_ULONG,
+                                    log_ptr->msg_queue_mem, LOG_MSG_QUEUE_SIZE);
     }
 
     // create UART mutex
@@ -72,16 +68,12 @@ status_t log_init(log_context_t *log_ptr,
     // create TX thread
     if (tx_status == TX_SUCCESS)
     {
-        tx_status = tx_thread_create(&log_ptr->thread,
-                                     (CHAR *)log_ptr->config_ptr->thread.name,
-                                     log_thread_entry,
-                                     (ULONG)log_ptr,
-                                     stack_ptr,
-                                     config_ptr->thread.stack_size,
-                                     config_ptr->thread.priority,
-                                     config_ptr->thread.priority,
-                                     TX_NO_TIME_SLICE,
-                                     TX_AUTO_START);
+        tx_status =
+            tx_thread_create(&log_ptr->thread,
+                             (CHAR *)log_ptr->config_ptr->thread.name, log_thread_entry,
+                             (ULONG)log_ptr, stack_ptr, config_ptr->thread.stack_size,
+                             config_ptr->thread.priority, config_ptr->thread.priority,
+                             TX_NO_TIME_SLICE, TX_AUTO_START);
     }
 
     // check for errors
@@ -101,7 +93,7 @@ status_t log_init(log_context_t *log_ptr,
     return status;
 }
 
-status_t log_printf(const config_log_level_t level, const char* format, ...)
+status_t log_printf(const config_log_level_t level, const char *format, ...)
 {
     // check if the message should be logged
     if (level < global_log_context->config_ptr->min_level)
@@ -123,9 +115,7 @@ status_t log_printf(const config_log_level_t level, const char* format, ...)
     tx_interrupt_control(last_interrupt_state);
 
     // queue the message
-    UINT tx_status = tx_queue_send(&global_log_context->msg_queue,
-                                   (void*) &msg,
-                                   TX_NO_WAIT);
+    UINT tx_status = tx_queue_send(&global_log_context->msg_queue, (void *)&msg, TX_NO_WAIT);
 
     // check for errors
     if (tx_status != TX_SUCCESS)
@@ -148,9 +138,7 @@ void log_thread_entry(ULONG thread_input)
     while (true)
     {
         // wait for a message to be queued
-        tx_status = tx_queue_receive(&log_ptr->msg_queue,
-                                     (void *)&msg,
-                                     TX_WAIT_FOREVER);
+        tx_status = tx_queue_receive(&log_ptr->msg_queue, (void *)&msg, TX_WAIT_FOREVER);
 
         // if no message was recieved, try again
         // TODO: Error Handling
@@ -162,12 +150,8 @@ void log_thread_entry(ULONG thread_input)
 
         // format the log message
         UINT last_interrupt_state = tx_interrupt_control(TX_INT_DISABLE);
-        snprintf(log_msg_to_send,
-                 LOG_MSG_MAX_TRANSMITION_LEN,
-                 "%ld [%s]: %s",
-                 msg.timestamp,
-                 log_level_names[msg.level],
-                 msg.msg);
+        snprintf(log_msg_to_send, LOG_MSG_MAX_TRANSMITION_LEN, "%ld [%s]: %s",
+                 msg.timestamp, log_level_names[msg.level], msg.msg);
         tx_interrupt_control(last_interrupt_state);
 
         // lock the UART mutex
@@ -183,12 +167,27 @@ void log_thread_entry(ULONG thread_input)
             log_ptr->error &= ~LOG_ERROR_MUTEX;
         }
 
-        // print the message
-        HAL_StatusTypeDef status
-            = HAL_UART_Transmit(log_ptr->config_ptr->uart,
-                                (const uint8_t*) log_msg_to_send,
-                                strlen(log_msg_to_send),
-                                HAL_MAX_DELAY);
+        // print the message over UART (-> rs232)
+        HAL_StatusTypeDef uart_status = HAL_OK;
+        if (log_ptr->config_ptr->uart != NULL)
+        {
+            uart_status = HAL_UART_Transmit(log_ptr->config_ptr->uart,
+                                            (const uint8_t *)log_msg_to_send,
+                                            strlen(log_msg_to_send), HAL_MAX_DELAY);
+        }
+
+        // print the message over USART (-> debug header)
+        HAL_StatusTypeDef usart_status = HAL_OK;
+        if (log_ptr->config_ptr->usart != NULL)
+        {
+            usart_status = HAL_USART_Transmit(log_ptr->config_ptr->usart,
+                                              (const uint8_t *)log_msg_to_send,
+                                              strlen(log_msg_to_send), HAL_MAX_DELAY);
+        }
+
+        // if level >= sd_min_level write to SD card
+        if (msg.level >= log_ptr->config_ptr->min_sd_log_level)
+            write_sd_log_line(log_msg_to_send);
 
         // unlock the UART mutex
         tx_status = tx_mutex_put(&log_ptr->uart_mutex);
@@ -201,13 +200,22 @@ void log_thread_entry(ULONG thread_input)
             log_ptr->error &= ~LOG_ERROR_MUTEX;
         }
 
-        if (status != HAL_OK)
+        if (uart_status != HAL_OK)
         {
             log_ptr->error |= LOG_ERROR_UART;
         }
         else
         {
             log_ptr->error &= ~LOG_ERROR_UART;
+        }
+
+        if (usart_status != HAL_OK)
+        {
+            log_ptr->error |= LOG_ERROR_USART;
+        }
+        else
+        {
+            log_ptr->error &= ~LOG_ERROR_USART;
         }
     }
 }

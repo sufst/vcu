@@ -23,6 +23,13 @@
 
 /* Defines ------------------------------------------------------------------*/
 /* STMicroelectronics.X-CUBE-AZRTOS-F7.1.1.0 */
+#define USBXHOST_ENABLED
+#define UX_HOST_CONTROLLERS_ENABLED
+#define USBXDEVICE_ENABLED
+#define UX_DEVICE_CONTROLLERS_ENABLED
+#define UX_DEVICE_STORAGE
+#define FILEX_ENABLED
+#define FX_SD_INTERFACE
 #define THREADX_ENABLED
 
 #endif /* __RTE_COMPONENTS_H__ */

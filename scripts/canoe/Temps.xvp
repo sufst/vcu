@@ -1,0 +1,550 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Panel Type="Vector.CANalyzer.Panels.PanelSerializer, Vector.CANalyzer.Panels.Serializer, Version=19.5.44.0, Culture=neutral, PublicKeyToken=null">
+  <Object Type="Vector.CANalyzer.Panels.Runtime.Panel, Vector.CANalyzer.Panels.Common, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Panel" ControlName="Temps">
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xbc068f3ce5c27e4b30e9ebaeb512b6e99d05" ControlName="Input/Output Box 25">
+      <Property Name="Name">Xbc068f3ce5c27e4b30e9ebaeb512b6e99d05</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 242</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">27</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_8_BMS_BROADCAST;TEM_8_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X8c5ea1bfec1f0e4b6aead2de094347f9d5e3" ControlName="Input/Output Box 24">
+      <Property Name="Name">X8c5ea1bfec1f0e4b6aead2de094347f9d5e3</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 242</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">26</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_8_BMS_BROADCAST;TEM_8_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xb227c317edd26e43c8e9deaec420c88a7943" ControlName="Static Text 11">
+      <Property Name="Name">Xb227c317edd26e43c8e9deaec420c88a7943</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 243</Property>
+      <Property Name="Text">8</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xbe49bc6fefb8be42f2e93aee4fd5b74938dd" ControlName="Input/Output Box 23">
+      <Property Name="Name">Xbe49bc6fefb8be42f2e93aee4fd5b74938dd</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 217</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">25</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_7_BMS_BROADCAST;TEM_7_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xab5d3015e0977e476aea99be0553e93e92c8" ControlName="Input/Output Box 22">
+      <Property Name="Name">Xab5d3015e0977e476aea99be0553e93e92c8</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 217</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">24</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_7_BMS_BROADCAST;TEM_7_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X01135e11efad8e4298eaf72e8ea19a51b186" ControlName="Static Text 10">
+      <Property Name="Name">X01135e11efad8e4298eaf72e8ea19a51b186</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 218</Property>
+      <Property Name="Text">7</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X5bce1672e6615e498deb30fedefc50fa8be9" ControlName="Input/Output Box 21">
+      <Property Name="Name">X5bce1672e6615e498deb30fedefc50fa8be9</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 192</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">23</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_6_BMS_BROADCAST;TEM_6_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X10078f85e429be4827ea87ae97694532369f" ControlName="Input/Output Box 20">
+      <Property Name="Name">X10078f85e429be4827ea87ae97694532369f</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 192</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">22</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_6_BMS_BROADCAST;TEM_6_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xbac95410e2c79e47f0e8b2de7cb6f01b89d5" ControlName="Static Text 9">
+      <Property Name="Name">Xbac95410e2c79e47f0e8b2de7cb6f01b89d5</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 193</Property>
+      <Property Name="Text">6</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X90ba2742ed4e5e42ace89a6e34ed11df577d" ControlName="Input/Output Box 19">
+      <Property Name="Name">X90ba2742ed4e5e42ace89a6e34ed11df577d</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 167</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">21</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_5_BMS_BROADCAST;TEM_5_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X385ea542e7f29e47c0e98f0e2fdafc76d08c" ControlName="Input/Output Box 18">
+      <Property Name="Name">X385ea542e7f29e47c0e98f0e2fdafc76d08c</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 167</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">20</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_5_BMS_BROADCAST;TEM_5_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xcc92fdcdeaaf5e454ce98bbe6066c2f3867e" ControlName="Static Text 8">
+      <Property Name="Name">Xcc92fdcdeaaf5e454ce98bbe6066c2f3867e</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 168</Property>
+      <Property Name="Text">5</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xd8841bd7e9b83e4bcaebcb0ed1b30647db7b" ControlName="Input/Output Box 17">
+      <Property Name="Name">Xd8841bd7e9b83e4bcaebcb0ed1b30647db7b</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 142</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">19</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_4_BMS_BROADCAST;TEM_4_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xb06f8a4ae2279e4523e9e79e5fcff20ad487" ControlName="Input/Output Box 16">
+      <Property Name="Name">Xb06f8a4ae2279e4523e9e79e5fcff20ad487</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 142</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">18</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_4_BMS_BROADCAST;TEM_4_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X7dce8471e6b14e4d86ebb90ed181b029b3f8" ControlName="Static Text 7">
+      <Property Name="Name">X7dce8471e6b14e4d86ebb90ed181b029b3f8</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 143</Property>
+      <Property Name="Text">4</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X13e52396ef1f0e4d9dead21eabafed4f95df" ControlName="Input/Output Box 15">
+      <Property Name="Name">X13e52396ef1f0e4d9dead21eabafed4f95df</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 117</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">17</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_3_BMS_BROADCAST;TEM_3_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xae771a80e89f3e45f4e9d10ede71aabd1436" ControlName="Input/Output Box 14">
+      <Property Name="Name">Xae771a80e89f3e45f4e9d10ede71aabd1436</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 117</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">16</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_3_BMS_BROADCAST;TEM_3_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X1ab0eacfef8d9e4f1ee9e92e48f0d92eccd1" ControlName="Static Text 6">
+      <Property Name="Name">X1ab0eacfef8d9e4f1ee9e92e48f0d92eccd1</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 118</Property>
+      <Property Name="Text">3</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X9e74abd1effcde414dea6e0ee46f6fddd8a9" ControlName="Input/Output Box 13">
+      <Property Name="Name">X9e74abd1effcde414dea6e0ee46f6fddd8a9</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 92</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">15</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_2_BMS_BROADCAST;TEM_2_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X8f5efb6de1b00e4a42e9c55ee860c9061492" ControlName="Input/Output Box 12">
+      <Property Name="Name">X8f5efb6de1b00e4a42e9c55ee860c9061492</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 92</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">14</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_2_BMS_BROADCAST;TEM_2_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X84667ba6e0e30e4dedea73befb1f7385fd54" ControlName="Static Text 5">
+      <Property Name="Name">X84667ba6e0e30e4dedea73befb1f7385fd54</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 93</Property>
+      <Property Name="Text">2</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X5182b824e7e7be498beab33e6e56c85b4ad4" ControlName="Static Text 4">
+      <Property Name="Name">X5182b824e7e7be498beab33e6e56c85b4ad4</Property>
+      <Property Name="Size">15, 15</Property>
+      <Property Name="Location">353, 68</Property>
+      <Property Name="Text">1</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xd25c3596e1b9ae4457e89e7e6f58273aa747" ControlName="Static Text 3">
+      <Property Name="Name">Xd25c3596e1b9ae4457e89e7e6f58273aa747</Property>
+      <Property Name="Size">37, 15</Property>
+      <Property Name="Location">500, 19</Property>
+      <Property Name="Text">TEMs</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xd9bb89a0e830ee4de1ebc1def8fe061e1942" ControlName="Input/Output Box 8">
+      <Property Name="Name">Xd9bb89a0e830ee4de1ebc1def8fe061e1942</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">545, 67</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">13</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_1_BMS_BROADCAST;TEM_1_highest_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X5adb9750edd7de4aaeea9a6ea0380157e0f1" ControlName="Static Text 2">
+      <Property Name="Name">X5adb9750edd7de4aaeea9a6ea0380157e0f1</Property>
+      <Property Name="Size">29, 15</Property>
+      <Property Name="Location">588, 40</Property>
+      <Property Name="Text">Max</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.StaticTextControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X49fd20c8efc7ae4ee1e9e2ceade855204359" ControlName="Static Text 1">
+      <Property Name="Name">X49fd20c8efc7ae4ee1e9e2ceade855204359</Property>
+      <Property Name="Size">27, 15</Property>
+      <Property Name="Location">433, 40</Property>
+      <Property Name="Text">Avg</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X2a73425de7de7e4a10e9d46efac60907e961" ControlName="Input/Output Box 6">
+      <Property Name="Name">X2a73425de7de7e4a10e9d46efac60907e961</Property>
+      <Property Name="Size">105, 19</Property>
+      <Property Name="Location">393, 67</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Hide</Property>
+      <Property Name="TabIndex">12</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">0, 0</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;;TEM_1_BMS_BROADCAST;TEM_1_avg_temp;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X49ba0956ef376e4c39ea1c0eedcfd3914332" ControlName="Input/Output Box 5">
+      <Property Name="Name">X49ba0956ef376e4c39ea1c0eedcfd3914332</Property>
+      <Property Name="Size">206, 21</Property>
+      <Property Name="Location">23, 67</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">11</Property>
+      <Property Name="DescriptionText">Inverter gate driver:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">101, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_1;PM100_Gate_Driver_Board;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X905dcd84e709ee4915e877fe6ed440e30f3e" ControlName="Input/Output Box 4">
+      <Property Name="Name">X905dcd84e709ee4915e877fe6ed440e30f3e</Property>
+      <Property Name="Size">218, 21</Property>
+      <Property Name="Location">11, 89</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">10</Property>
+      <Property Name="DescriptionText">Inverter control board:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">113, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_2;PM100_Control_Board_Temperature;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X15d2f692ee6ebe43f0e8882ef582155b77d7" ControlName="Input/Output Box 3">
+      <Property Name="Name">X15d2f692ee6ebe43f0e8882ef582155b77d7</Property>
+      <Property Name="Size">201, 21</Property>
+      <Property Name="Location">28, 154</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">9</Property>
+      <Property Name="DescriptionText">Inverter module C:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">96, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_1;PM100_Module_C;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X811e8b11edf9ce4ee1e9d76e1444390e5913" ControlName="Input/Output Box 1">
+      <Property Name="Name">X811e8b11edf9ce4ee1e9d76e1444390e5913</Property>
+      <Property Name="Size">200, 21</Property>
+      <Property Name="Location">28, 133</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">8</Property>
+      <Property Name="DescriptionText">Inverter module B:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">95, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_1;PM100_Module_B;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xc0de7ebde5c79e46d6e99eee4c34d5c922b8" ControlName="Input/Output Box 2">
+      <Property Name="Name">Xc0de7ebde5c79e46d6e99eee4c34d5c922b8</Property>
+      <Property Name="Size">200, 21</Property>
+      <Property Name="Location">28, 112</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">7</Property>
+      <Property Name="DescriptionText">Inverter module A:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">95, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_1;PM100_Module_A;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X8615735ee9cfae4867ea21cebd2be6d9ba01" ControlName="Input/Output Box 9">
+      <Property Name="Name">X8615735ee9cfae4867ea21cebd2be6d9ba01</Property>
+      <Property Name="Size">160, 21</Property>
+      <Property Name="Location">69, 181</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">5</Property>
+      <Property Name="DescriptionText">Pack Avg:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">55, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;BMS;BMS_Cell_State;BMS_Average_Temperature;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xe3599760ee3ece4ff3eba0fe64a7c1694b26" ControlName="Input/Output Box 7">
+      <Property Name="Name">Xe3599760ee3ece4ff3eba0fe64a7c1694b26</Property>
+      <Property Name="Size">160, 21</Property>
+      <Property Name="Location">69, 202</Property>
+      <Property Name="AlarmGeneralSettings">1;0;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">4</Property>
+      <Property Name="DescriptionText">Pack Max:</Property>
+      <Property Name="ValueDecimalPlaces">0</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">57, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;BMS;BMS_Cell_State;BMS_High_Temperature;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="Xa2fab192ebe74e404eebc61e740e912bfe14" ControlName="Input/Output Box 11">
+      <Property Name="Name">Xa2fab192ebe74e404eebc61e740e912bfe14</Property>
+      <Property Name="Size">132, 21</Property>
+      <Property Name="Location">97, 19</Property>
+      <Property Name="AlarmGeneralSettings">1;2;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">3</Property>
+      <Property Name="DescriptionText">VCU:</Property>
+      <Property Name="ValueDecimalPlaces">1</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">32, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANS;VCU;VCU_Temps;VCU_Max_Temp;1;CAN-S;;-1;;;Value;;;0</Property>
+    </Object>
+    <Object Type="Vector.CANalyzer.Panels.Design.TextBoxControl, Vector.CANalyzer.Panels.CommonControls, Version=18.0.150.0, Culture=neutral, PublicKeyToken=null" Name="X5f6de20fe88b8e48c4e878ae5acb51159aeb" ControlName="Input/Output Box 10">
+      <Property Name="Name">X5f6de20fe88b8e48c4e878ae5acb51159aeb</Property>
+      <Property Name="Size">136, 21</Property>
+      <Property Name="Location">93, 40</Property>
+      <Property Name="AlarmGeneralSettings">1;2;0;100</Property>
+      <Property Name="AlarmLowerBkgColor">Salmon</Property>
+      <Property Name="AlarmLowerTextColor">Black</Property>
+      <Property Name="AlarmUpperBkgColor">IndianRed</Property>
+      <Property Name="AlarmUpperTextColor">Black</Property>
+      <Property Name="BoxBorderStyle">FixedSingle</Property>
+      <Property Name="DisplayLabel">Left</Property>
+      <Property Name="TabIndex">2</Property>
+      <Property Name="DescriptionText">Motor:</Property>
+      <Property Name="ValueDecimalPlaces">1</Property>
+      <Property Name="ValueDisplay">Double</Property>
+      <Property Name="UsedValueTable">RawValue</Property>
+      <Property Name="DescriptionSize">37, 21</Property>
+      <Property Name="SymbolConfiguration">8;2;CANT;INV;PM100_Temperature_Set_3;PM100_Motor_Temperature;1;CAN-T;;-1;;;Value;;;0</Property>
+    </Object>
+    <Property Name="Name">Panel</Property>
+    <Property Name="Size">800, 452</Property>
+    <Property Name="Location">0, 0</Property>
+    <Property Name="BackColor">White</Property>
+  </Object>
+</Panel>

@@ -7,9 +7,9 @@
 #ifndef TRC_H
 #define TRC_H
 
-#include <gpio.h>
-#include <stdint.h>
+#include "gpio.h"
 #include <stdbool.h>
+#include <stdint.h>
 
 #include "status.h"
 

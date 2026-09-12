@@ -10,6 +10,7 @@
 typedef enum
 {
     TORQUE_MAP_LINEAR,
+    TORQUE_MAP_EXPONENTIAL,
 } torque_map_func_e;
 
 #endif

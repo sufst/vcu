@@ -1,6 +1,6 @@
-[submodule "src/Middlewares/SUFST/rtcan"]
-	path = src/Middlewares/SUFST/rtcan
+[submodule "src/SUFST/Middlewares/rtcan"]
+	path = src/SUFST/Middlewares/rtcan
 	url = https://github.com/sufst/rtcan
-[submodule "src/Middlewares/SUFST/can-defs"]
-	path = src/Middlewares/SUFST/can-defs
+[submodule "src/SUFST/Middlewares/can-defs"]
+	path = src/SUFST/Middlewares/can-defs
 	url = https://github.com/sufst/can-defs

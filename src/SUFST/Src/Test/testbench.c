@@ -48,8 +48,8 @@ UINT testbench_apps_input()
         // work out which lookup table to use
         // -> standing start data in first lap
         // -> flying lap data for any further laps
-        const uint16_t* time_data;
-        const uint16_t* apps_data;
+        const uint16_t *time_data;
+        const uint16_t *apps_data;
         UINT final_lookup_index;
 
         {
@@ -59,9 +59,9 @@ UINT testbench_apps_input()
                 time_data = standing_start_time_lookup;
                 apps_data = standing_start_apps_lookup;
 
-                final_lookup_index = (sizeof(standing_start_time_lookup)
-                                      / sizeof(standing_start_time_lookup[0]))
-                                     - 1;
+                final_lookup_index = (sizeof(standing_start_time_lookup) /
+                                      sizeof(standing_start_time_lookup[0])) -
+                    1;
             }
             // flying laps
             else
@@ -69,15 +69,13 @@ UINT testbench_apps_input()
                 time_data = flying_lap_time_lookup;
                 apps_data = flying_lap_apps_lookup;
 
-                final_lookup_index = (sizeof(flying_lap_time_lookup)
-                                      / sizeof(flying_lap_time_lookup[0]))
-                                     - 1;
+                final_lookup_index =
+                    (sizeof(flying_lap_time_lookup) / sizeof(flying_lap_time_lookup[0])) - 1;
             }
         }
 
         // timestamps in ms
-        const UINT current_time
-            = tx_time_get() * 1000 / TX_TIMER_TICKS_PER_SECOND;
+        const UINT current_time = tx_time_get() * 1000 / TX_TIMER_TICKS_PER_SECOND;
         const UINT lap_finish_time = time_data[final_lookup_index];
         const UINT current_lap_time = current_time - last_lap_finish_time;
 
@@ -102,7 +100,7 @@ UINT testbench_apps_input()
         // end of lap handling
         if (end_of_lap)
         {
-            end_of_lap = false;
+            // end_of_lap = false;
             lookup_index = 0;
             lap_count++;
             last_lap_finish_time = current_time;
@@ -130,8 +128,8 @@ UINT testbench_apps_input()
  */
 VOID testbench_fault_state()
 {
-    GPIO_PinState user_button_state
-        = HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
+    GPIO_PinState user_button_state =
+        HAL_GPIO_ReadPin(USER_BUTTON_GPIO_Port, USER_BUTTON_Pin);
 
     if (user_button_state == GPIO_PIN_SET)
     {

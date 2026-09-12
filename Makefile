@@ -17,15 +17,17 @@
 ###############################################################################
 
 TARGET = VCU
-BUILD_DIR = build
-DEBUG = 1
+DEBUG = 0
 C_STANDARD = c11
 
 # defines
 ALWAYS_C_DEFS = \
 -DTX_INCLUDE_USER_DEFINE_FILE \
 -DUSE_HAL_DRIVER \
--DSTM32F746xx
+-DSTM32F746xx \
+-DRTCAN_OSAL_THREADX \
+-DFX_INCLUDE_USER_DEFINE_FILE \
+-DUX_INCLUDE_USER_DEFINE_FILE
 
 DEBUG_C_DEFS = \
 -DDEBUG \
@@ -95,8 +97,15 @@ src/SUFST/Src/vcu.c \
 src/SUFST/Src/config.c \
 src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
+src/SUFST/Src/Functions/compressor.c \
+src/SUFST/Src/Functions/torque_limiters.c \
+src/SUFST/Src/Services/mode_switch_values.c \
+src/SUFST/Src/Interfaces/usb_mass_storage_mode.c \
+src/SUFST/Src/Interfaces/adc_scan.c \
 src/SUFST/Src/Interfaces/apps.c \
 src/SUFST/Src/Interfaces/bps.c \
+src/SUFST/Src/Interfaces/io.c \
+src/SUFST/Src/Interfaces/rs232.c \
 src/SUFST/Src/Interfaces/rtds.c \
 src/SUFST/Src/Interfaces/scs.c \
 src/SUFST/Src/Interfaces/trc.c \
@@ -108,6 +117,9 @@ src/SUFST/Src/Services/pm100.c \
 src/SUFST/Src/Services/tick.c \
 src/SUFST/Src/Services/log.c \
 src/SUFST/Src/Services/heartbeat.c \
+src/SUFST/Src/Services/wheelspeed.c \
+src/SUFST/Src/Services/fans.c \
+src/SUFST/Src/Services/sd_logging.c \
 src/SUFST/Src/Test/testbench.c \
 src/SUFST/Src/Test/apps_testbench_data.c \
 src/Core/Src/main.c \
@@ -115,12 +127,207 @@ src/Core/Src/adc.c \
 src/Core/Src/can.c \
 src/Core/Src/gpio.c \
 src/Core/Src/usart.c \
+src/Core/Src/i2c.c \
+src/Core/Src/spi.c \
+src/Core/Src/tim.c \
+src/Core/Src/usb_otg.c \
+src/Core/Src/sysmem.c \
+src/Core/Src/syscalls.c \
 src/Core/Src/stm32f7xx_it.c \
 src/Core/Src/stm32f7xx_hal_msp.c \
-src/Core/stm32f7xx_hal_timebase_tim.c \
+src/Core/Src/stm32f7xx_hal_timebase_tim.c \
 src/Core/Src/system_stm32f7xx.c \
-src/Core/app_threadx.c \
+src/Core/Src/app_threadx.c \
 src/AZURE_RTOS/App/app_azure_rtos.c \
+src/USBX/App/app_usbx_device.c \
+src/USBX/App/app_usbx_host.c \
+src/USBX/App/ux_device_msc.c \
+src/USBX/App/ux_device_descriptors.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_activate.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_control_request.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_csw_send.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_deactivate.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_entry.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_format.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_get_configuration.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_get_performance.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_get_status_notification.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_initialize.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_inquiry.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_mode_select.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_mode_sense.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_prevent_allow_media_removal.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read_capacity.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read_disk_information.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read_dvd_structure.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read_format_capacity.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_read_toc.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_report_key.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_request_sense.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_start_stop.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_synchronize_cache.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_test_ready.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_thread.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_uninitialize.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_verify.c \
+src/Middlewares/ST/usbx/common/usbx_device_classes/src/ux_device_class_storage_write.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_alternate_setting_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_alternate_setting_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_class_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_class_unregister.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_clear_feature.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_configuration_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_configuration_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_control_request_process.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_descriptor_send.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_disconnect.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_endpoint_stall.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_get_status.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_host_wakeup.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_initialize.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_interface_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_interface_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_interface_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_interface_start.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_microsoft_extension_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_set_feature.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_transfer_abort.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_transfer_all_request_abort.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_transfer_request.c \
+src/Middlewares/ST/usbx/common/core/src/ux_device_stack_uninitialize.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_bandwidth_check.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_bandwidth_claim.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_bandwidth_release.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_call.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_device_scan.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_instance_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_instance_destroy.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_instance_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_instance_verify.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_interface_scan.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_class_unregister.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_descriptor_parse.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_enumerate.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_instance_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_instance_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_interface_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_interface_scan.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_configuration_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_delay_ms.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_address_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_configuration_activate.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_configuration_deactivate.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_configuration_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_configuration_reset.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_configuration_select.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_descriptor_read.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_remove.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_resources_free.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_device_string_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_endpoint_instance_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_endpoint_instance_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_endpoint_reset.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_endpoint_transfer_abort.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_enum_thread_entry.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_hcd_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_hcd_thread_entry.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_hcd_transfer_request.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_hcd_unregister.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_hnp_polling_thread_entry.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_initialize.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interface_endpoint_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interface_instance_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interface_instance_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interface_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interface_setting_select.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_interfaces_scan.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_new_configuration_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_new_device_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_new_device_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_new_endpoint_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_new_interface_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_rh_change_process.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_rh_device_extraction.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_rh_device_insertion.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_role_swap.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_transfer_request.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_transfer_request_abort.c \
+src/Middlewares/ST/usbx/common/core/src/ux_host_stack_uninitialize.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_debug_callback_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_debug_log.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_delay_ms.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_descriptor_pack.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_descriptor_parse.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_error_callback_register.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_event_flags_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_event_flags_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_event_flags_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_event_flags_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_long_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_long_get_big_endian.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_long_put.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_long_put_big_endian.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_allocate.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_allocate_add_safe.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_allocate_mulc_safe.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_allocate_mulv_safe.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_compare.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_copy.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_free.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_free_block_best_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_memory_set.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_mutex_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_mutex_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_mutex_off.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_mutex_on.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_pci_class_scan.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_pci_read.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_pci_write.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_physical_address.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_semaphore_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_semaphore_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_semaphore_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_semaphore_put.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_set_interrupt_handler.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_short_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_short_get_big_endian.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_short_put.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_short_put_big_endian.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_string_length_check.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_string_length_get.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_string_to_unicode.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_delete.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_identify.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_relinquish.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_resume.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_schedule_other.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_sleep.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_thread_suspend.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_timer_create.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_unicode_to_string.c \
+src/Middlewares/ST/usbx/common/core/src/ux_utility_virtual_address.c \
+src/Middlewares/ST/usbx/common/core/src/ux_system_error_handler.c \
+src/Middlewares/ST/usbx/common/core/src/ux_system_initialize.c \
+src/Middlewares/ST/usbx/common/core/src/ux_system_uninitialize.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_callback.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_endpoint_create.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_endpoint_destroy.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_endpoint_reset.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_endpoint_stall.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_endpoint_status.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_frame_number_get.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_function.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_initialize.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_initialize_complete.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_interrupt_handler.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_transfer_abort.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_transfer_request.c \
+src/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/ux_dcd_stm32_uninitialize.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_adc_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_rcc.c \
@@ -142,6 +349,9 @@ src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_tim_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_uart_ex.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_usart.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_usb.c \
@@ -313,28 +523,270 @@ src/Middlewares/ST/threadx/common/src/tx_trace_isr_exit_insert.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_register.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_object_unregister.c \
 src/Middlewares/ST/threadx/common/src/tx_trace_user_event_insert.c \
-src/Middlewares/SUFST/rtcan/src/rtcan.c \
-src/Middlewares/SUFST/can-defs/out/can_c.c \
-src/Middlewares/SUFST/can-defs/out/can_s.c
+src/Middlewares/ST/threadx/utility/low_power/tx_low_power.c \
+src/SUFST/Middlewares/rtcan/src/rtcan.c \
+src/SUFST/Middlewares/rtcan/src/rtcan_osal_threadx.c \
+src/SUFST/Middlewares/can-defs/out/can_t.c \
+src/SUFST/Middlewares/can-defs/out/can_s.c \
+src/Core/Src/sdmmc.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_sdmmc.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_sd.c \
+src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_mmc.c \
+src/Middlewares/ST/filex/common/drivers/fx_stm32_sd_driver.c \
+src/FileX/Target/fx_stm32_sd_driver_glue.c \
+src/FileX/App/app_filex.c \
+src/Middlewares/ST/filex/common/src/fx_directory_attributes_read.c \
+src/Middlewares/ST/filex/common/src/fx_directory_attributes_set.c \
+src/Middlewares/ST/filex/common/src/fx_directory_create.c \
+src/Middlewares/ST/filex/common/src/fx_directory_default_get.c \
+src/Middlewares/ST/filex/common/src/fx_directory_default_get_copy.c \
+src/Middlewares/ST/filex/common/src/fx_directory_default_set.c \
+src/Middlewares/ST/filex/common/src/fx_directory_delete.c \
+src/Middlewares/ST/filex/common/src/fx_directory_entry_read.c \
+src/Middlewares/ST/filex/common/src/fx_directory_entry_write.c \
+src/Middlewares/ST/filex/common/src/fx_directory_exFAT_entry_read.c \
+src/Middlewares/ST/filex/common/src/fx_directory_exFAT_entry_write.c \
+src/Middlewares/ST/filex/common/src/fx_directory_exFAT_free_search.c \
+src/Middlewares/ST/filex/common/src/fx_directory_exFAT_unicode_entry_write.c \
+src/Middlewares/ST/filex/common/src/fx_directory_first_entry_find.c \
+src/Middlewares/ST/filex/common/src/fx_directory_first_full_entry_find.c \
+src/Middlewares/ST/filex/common/src/fx_directory_free_search.c \
+src/Middlewares/ST/filex/common/src/fx_directory_information_get.c \
+src/Middlewares/ST/filex/common/src/fx_directory_local_path_clear.c \
+src/Middlewares/ST/filex/common/src/fx_directory_local_path_get.c \
+src/Middlewares/ST/filex/common/src/fx_directory_local_path_get_copy.c \
+src/Middlewares/ST/filex/common/src/fx_directory_local_path_restore.c \
+src/Middlewares/ST/filex/common/src/fx_directory_local_path_set.c \
+src/Middlewares/ST/filex/common/src/fx_directory_long_name_get.c \
+src/Middlewares/ST/filex/common/src/fx_directory_long_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_directory_name_extract.c \
+src/Middlewares/ST/filex/common/src/fx_directory_name_test.c \
+src/Middlewares/ST/filex/common/src/fx_directory_next_entry_find.c \
+src/Middlewares/ST/filex/common/src/fx_directory_next_full_entry_find.c \
+src/Middlewares/ST/filex/common/src/fx_directory_rename.c \
+src/Middlewares/ST/filex/common/src/fx_directory_search.c \
+src/Middlewares/ST/filex/common/src/fx_directory_short_name_get.c \
+src/Middlewares/ST/filex/common/src/fx_directory_short_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_add_bitmap_log.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_add_checksum_log.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_add_dir_log.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_add_FAT_log.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_apply_logs.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_calculate_checksum.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_cleanup_FAT_chain.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_create_log_file.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_enable.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_read_directory_sector.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_read_FAT.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_read_log_file.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_recover.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_reset_log_file.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_set_FAT_chain.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_transaction_end.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_transaction_fail.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_transaction_start.c \
+src/Middlewares/ST/filex/common/src/fx_fault_tolerant_write_log_file.c \
+src/Middlewares/ST/filex/common/src/fx_file_allocate.c \
+src/Middlewares/ST/filex/common/src/fx_file_attributes_read.c \
+src/Middlewares/ST/filex/common/src/fx_file_attributes_set.c \
+src/Middlewares/ST/filex/common/src/fx_file_best_effort_allocate.c \
+src/Middlewares/ST/filex/common/src/fx_file_close.c \
+src/Middlewares/ST/filex/common/src/fx_file_create.c \
+src/Middlewares/ST/filex/common/src/fx_file_date_time_set.c \
+src/Middlewares/ST/filex/common/src/fx_file_delete.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_allocate.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_best_effort_allocate.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_relative_seek.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_seek.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_truncate.c \
+src/Middlewares/ST/filex/common/src/fx_file_extended_truncate_release.c \
+src/Middlewares/ST/filex/common/src/fx_file_open.c \
+src/Middlewares/ST/filex/common/src/fx_file_read.c \
+src/Middlewares/ST/filex/common/src/fx_file_relative_seek.c \
+src/Middlewares/ST/filex/common/src/fx_file_rename.c \
+src/Middlewares/ST/filex/common/src/fx_file_seek.c \
+src/Middlewares/ST/filex/common/src/fx_file_truncate.c \
+src/Middlewares/ST/filex/common/src/fx_file_truncate_release.c \
+src/Middlewares/ST/filex/common/src/fx_file_write.c \
+src/Middlewares/ST/filex/common/src/fx_file_write_notify_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_abort.c \
+src/Middlewares/ST/filex/common/src/fx_media_boot_info_extract.c \
+src/Middlewares/ST/filex/common/src/fx_media_cache_invalidate.c \
+src/Middlewares/ST/filex/common/src/fx_media_check.c \
+src/Middlewares/ST/filex/common/src/fx_media_check_FAT_chain_check.c \
+src/Middlewares/ST/filex/common/src/fx_media_check_lost_cluster_check.c \
+src/Middlewares/ST/filex/common/src/fx_media_close.c \
+src/Middlewares/ST/filex/common/src/fx_media_close_notify_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_exFAT_format.c \
+src/Middlewares/ST/filex/common/src/fx_media_extended_space_available.c \
+src/Middlewares/ST/filex/common/src/fx_media_flush.c \
+src/Middlewares/ST/filex/common/src/fx_media_format.c \
+src/Middlewares/ST/filex/common/src/fx_media_format_oem_name_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_format_type_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_format_volume_id_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_open.c \
+src/Middlewares/ST/filex/common/src/fx_media_open_notify_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_read.c \
+src/Middlewares/ST/filex/common/src/fx_media_space_available.c \
+src/Middlewares/ST/filex/common/src/fx_media_volume_get.c \
+src/Middlewares/ST/filex/common/src/fx_media_volume_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_media_volume_set.c \
+src/Middlewares/ST/filex/common/src/fx_media_write.c \
+src/Middlewares/ST/filex/common/src/fx_partition_offset_calculate.c \
+src/Middlewares/ST/filex/common/src/fx_system_date_get.c \
+src/Middlewares/ST/filex/common/src/fx_system_date_set.c \
+src/Middlewares/ST/filex/common/src/fx_system_initialize.c \
+src/Middlewares/ST/filex/common/src/fx_system_time_get.c \
+src/Middlewares/ST/filex/common/src/fx_system_time_set.c \
+src/Middlewares/ST/filex/common/src/fx_system_timer_entry.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_directory_create.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_directory_entry_change.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_directory_entry_read.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_directory_rename.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_directory_search.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_file_create.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_file_rename.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_length_get.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_length_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_name_get.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_short_name_get.c \
+src/Middlewares/ST/filex/common/src/fx_unicode_short_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fx_utility_16_unsigned_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_16_unsigned_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_32_unsigned_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_32_unsigned_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_64_unsigned_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_64_unsigned_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_absolute_path_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_allocate_new_cluster.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_cache_prepare.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_cache_update.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_flush.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_free_cluster_find.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_initialize.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_bitmap_start_sector_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_cluster_free.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_cluster_state_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_cluster_state_set.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_geometry_check.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_name_hash_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_size_calculate.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_system_area_checksum_verify.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_system_area_checksum_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_system_area_format.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_system_sector_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_unicode_name_hash_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_exFAT_upcase_table.c \
+src/Middlewares/ST/filex/common/src/fx_utility_FAT_entry_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_FAT_entry_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_FAT_flush.c \
+src/Middlewares/ST/filex/common/src/fx_utility_FAT_map_flush.c \
+src/Middlewares/ST/filex/common/src/fx_utility_FAT_sector_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_logical_sector_cache_entry_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_logical_sector_flush.c \
+src/Middlewares/ST/filex/common/src/fx_utility_logical_sector_read.c \
+src/Middlewares/ST/filex/common/src/fx_utility_logical_sector_write.c \
+src/Middlewares/ST/filex/common/src/fx_utility_memory_copy.c \
+src/Middlewares/ST/filex/common/src/fx_utility_memory_set.c \
+src/Middlewares/ST/filex/common/src/fx_utility_string_length_get.c \
+src/Middlewares/ST/filex/common/src/fx_utility_token_length_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_attributes_read.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_attributes_set.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_create.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_default_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_default_get_copy.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_default_set.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_delete.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_first_entry_find.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_first_full_entry_find.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_information_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_local_path_clear.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_local_path_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_local_path_get_copy.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_local_path_restore.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_local_path_set.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_long_name_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_long_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_name_test.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_next_entry_find.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_next_full_entry_find.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_rename.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_short_name_get.c \
+src/Middlewares/ST/filex/common/src/fxe_directory_short_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fxe_fault_tolerant_enable.c \
+src/Middlewares/ST/filex/common/src/fxe_file_allocate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_attributes_read.c \
+src/Middlewares/ST/filex/common/src/fxe_file_attributes_set.c \
+src/Middlewares/ST/filex/common/src/fxe_file_best_effort_allocate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_close.c \
+src/Middlewares/ST/filex/common/src/fxe_file_create.c \
+src/Middlewares/ST/filex/common/src/fxe_file_date_time_set.c \
+src/Middlewares/ST/filex/common/src/fxe_file_delete.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_allocate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_best_effort_allocate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_relative_seek.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_seek.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_truncate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_extended_truncate_release.c \
+src/Middlewares/ST/filex/common/src/fxe_file_open.c \
+src/Middlewares/ST/filex/common/src/fxe_file_read.c \
+src/Middlewares/ST/filex/common/src/fxe_file_relative_seek.c \
+src/Middlewares/ST/filex/common/src/fxe_file_rename.c \
+src/Middlewares/ST/filex/common/src/fxe_file_seek.c \
+src/Middlewares/ST/filex/common/src/fxe_file_truncate.c \
+src/Middlewares/ST/filex/common/src/fxe_file_truncate_release.c \
+src/Middlewares/ST/filex/common/src/fxe_file_write.c \
+src/Middlewares/ST/filex/common/src/fxe_file_write_notify_set.c \
+src/Middlewares/ST/filex/common/src/fxe_media_abort.c \
+src/Middlewares/ST/filex/common/src/fxe_media_cache_invalidate.c \
+src/Middlewares/ST/filex/common/src/fxe_media_check.c \
+src/Middlewares/ST/filex/common/src/fxe_media_close.c \
+src/Middlewares/ST/filex/common/src/fxe_media_close_notify_set.c \
+src/Middlewares/ST/filex/common/src/fxe_media_exFAT_format.c \
+src/Middlewares/ST/filex/common/src/fxe_media_extended_space_available.c \
+src/Middlewares/ST/filex/common/src/fxe_media_flush.c \
+src/Middlewares/ST/filex/common/src/fxe_media_format.c \
+src/Middlewares/ST/filex/common/src/fxe_media_open.c \
+src/Middlewares/ST/filex/common/src/fxe_media_open_notify_set.c \
+src/Middlewares/ST/filex/common/src/fxe_media_read.c \
+src/Middlewares/ST/filex/common/src/fxe_media_space_available.c \
+src/Middlewares/ST/filex/common/src/fxe_media_volume_get.c \
+src/Middlewares/ST/filex/common/src/fxe_media_volume_get_extended.c \
+src/Middlewares/ST/filex/common/src/fxe_media_volume_set.c \
+src/Middlewares/ST/filex/common/src/fxe_media_write.c \
+src/Middlewares/ST/filex/common/src/fxe_system_date_get.c \
+src/Middlewares/ST/filex/common/src/fxe_system_date_set.c \
+src/Middlewares/ST/filex/common/src/fxe_system_time_get.c \
+src/Middlewares/ST/filex/common/src/fxe_system_time_set.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_directory_create.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_directory_rename.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_file_create.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_file_rename.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_name_get.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_name_get_extended.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_short_name_get.c \
+src/Middlewares/ST/filex/common/src/fxe_unicode_short_name_get_extended.c \
+src/Core/Src/dma.c
 
 ASM_SOURCES =  \
 src/startup_stm32f746xx.s \
 src/Core/Src/tx_initialize_low_level.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_control.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.s \
-src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.s
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_restore.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_context_save.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_interrupt_control.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_schedule.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_stack_build.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_thread_system_return.S \
+src/Middlewares/ST/threadx/ports/cortex_m7/gnu/src/tx_timer_interrupt.S
 
 ###############################################################################
 # includes
 ###############################################################################
 
 C_INCLUDES =  \
--Isrc/Core/Inc \
 -Isrc/SUFST/Inc \
+-Isrc/Core/Inc \
 -Isrc/SUFST/Inc/Functions \
 -Isrc/SUFST/Inc/Interfaces \
 -Isrc/SUFST/Inc/Services \
@@ -345,8 +797,19 @@ C_INCLUDES =  \
 -Isrc/AZURE_RTOS/App \
 -Isrc/Middlewares/ST/threadx/common/inc/ \
 -Isrc/Middlewares/ST/threadx/ports/cortex_m7/gnu/inc/ \
--Isrc/Middlewares/SUFST/rtcan/inc/ \
--Isrc/Middlewares/SUFST/can-defs/out/
+-Isrc/Middlewares/ST/threadx/utility/low_power/ \
+-Isrc/SUFST/Middlewares/rtcan/inc/ \
+-Isrc/SUFST/Middlewares/can-defs/out/ \
+-Isrc/FileX/App \
+-Isrc/FileX/Target \
+-Isrc/Middlewares/ST/filex/common/inc \
+-Isrc/Middlewares/ST/filex/ports/generic/inc \
+-Isrc/USBX/App \
+-Isrc/USBX/Target \
+-Isrc/Middlewares/ST/usbx/common/usbx_device_classes/inc/ \
+-Isrc/Middlewares/ST/usbx/common/core/inc/ \
+-Isrc/Middlewares/ST/usbx/ports/generic/inc/ \
+-Isrc/Middlewares/ST/usbx/common/usbx_stm32_device_controllers/
 
 ASM_INCLUDES = 
 
@@ -357,9 +820,11 @@ ASM_INCLUDES =
 ifeq ($(DEBUG), 1)
 	C_DEFS = $(ALWAYS_C_DEFS) $(DEBUG_C_DEFS)
 	ASM_DEFS = $(DEBUG_ASM_DEFS)
+	BUILD_DIR = build/debug
 else
 	C_DEFS = $(ALWAYS_C_DEFS) $(RELEASE_C_DEFS)
 	ASM_DEFS = $(RELEASE_ASM_DEFS)
+	BUILD_DIR = build/release
 endif
 
 ###############################################################################
@@ -413,11 +878,11 @@ $(BUILD_DIR)/%.o: %.c Makefile | $(BUILD_DIR) prebuild
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/$(notdir $(<:.c=.lst)) $< -o $@
 
 # ASM
-$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
+$(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR) prebuild
 	echo "$<"
 	$(AS) -c $(CFLAGS) $< -o $@
 
-$(BUILD_DIR)/%.o: %.S Makefile | $(BUILD_DIR) prebuild
+$(BUILD_DIR)/%.o: %.s Makefile | $(BUILD_DIR) prebuild
 	echo "$<"
 	$(AS) -c $(CFLAGS) $< -o $@
 
@@ -445,19 +910,26 @@ $(BUILD_DIR):
 # clean
 clean:
 	tput setaf 5; tput bold; echo "Cleaning build directory..."; tput sgr0
-	-rm -fR $(BUILD_DIR)
+	-rm -fR build
 	tput setaf 2; echo "Done"; tput sgr0
 
 # flash
 flash: $(BUILD_DIR)/$(TARGET).bin
 	tput setaf 5; tput bold; echo "Flashing..."; tput sgr0
-	st-flash write $< 0x08000000
+	st-flash --reset write $< 0x08000000
 
 # generate compile commands database
 ccd:
 	tput setaf 5; tput bold; echo "Generating compile commands database..."; tput sgr0
 	${PYTHON} -m ccdgen --extensions .c .s .S --compiler arm-none-eabi-gcc -- ${MAKE}
 	tput sgr0; tput setaf 2; echo "Done"; tput sgr0
+
+# format source code
+.PHONY: format
+format:
+	tput setaf 5; tput bold; echo "Formatting source code..."; tput sgr0
+	find src/SUFST/Src src/SUFST/Inc \( -iname '*.c' -o -iname '*.h' \) -print0 | xargs -0 clang-format -i
+	tput setaf 2; echo "Done"; tput sgr0
 
 ###############################################################################
 # dependencies

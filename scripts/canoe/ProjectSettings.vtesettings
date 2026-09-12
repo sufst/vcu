@@ -1,0 +1,262 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<z:anyType xmlns:i="http://www.w3.org/2001/XMLSchema-instance" xmlns:d1p1="Vector.ToolsEnvironment.Project.Dto" i:type="d1p1:ProjectPersistencyDataDto" xmlns:z="http://schemas.microsoft.com/2003/10/Serialization/">
+  <SymbolExplorerStates xmlns:d2p1="http://schemas.microsoft.com/2003/10/Serialization/Arrays" xmlns="Vector.ToolsEnvironment">
+    <d2p1:KeyValueOfanyTypeArrayOfKeyValueOfTypestringRDHGY3MAty7Ep6D1>
+      <d2p1:Key xmlns:d4p1="Vector.ToolsEnvironment.Documents.Dtos" i:type="d4p1:DocumentTypeIdDto">
+        <Id xmlns="http://schemas.datacontract.org/2004/07/Vector.ToolsEnvironment.Documents.Dtos">f4097ce8-e7fc-4dfe-bc1c-2a3f647af0b2</Id>
+      </d2p1:Key>
+      <d2p1:Value>
+        <d2p1:KeyValueOfTypestringRDHGY3MA>
+          <d2p1:Key xmlns:d6p1="http://schemas.datacontract.org/2004/07/System" xmlns:d6p2="System" i:type="d6p2:RuntimeType" z:FactoryType="d6p2:UnitySerializationHolder">
+            <Data i:type="d6p2:String" xmlns="">Vector.SymbolSelection.Controls.SymbolSelectionControl</Data>
+            <UnityType i:type="d6p2:Int32" xmlns="">4</UnityType>
+            <AssemblyName i:type="d6p2:String" xmlns="">Vector.SymbolSelection, Version=3.8.12.0, Culture=neutral, PublicKeyToken=null</AssemblyName>
+          </d2p1:Key>
+          <d2p1:Value>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;SymbolSelectionProperties xmlns:i="http://www.w3.org/2001/XMLSchema-instance"&gt;
+&lt;AreDiagQualifiersShown&gt;true&lt;/AreDiagQualifiersShown&gt;
+&lt;CurrentViewId&gt;None&lt;/CurrentViewId&gt;
+&lt;SearchProperties&gt;
+&lt;SearchTermHistory /&gt;
+&lt;/SearchProperties&gt;
+&lt;ViewProperties&gt;
+&lt;ViewProperties&gt;
+&lt;ColumnsProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;0&lt;/Position&gt;
+&lt;Sorting&gt;Ascending&lt;/Sorting&gt;
+&lt;Width&gt;200&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;2&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;3&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;4&lt;/Position&gt;
+&lt;Width&gt;200&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;5&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;/ColumnsProperties&gt;
+&lt;Key&gt;Embedded/NetworkSymbols&lt;/Key&gt;
+&lt;NodeTreeProperties /&gt;
+&lt;/ViewProperties&gt;
+&lt;/ViewProperties&gt;
+&lt;/SymbolSelectionProperties&gt;</d2p1:Value>
+        </d2p1:KeyValueOfTypestringRDHGY3MA>
+        <d2p1:KeyValueOfTypestringRDHGY3MA>
+          <d2p1:Key xmlns:d6p1="http://schemas.datacontract.org/2004/07/System" xmlns:d6p2="System" i:type="d6p2:RuntimeType" z:FactoryType="d6p2:UnitySerializationHolder">
+            <Data i:type="d6p2:String" xmlns="">Vector.SymbolSelection.Controls.SymbolSelectionDialog</Data>
+            <UnityType i:type="d6p2:Int32" xmlns="">4</UnityType>
+            <AssemblyName i:type="d6p2:String" xmlns="">Vector.SymbolSelection, Version=3.8.12.0, Culture=neutral, PublicKeyToken=null</AssemblyName>
+          </d2p1:Key>
+          <d2p1:Value></d2p1:Value>
+        </d2p1:KeyValueOfTypestringRDHGY3MA>
+      </d2p1:Value>
+    </d2p1:KeyValueOfanyTypeArrayOfKeyValueOfTypestringRDHGY3MAty7Ep6D1>
+    <d2p1:KeyValueOfanyTypeArrayOfKeyValueOfTypestringRDHGY3MAty7Ep6D1>
+      <d2p1:Key xmlns:d4p1="Vector.ToolsEnvironment.Documents.Dtos" i:type="d4p1:DocumentTypeIdDto">
+        <Id xmlns="http://schemas.datacontract.org/2004/07/Vector.ToolsEnvironment.Documents.Dtos">73bcea0e-9abf-4359-b300-0186fd754011</Id>
+      </d2p1:Key>
+      <d2p1:Value>
+        <d2p1:KeyValueOfTypestringRDHGY3MA>
+          <d2p1:Key xmlns:d6p1="http://schemas.datacontract.org/2004/07/System" xmlns:d6p2="System" i:type="d6p2:RuntimeType" z:FactoryType="d6p2:UnitySerializationHolder">
+            <Data i:type="d6p2:String" xmlns="">Vector.SymbolSelection.Controls.SymbolSelectionControl</Data>
+            <UnityType i:type="d6p2:Int32" xmlns="">4</UnityType>
+            <AssemblyName i:type="d6p2:String" xmlns="">Vector.SymbolSelection, Version=3.8.12.0, Culture=neutral, PublicKeyToken=null</AssemblyName>
+          </d2p1:Key>
+          <d2p1:Value>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;SymbolSelectionProperties xmlns:i="http://www.w3.org/2001/XMLSchema-instance"&gt;
+&lt;AreDiagQualifiersShown&gt;true&lt;/AreDiagQualifiersShown&gt;
+&lt;CurrentViewId&gt;None&lt;/CurrentViewId&gt;
+&lt;SearchProperties&gt;
+&lt;SearchTermHistory /&gt;
+&lt;/SearchProperties&gt;
+&lt;ViewProperties&gt;
+&lt;ViewProperties&gt;
+&lt;ColumnsProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;0&lt;/Position&gt;
+&lt;Sorting&gt;Ascending&lt;/Sorting&gt;
+&lt;Width&gt;200&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;2&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;3&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;IsVisible&gt;true&lt;/IsVisible&gt;
+&lt;Position&gt;4&lt;/Position&gt;
+&lt;Width&gt;200&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;ColumnProperties&gt;
+&lt;Position&gt;-1&lt;/Position&gt;
+&lt;Width&gt;100&lt;/Width&gt;
+&lt;/ColumnProperties&gt;
+&lt;/ColumnsProperties&gt;
+&lt;Key&gt;Embedded/NetworkSymbols&lt;/Key&gt;
+&lt;NodeTreeProperties /&gt;
+&lt;/ViewProperties&gt;
+&lt;/ViewProperties&gt;
+&lt;/SymbolSelectionProperties&gt;</d2p1:Value>
+        </d2p1:KeyValueOfTypestringRDHGY3MA>
+        <d2p1:KeyValueOfTypestringRDHGY3MA>
+          <d2p1:Key xmlns:d6p1="http://schemas.datacontract.org/2004/07/System" xmlns:d6p2="System" i:type="d6p2:RuntimeType" z:FactoryType="d6p2:UnitySerializationHolder">
+            <Data i:type="d6p2:String" xmlns="">Vector.SymbolSelection.Controls.SymbolSelectionDialog</Data>
+            <UnityType i:type="d6p2:Int32" xmlns="">4</UnityType>
+            <AssemblyName i:type="d6p2:String" xmlns="">Vector.SymbolSelection, Version=3.8.12.0, Culture=neutral, PublicKeyToken=null</AssemblyName>
+          </d2p1:Key>
+          <d2p1:Value></d2p1:Value>
+        </d2p1:KeyValueOfTypestringRDHGY3MA>
+      </d2p1:Value>
+    </d2p1:KeyValueOfanyTypeArrayOfKeyValueOfTypestringRDHGY3MAty7Ep6D1>
+  </SymbolExplorerStates>
+</z:anyType>

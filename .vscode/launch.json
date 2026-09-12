@@ -4,7 +4,7 @@
     {
       "cwd": "${workspaceFolder}",
       "name": "debug (stutil)",
-      "executable": "build/VCU.elf",
+      "executable": "build/debug/VCU.elf",
       "request": "launch",
       "type": "cortex-debug",
       "showDevDebugOutput": "none",
@@ -16,7 +16,7 @@
     // debug with openocd
     {
       "cwd": "${workspaceFolder}",
-      "executable": "build/VCU.elf",
+      "executable": "build/debug/VCU.elf",
       "name": "debug (openocd)",
       "request": "launch",
       "type": "cortex-debug",

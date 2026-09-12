@@ -50,10 +50,13 @@
     "torque_map_funcs.h": "c",
     "rtds.h": "c",
     "pm100.h": "c",
-    "can_c.h": "c",
+    "can_t.h": "c",
     "ctrl.h": "c"
   },
+  "cortex-debug.gdbPath": "gdb-multiarch",
   "cortex-debug.variableUseNaturalFormat": true,
-  "C_Cpp.errorSquiggles": "Enabled",
-  "mcu-debug.rtos-views.showRTOS": false
+  "C_Cpp.errorSquiggles": "enabled",
+  "C_Cpp.intelliSenseEngine": "default",
+  "mcu-debug.rtos-views.showRTOS": false,
+  "clangd.enable": false
 }

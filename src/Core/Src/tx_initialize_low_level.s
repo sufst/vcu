@@ -64,7 +64,7 @@
     .global     __Vectors
 @
 @
-SYSTEM_CLOCK      =   72000000
+SYSTEM_CLOCK      =   216000000
 SYSTICK_CYCLES    =   ((SYSTEM_CLOCK / 1000) -1)
 
     .text 32
@@ -271,7 +271,7 @@ __tx_DBGHandler:
     EXTERN  _tx_execution_isr_exit
 ;
 ;
-SYSTEM_CLOCK      EQU   72000000
+SYSTEM_CLOCK      EQU   216000000
 SYSTICK_CYCLES    EQU   ((SYSTEM_CLOCK / 1000) -1)
 
 #ifdef USE_DYNAMIC_MEMORY_ALLOCATION
@@ -455,7 +455,7 @@ SysTick_Handler:
 @
 @
 
-SYSTEM_CLOCK      =   72000000
+SYSTEM_CLOCK      =   216000000
 SYSTICK_CYCLES    =   ((SYSTEM_CLOCK / 1000) -1)
 
     .text 32

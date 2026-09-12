@@ -1,0 +1,52 @@
+/*@!Encoding:1252*/
+variables {
+}
+
+void AppendFault(char buffer[], long bufferSize, char faultStr[]) {
+  if ((strlen(buffer) + strlen(faultStr) + 3) < bufferSize) {
+    strncat(buffer, faultStr, bufferSize);
+    strncat(buffer, " | ", bufferSize);
+  }
+}
+
+on message VCU_Error {
+  char text[2048]; 
+  dword ctrlFaults;
+  byte pm100Error;
+  byte scsError;
+  int len;
+
+  // Clear buffer
+  strncpy(text, "", elCount(text));
+
+  // Extract all relevant signals from the message
+  ctrlFaults = (dword)this.VCU_CTRL_Error;
+  pm100Error = (byte)this.VCU_PM100_Error;
+  scsError   = (byte)this.VCU_SCS_Error;
+
+  // --- VCU CTRL FAULTS ---
+  if (ctrlFaults & 0x01) AppendFault(text, elCount(text), "Init");
+  if (ctrlFaults & 0x02) AppendFault(text, elCount(text), "TS_Timeout");
+  if (ctrlFaults & 0x04) AppendFault(text, elCount(text), "Precharge");
+  if (ctrlFaults & 0x08) AppendFault(text, elCount(text), "TRC_Fault");
+  if (ctrlFaults & 0x10) AppendFault(text, elCount(text), "Inv_Fault");
+
+  // --- ADDITIONAL ERRORS ---
+  if (pm100Error == 1) AppendFault(text, elCount(text), "PM100_Error");
+  if (scsError == 1)   AppendFault(text, elCount(text), "SCS_Error");
+
+  len = strlen(text);
+
+  // Determine final output state based on whether any faults were appended
+  if (len == 0) {
+    snprintf(text, elCount(text), "OK");
+  } else {
+    // Clean up trailing delimiter " | "
+    if (len >= 3) {
+      text[len - 3] = '\0';
+    }
+  }
+
+  // Assign to system variable
+  sysSetVariableString(sysvar::VCU_Fault_Text, text);
+}
