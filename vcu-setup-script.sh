@@ -20,6 +20,7 @@ git submodule update
 
 echo "Setting up venv"
 python3 -m venv .venv
+# shellcheck disable=SC1091 # github actions doesn't have the venv setup
 source .venv/bin/activate
 python3 -m pip install ccdgen
 make -s ccd
