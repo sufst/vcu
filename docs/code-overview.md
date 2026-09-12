@@ -17,4 +17,27 @@ Both of these are located in `src/SUFST/Middlewares` and added as git submodules
 ## STM32CubeMX generation
 When you run the generator, make sure you first open the correct ioc, run the generator. If you're making any changes to included components, there's a chance you'll have to manually update the root `Makefile`. You can refer to the generated one in `src/Makefile` to see what to add, although don't just copy it over since this misses out some of our code (e.g. our middlewares). 
 
-# tick.c state machine
+# ctrl.c state machine
+The main states of the VCU are defined in `ctrl.h`. These are:
+
+```c
+typedef enum
+{
+    CTRL_STATE_TS_BUTTON_WAIT,
+    CTRL_STATE_WAIT_NEG_AIR,
+    CTRL_STATE_PRECHARGE_WAIT,
+    CTRL_STATE_R2D_WAIT,
+    CTRL_STATE_TS_ON,
+    CTRL_STATE_R2D_OFF,
+    CTRL_STATE_R2D_OFF_WAIT,
+    CTRL_STATE_TS_ACTIVATION_FAILURE,
+    CTRL_STATE_TS_RUN_FAULT,
+    CTRL_STATE_SPIN,
+    CTRL_STATE_APPS_SCS_FAULT,
+    CTRL_STATE_APPS_BPS_FAULT,
+} ctrl_state_t;
+```
+
+You can read `ctrl.c` to see what happens in each of these states. Below is a rough diagram (although things have slightly changed since the diagram was created, refer to the code directly for an accurate view).
+
+![VCU Ctrl loop](images/vcu-ctrl-loop.png)
