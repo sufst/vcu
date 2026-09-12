@@ -28,33 +28,23 @@ status_t torque_map_init(torque_map_t *map_ptr, const config_torque_map_t *confi
 
     map_ptr->deadzone_scale = ((float)config_ptr->input_max) /
         ((float)(config_ptr->input_max - map_ptr->deadzone_end));
-
-    // load mapping function
-    status_t status = STATUS_OK;
-
+    
+    map_ptr->output_max = config_ptr->output_max;
+    
     switch (config_ptr->function)
     {
-    case TORQUE_MAP_LINEAR:
-    {
-        map_ptr->map_func = linear_torque_map;
-        break;
-    }
-
-    case TORQUE_MAP_EXPONENTIAL:
-    {
-        map_ptr->map_func = exponential_torque_map;
-        break;
-    }
-
-    default:
-        map_ptr->map_func = null_torque_map;
-        status = STATUS_ERROR;
-        break;
+        case TORQUE_MAP_LINEAR:
+            map_ptr->map_func = linear_torque_map;
+            break;
+        case TORQUE_MAP_EXPONENTIAL:
+            map_ptr->map_func = exponential_torque_map;
+            break;
+        default:
+            map_ptr->map_func = null_torque_map;
+            return STATUS_ERROR;
     };
 
-    map_ptr->output_max = config_ptr->output_max;
-
-    return status;
+    return STATUS_OK;
 }
 
 /**
@@ -65,8 +55,7 @@ status_t torque_map_init(torque_map_t *map_ptr, const config_torque_map_t *confi
  */
 uint16_t torque_map_apply(torque_map_t *map_ptr, uint16_t input)
 {
-    const uint16_t input_deadzone = apply_deadzone(map_ptr, input);
-    return map_ptr->map_func(map_ptr, input_deadzone);
+    return map_ptr->map_func(map_ptr, apply_deadzone(map_ptr, input));
 }
 
 /**
@@ -89,19 +78,15 @@ void torque_map_set_output_max(torque_map_t *map_ptr, uint16_t output_max)
  */
 uint16_t apply_deadzone(const torque_map_t *map_ptr, uint16_t input)
 {
-    uint16_t result = 0;
-
     if (input <= map_ptr->deadzone_end)
     {
-        result = 0;
+        return 0;
     }
     else
     {
         const uint16_t shifted_input = input - map_ptr->deadzone_end;
-        result = (uint16_t)(shifted_input * map_ptr->deadzone_scale);
+        return (uint16_t)(shifted_input * map_ptr->deadzone_scale);
     }
-
-    return result;
 }
 
 /**
