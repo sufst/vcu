@@ -1,17 +1,17 @@
 #!/bin/bash
 
-set -ex
+set -exo pipefail
 
 echo "Installing dependencies"
 sudo apt-get update
 sudo apt-get install -y gcc-arm-none-eabi stlink-tools python3-pip clang-format
 
 # If repo already got cloned then skip
-if ! [ -f vcu-setup-script.sh ]; then
-    git clone https://github.com/sufst/vcu sufst-vcu
-    cd sufst-vcu
+if ! [[ -f vcu-setup-script.sh ]]; then
+	git clone https://github.com/sufst/vcu sufst-vcu
+	cd sufst-vcu
 else
-    git pull
+	git pull
 fi
 
 echo "Initialising submodules"
@@ -33,4 +33,4 @@ echo
 
 echo "Ensure that Visual Studio Code is installed on Windows!"
 echo "Then install the WSL extension"
-echo "once complete run 'code .' in wsl
+echo "once complete run 'code .' in wsl"

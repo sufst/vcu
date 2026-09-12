@@ -34,11 +34,11 @@ typedef struct
 typedef struct
 {
     ADC_HandleTypeDef *hadc; // ADC handle
-    uint8_t scan_slot; // 0-based index into hadc's scan sequence (rank - 1)
-    uint16_t min_adc;        // minimum expected ADC reading
-    uint16_t max_adc;        // maximum expected ADC reading
-    uint16_t min_mapped;     // minimum mapped reading
-    uint16_t max_mapped;     // maximum mapped reading
+    uint8_t scan_slot;   // 0-based index into hadc's scan sequence (rank - 1)
+    uint16_t min_adc;    // minimum expected ADC reading
+    uint16_t max_adc;    // maximum expected ADC reading
+    uint16_t min_mapped; // minimum mapped reading
+    uint16_t max_mapped; // maximum mapped reading
     float outside_bounds_fraction; // fraction of mapped range defining out of bounds signal
 } config_scs_t;
 
@@ -58,10 +58,10 @@ typedef struct
     uint16_t apps_bps_high_threshold; // apps reading to fault when brake also pressed
     uint16_t apps_bps_low_threshold; // apps reading to recover from fault
     uint16_t apps_bps_fault_bps_threshold; // live BPS reading threshold for apps/bps plausibility fault
-    uint16_t bps_on_threshold;       // BPS reading to consider BPS 'on'
-    uint16_t hard_max_torque;        // Hard maximum torque value (e.g. accel)
-    uint16_t endurance_max_torque;   // Max torque in endurance mode
-    uint16_t crawl_max_torque;       // Max torque in crawl/reverse mode
+    uint16_t bps_on_threshold;     // BPS reading to consider BPS 'on'
+    uint16_t hard_max_torque;      // Hard maximum torque value (e.g. accel)
+    uint16_t endurance_max_torque; // Max torque in endurance mode
+    uint16_t crawl_max_torque;     // Max torque in crawl/reverse mode
 } config_ctrl_t;
 
 /**
@@ -223,12 +223,12 @@ typedef struct
  */
 typedef struct
 {
-    float threshold;       // knee - measured value below this is untouched
-    float p_gain;           // proportional de-ramp strength above threshold
-    float i_gain;           // integral gain (unused without integral_enabled)
-    float integral_decay;   // per-tick multiplicative leak, 0..1 (100Hz loop tick, no explicit dt)
-    float integral_max;     // hard ceiling on accumulated integral, Nm*10 units (same as derate/torque_request)
-    bool integral_enabled;  // explicit on/off switch, rather than zeroing i_gain
+    float threshold; // knee - measured value below this is untouched
+    float p_gain;    // proportional de-ramp strength above threshold
+    float i_gain;    // integral gain (unused without integral_enabled)
+    float integral_decay; // per-tick multiplicative leak, 0..1 (100Hz loop tick, no explicit dt)
+    float integral_max; // hard ceiling on accumulated integral, Nm*10 units (same as derate/torque_request)
+    bool integral_enabled; // explicit on/off switch, rather than zeroing i_gain
 } config_compressor_t;
 
 /**
@@ -238,13 +238,13 @@ typedef struct
  */
 typedef struct
 {
-    float gear_ratio;          // motor : wheel reduction ratio (e.g. 120 motor rpm -> 37.7 wheel rpm)
+    float gear_ratio; // motor : wheel reduction ratio (e.g. 120 motor rpm -> 37.7 wheel rpm)
     float min_motor_speed_rpm; // motor rpm floor below which slip limiting holds off entirely
     float min_denominator_rpm; // baseline min wheel rpm for the slip-ratio denominator / front-speed
-                                // reliability gate; raised at init to >= min_motor_speed_rpm /
-                                // gear_ratio so slip control can never engage before front wheel
-                                // speed is itself reliably measurable (see torque_limiters_init)
-    config_compressor_t slip;  // slip de-ramp tuning (threshold is in slip %, unaffected by units)
+                               // reliability gate; raised at init to >= min_motor_speed_rpm /
+                               // gear_ratio so slip control can never engage before front wheel
+                               // speed is itself reliably measurable (see torque_limiters_init)
+    config_compressor_t slip; // slip de-ramp tuning (threshold is in slip %, unaffected by units)
     config_compressor_t power; // power de-ramp tuning (threshold in Watts, DC-bus)
 } config_torque_limiters_t;
 

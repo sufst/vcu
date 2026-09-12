@@ -1,6 +1,6 @@
 # Setup / Development Environment
 
-When setting up your development environment, 
+When setting up your development environment,
 
 ## Method 1: Using the setup script
 
@@ -13,6 +13,7 @@ curl -LsSf https://raw.githubusercontent.com/sufst/vcu/refs/heads/stag-12/vcu-se
 ## Method 2: Manually
 
 First, clone the repository:
+
 ```sh
 git clone https://github.com/sufst/vcu
 git checkout stag-12 # (or any specific branch you want to work on)
@@ -97,4 +98,5 @@ control.
 > or CubeMX managed middlewares.
 
 ## Trunk
+
 We use [trunk.io](https://trunk.io/) for testing which gives us [MISRA Compliance](https://misra.org.uk/compliance/). Once installed, you can run `trunk check`. This is also automatically run via a GitHub action, on every push to GitHub. (see `./.github/workflows/trunk-action.yaml`)
