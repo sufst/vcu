@@ -30,30 +30,9 @@ static const config_t config_instance = {
         .btn_active_ticks = SECONDS_TO_TICKS(0.5),
         .btn_sample_ticks = SECONDS_TO_TICKS(0.1),
         .vc_run_check = true,     
-        .vc_all_leds_on = true,
         .vc_led_on_ticks = SECONDS_TO_TICKS(2),
-        .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
     },
     .apps = {
-	    // .apps_1_scs = {
-        //     .hadc = &hadc1,
-        //     .adc_channel = ADC_CHANNEL_8,
-        //     .min_adc = 0,
-        //     .max_adc = 0xFFF,
-        //     .min_mapped = 0,
-        //     .max_mapped = 0xFFF,
-        //     .outside_bounds_fraction = 0.02f
-        // },
-        // .apps_2_scs = {
-        //     .hadc = &hadc2,
-        //     .adc_channel = ADC_CHANNEL_15,
-        //     .min_adc = 0,
-        //     .max_adc = 0xFFF,
-        //     .min_mapped = 0,
-        //     .max_mapped = 0xFFF,
-        //     .outside_bounds_fraction = 0.02f
-        // },
-        // .max_discrepancy = 100000,
 	 
 	 .apps_1_scs = {
             .hadc = &hadc1,
@@ -100,10 +79,7 @@ static const config_t config_instance = {
         .apps_bps_fault_bps_threshold = 150, // brake threshold (% * 10) to trigger apps bps fault
 	    .apps_bps_low_threshold = 50, // required APPS (% * 10) to go out of a APPS bps fault
 	    .apps_bps_high_threshold = 300, // required APPS (% * 10) to go into a APPS bps fault - set this to a big number (e.g. 2000), instead of default 300 (30%) to temporarily disable for scrut hardware demos
-        .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
-        .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
-        .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2500,
         .endurance_max_torque = 1100,
@@ -132,7 +108,6 @@ static const config_t config_instance = {
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
         .torque_request_timeout_ticks = SECONDS_TO_TICKS(0.1), // 100 ms
         .precharge_timeout_ticks = SECONDS_TO_TICKS(1),
-        .speed_mode = 0
     },
     .tick = {
         .thread = {
@@ -153,7 +128,6 @@ static const config_t config_instance = {
         },
         .period = SECONDS_TO_TICKS(0.01),
         .torque_limit = 2300,
-        .power_limit = 10000,
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(1)
     },
     .canbc = {
@@ -196,14 +170,6 @@ static const config_t config_instance = {
     .rtos = {
         .rtcan_s_priority = 3,
         .rtcan_t_priority = 2,
-        .ts_ctrl_thread_priority = 2,
-        .tracex_enable = false,
-        .driver_ctrl_tick_rate = 100
-    },
-    .testbenches = {
-        .run_apps_testbench = false,
-        .run_fault_state_testbench = false,
-        .apps_testbench_laps = 1
     },
     .wheelspeed = {
         .thread = {

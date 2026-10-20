@@ -66,7 +66,6 @@ status_t pm100_init(pm100_context_t *pm100_ptr,
                     rtcan_handle_t *rtcan_t_ptr,
                     rtcan_handle_t *rtcan_s_ptr,
                     const config_pm100_t *config_ptr);
-status_t pm100_lvs_on(pm100_context_t *pm100_ptr);
 status_t pm100_lvs_off(pm100_context_t *pm100_ptr);
 bool pm100_is_precharged(pm100_context_t *pm100_ptr);
 int16_t pm100_motor_temp(pm100_context_t *pm100_ptr);

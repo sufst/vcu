@@ -15,6 +15,5 @@
 
 status_t trc_set_ts_on(GPIO_PinState state);
 bool trc_ready(void);
-status_t trc_wait_for_ready(uint32_t poll_ticks, uint32_t timeout);
 
 #endif

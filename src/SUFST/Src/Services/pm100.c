@@ -262,28 +262,6 @@ void process_broadcast(pm100_context_t *pm100_ptr, const rtcan_msg_t *msg_ptr)
 }
 
 /**
- * @brief       Gives power to PM100 & initiates the precharge sequence
- *
- * @details     When operating in CAN mode, the precharge sequence begins as
- *              soon as the PM100 receives power. There is no way to change
- *              this functionality, other than to disable the precharge function
- *              and implement a custom precharge controller.
- *
- *              This function tells the PDM to provide 12V power to
- *              the PM100. When the PM100 is powered, it starts
- *              broadcasting onto the CAN bus so the broadcast
- *              processing thread is also started.
- *
- * @param[in]   pm100_ptr   PM100 context
- */
-status_t pm100_lvs_on(pm100_context_t *pm100_ptr)
-{
-    // UINT tx_status = tx_thread_resume(&pm100_ptr->thread);
-
-    return STATUS_OK;
-}
-
-/**
  * @brief       Checks if the PM100 is precharged
  *
  * @param[in]   pm100_ptr   PM100 context
