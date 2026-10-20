@@ -119,9 +119,3 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
  *
  * @param[in]   apps_ptr    APPS context
  */
-bool apps_check_plausibility(apps_context_t *apps_ptr)
-{
-    uint16_t reading = 0;
-    status_t status = apps_read(apps_ptr, &reading);
-    return (status == STATUS_OK);
-}
