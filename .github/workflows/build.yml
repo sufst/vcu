@@ -20,4 +20,3 @@ jobs:
           TERM: xterm
       - name: Show size
         run: arm-none-eabi-size build/release/VCU.elf
-        
