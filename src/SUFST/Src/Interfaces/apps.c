@@ -110,18 +110,3 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
     apps_ptr->scs_error = scs_error;
     return status;
 }
-
-/**
- * @brief       Reads the APPS to check if it is plausible
- *
- * @details     This should be used when you don't care what the actual reading
- *              is, but you want to know if the APPS is plausible
- *
- * @param[in]   apps_ptr    APPS context
- */
-bool apps_check_plausibility(apps_context_t *apps_ptr)
-{
-    uint16_t reading = 0;
-    status_t status = apps_read(apps_ptr, &reading);
-    return (status == STATUS_OK);
-}
