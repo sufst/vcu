@@ -1,20 +1,23 @@
-   name: Build firmware
-   on:
-     pull_request:
-     push:
-       branches: [main, stag13-vcu-dev]
-   jobs:
-     build:
-       runs-on: ubuntu-24.04
-       steps:
-         - uses: actions/checkout@v4
-           with:
-             submodules: recursive
-         - name: Install ARM compiler
-           run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
-         - name: Build
-           run: make -j4
-           env:
-             TERM: xterm
-         - name: Show size
-           run: arm-none-eabi-size build/release/VCU.elf
+name: Build firmware
+on:
+  pull_request:
+  push:
+    branches: [main, stag13-vcu-dev]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install ARM compiler
+        run: sudo apt-get update && sudo apt-get install -y gcc-arm-none-eabi libnewlib-arm-none-eabi
+      - name: Build
+        run: make -j4
+        env:
+          TERM: xterm
+      - name: Show size
+        run: arm-none-eabi-size build/release/VCU.elf
+        
