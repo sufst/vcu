@@ -8,7 +8,6 @@
 static void dash_thread_entry(ULONG input);
 static void run_visual_check(uint32_t ticks);
 static void toggle_ts_on_callback(ULONG input);
-static status_t input_wait(input_context_t *input_ptr);
 
 /**
  * @brief       Initialises the dash service
@@ -183,92 +182,6 @@ status_t dash_set_ts_on_led_state(dash_context_t *dash_ptr, GPIO_PinState state)
     }
 
     return STATUS_ERROR;
-}
-
-/**
- * @brief   Waits until the TS on button is pressed and released
- *
- * @details The calling thread is suspended until this occurs
- */
-status_t dash_wait_for_ts_on(const dash_context_t *dash_ptr)
-{
-    input_context_t ts_on_input = { .port = TS_ON_BTN_GPIO_Port,
-                                    .pin = TS_ON_BTN_Pin,
-                                    .active_state = true,
-                                    .last_state = false,
-                                    .require_release = true,
-                                    .active_start = 0,
-                                    .required_ticks = dash_ptr->config_ptr->btn_active_ticks,
-                                    .sample_ticks = dash_ptr->config_ptr->btn_sample_ticks };
-
-    return input_wait(&ts_on_input);
-}
-
-/**
- * @brief   Waits until the TS on button is pressed and released
- *
- * @details The calling thread is suspended until this occurs
- */
-status_t dash_wait_for_r2d(const dash_context_t *dash_ptr)
-{
-    input_context_t r2d_input = { .port = R2D_BTN_GPIO_Port,
-                                  .pin = R2D_BTN_Pin,
-                                  .active_state = true,
-                                  .last_state = false,
-                                  .require_release = true,
-                                  .active_start = 0,
-                                  .required_ticks = dash_ptr->config_ptr->btn_active_ticks,
-                                  .sample_ticks = dash_ptr->config_ptr->btn_sample_ticks };
-
-    return input_wait(&r2d_input);
-}
-
-/**
- * @brief       Waits for an input to enter a state for a particular number
- *              of ticks and (optionally) exit that state
- *
- * @param[in]   input_ptr   Input context
- */
-status_t input_wait(input_context_t *input_ptr)
-{
-    status_t status = STATUS_OK;
-    bool done = false;
-
-    while (!done && (status == STATUS_OK))
-    {
-        bool state = VCU_Input_Read(input_ptr->port, input_ptr->pin);
-
-        // rising edge (active, previously inactive)
-        if (state == input_ptr->active_state &&
-            (input_ptr->last_state != input_ptr->active_state))
-        {
-            input_ptr->active_start = tx_time_get();
-        }
-
-        // held
-        bool active_no_release_check =
-            !input_ptr->require_release && (state == input_ptr->active_state);
-
-        bool held_and_released = (state != input_ptr->active_state) &&
-            (input_ptr->last_state == input_ptr->active_state);
-
-        if (active_no_release_check || held_and_released)
-        {
-            uint32_t active_ticks = tx_time_get() - input_ptr->active_start;
-
-            if (active_ticks > input_ptr->required_ticks)
-            {
-                done = true;
-            }
-        }
-
-        // update state and sleep
-        input_ptr->last_state = state;
-
-        status = (tx_thread_sleep(input_ptr->sample_ticks) == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
-    }
-
-    return status;
 }
 
 /* Update button detection routine. Returns 0 if button hasn't been

@@ -53,8 +53,6 @@ status_t dash_init(dash_context_t *dash_ptr,
 
 status_t dash_blink_ts_on_led(dash_context_t *dash_ptr, uint32_t ticks);
 status_t dash_set_ts_on_led_state(dash_context_t *dash_ptr, GPIO_PinState state);
-status_t dash_wait_for_ts_on(const dash_context_t *dash_ptr);
-status_t dash_wait_for_r2d(const dash_context_t *dash_ptr);
 status_t dash_set_r2d_led_state(dash_context_t *dash_ptr, GPIO_PinState state);
 
 void dash_update_buttons(dash_context_t *dash_ptr);
