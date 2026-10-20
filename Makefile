@@ -99,7 +99,7 @@ src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
 src/SUFST/Src/Functions/compressor.c \
 src/SUFST/Src/Functions/torque_limiters.c \
-src/SUFST/Src/Services/mode_switch_values.c \
+src/SUFST/Src/Functions/mode_switch_values.c \
 src/SUFST/Src/Interfaces/usb_mass_storage_mode.c \
 src/SUFST/Src/Interfaces/adc_scan.c \
 src/SUFST/Src/Interfaces/apps.c \
@@ -120,8 +120,6 @@ src/SUFST/Src/Services/heartbeat.c \
 src/SUFST/Src/Services/wheelspeed.c \
 src/SUFST/Src/Services/fans.c \
 src/SUFST/Src/Services/sd_logging.c \
-src/SUFST/Src/Test/testbench.c \
-src/SUFST/Src/Test/apps_testbench_data.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
