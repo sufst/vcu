@@ -22,6 +22,7 @@ typedef struct
     scs_t apps_1_signal;             // SCS instance for first APPS signal
     scs_t apps_2_signal;             // SCS instance for second APPS signal
     uint32_t scs_error;              // SCS error code (see scs.h)
+    bool discrepancy_logged;         // discrepancy warning already logged
     const config_apps_t *config_ptr; // configuration
 } apps_context_t;
 
@@ -30,6 +31,5 @@ typedef struct
  */
 status_t apps_init(apps_context_t *apps_ptr, const config_apps_t *config_ptr);
 status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr);
-bool apps_check_plausibility(apps_context_t *apps_ptr);
 
 #endif

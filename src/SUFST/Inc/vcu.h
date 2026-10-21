@@ -11,7 +11,6 @@
 #include <can.h>
 #include <rtcan.h>
 #include <stdint.h>
-#include <tx_api.h>
 
 #include "apps.h"
 #include "bps.h"
@@ -51,7 +50,6 @@ typedef struct
     log_context_t log;               // logging service
     sd_context_t sd;                 // sd card service
     usb_msc_context_t usb_msc;       // USB mass storage service
-    uint32_t err;                    // current error code
     const config_t *config_ptr;      // pointer to global VCU configuration
 
 } vcu_context_t;
@@ -63,7 +61,6 @@ typedef struct
 status_t vcu_init(vcu_context_t *vcu_ptr,
                   CAN_HandleTypeDef *can_t_h,
                   CAN_HandleTypeDef *can_s_h,
-                  TX_BYTE_POOL *app_mem_pool,
                   const config_t *config_ptr);
 
 status_t vcu_handle_can_tx_mailbox_callback(vcu_context_t *vcu_ptr, CAN_HandleTypeDef *can_h);

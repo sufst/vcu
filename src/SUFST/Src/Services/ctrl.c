@@ -12,14 +12,21 @@
 
 #include "mode_switch_values.h"
 #include "rtds.h"
+#include "rtos_utils.h"
 #include "trc.h"
+#include "watchdog.h"
 
 /*
  * internal function prototypes
  */
-void ctrl_thread_entry(ULONG input);
-void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr);
-void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
+static void ctrl_thread_entry(void *arg);
+static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr);
+static void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
+
+// the shutdown circuit must read open on this many consecutive control ticks
+// (10 ms each) before an activation is aborted, so a single glitch (e.g.
+// while the inverter powers up) doesn't abort it
+#define CTRL_SHDN_OPEN_TICKS 3U
 
 /**
  * @brief       Initialises control service
@@ -28,12 +35,14 @@ void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
  * @param[in]   dash_ptr                Dash context
  * @param[in]   canbc_ptr               CANBC context
  * @param[in]   pm100_ptr               PM100 context
- * @param[in]   stack_pool_ptr          Byte pool to allocate thread stack from
+ * @param[in]   tick_ptr                Tick context
+ * @param[in]   remote_ctrl_ptr         Remote control context
+ * @param[in]   fans_ptr                Fans context
+ * @param[in]   wheelspeed_ptr          Wheelspeed context
  * @param[in]   config_ptr              Configuration
- * @param[in]   apps_config_ptr         APPS configuration
- * @param[in]   bps_config_ptr          BPS configuration
  * @param[in]   rtds_config_ptr         RTDS configuration
  * @param[in]   torque_map_config_ptr   Torque map configuration
+ * @param[in]   torque_limiters_config_ptr  Torque limiters configuration
  */
 status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    dash_context_t *dash_ptr,
@@ -43,13 +52,16 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    canbc_context_t *canbc_ptr,
                    fans_context_t *fans_ptr,
                    wheelspeed_context_t *wheelspeed_ptr,
-                   TX_BYTE_POOL *stack_pool_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
                    const config_torque_map_t *torque_map_config_ptr,
                    const config_torque_limiters_t *torque_limiters_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_BUTTON_WAIT;
+    ctrl_ptr->prev_state = CTRL_STATE_TS_BUTTON_WAIT;
+    ctrl_ptr->rtds_active = false;
+    ctrl_ptr->rtds_start = 0;
+    ctrl_ptr->shdn_open_count = 0;
     ctrl_ptr->current_mode = CTRL_MODE_ENDURANCE;
     ctrl_ptr->requested_mode = CTRL_MODE_ENDURANCE;
     ctrl_ptr->dash_ptr = dash_ptr;
@@ -60,7 +72,7 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->rtds_config_ptr = rtds_config_ptr;
     ctrl_ptr->fans_ptr = fans_ptr;
     ctrl_ptr->wheelspeed_ptr = wheelspeed_ptr;
-    ctrl_ptr->error = CTRL_ERROR_NONE;
+    ctrl_ptr->error = watchdog_caused_last_reset() ? CTRL_ERROR_WATCHDOG_RESET : CTRL_ERROR_NONE;
     ctrl_ptr->apps_reading = 0;
     ctrl_ptr->bps_reading = 0;
     ctrl_ptr->sagl_reading = 0;
@@ -74,27 +86,8 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->pump_pwr = false;
     ctrl_ptr->remote_ctrl_ptr = remote_ctrl_ptr;
 
-    // create the thread
-    void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
-
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status =
-            tx_thread_create(&ctrl_ptr->thread, (CHAR *)config_ptr->thread.name,
-                             ctrl_thread_entry, (ULONG)ctrl_ptr, stack_ptr,
-                             config_ptr->thread.stack_size, config_ptr->thread.priority,
-                             config_ptr->thread.priority, TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    status_t status = (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
-
     // initialise the torque map
-    if (status == STATUS_OK)
-    {
-        status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
-    }
+    status_t status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
 
     // initialise the torque limiters (slip control, etc.)
     if (status == STATUS_OK)
@@ -105,18 +98,24 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     // make sure TS is disabled
     trc_set_ts_on(GPIO_PIN_RESET);
 
-    // check all ok before starting
+    // Set RTDS tick counters to zero
+    rtds_pulse_init(&ctrl_ptr->rtds_pulse_ctx, rtds_config_ptr);
+
+    // check all ok before starting the thread (it does not run until the
+    // scheduler starts)
+    if (status == STATUS_OK)
+    {
+        status = rtos_task_create(&config_ptr->thread, ctrl_thread_entry, ctrl_ptr,
+                                  &ctrl_ptr->thread);
+    }
+
     if (status != STATUS_OK)
     {
-        tx_thread_terminate(&ctrl_ptr->thread);
         ctrl_ptr->error |= CTRL_ERROR_INIT;
     }
 
     // send initial state update
     ctrl_update_canbc_states(ctrl_ptr);
-
-    // Set RTDS tick counters to zero
-    rtds_pulse_init(&ctrl_ptr->rtds_pulse_ctx, rtds_config_ptr);
 
     return status;
 }
@@ -124,14 +123,20 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
 /**
  * @brief       Control thread entry function
  *
- * @param[in]   input   Control context
+ * @param[in]   arg     Control context
  */
-void ctrl_thread_entry(ULONG input)
+static void ctrl_thread_entry(void *arg)
 {
-    ctrl_context_t *ctrl_ptr = (ctrl_context_t *)input;
+    ctrl_context_t *ctrl_ptr = (ctrl_context_t *)arg;
+
+    // from here on the watchdog restarts the VCU if this loop ever stops
+    // running for longer than ~0.5 s (see watchdog.c)
+    (void)watchdog_start();
 
     while (1)
     {
+        watchdog_kick();
+
         dash_update_buttons(ctrl_ptr->dash_ptr);
 
         ctrl_ptr->shdn_reading = trc_ready();
@@ -179,7 +184,7 @@ void ctrl_thread_entry(ULONG input)
 
         ctrl_update_canbc_states(ctrl_ptr);
 
-        tx_thread_sleep(ctrl_ptr->config_ptr->schedule_ticks);
+        vTaskDelay(ctrl_ptr->config_ptr->schedule_ticks);
     }
 }
 
@@ -256,6 +261,29 @@ static bool ctrl_try_driver_fault_ack(ctrl_context_t *ctrl_ptr, bool tson_presse
 }
 
 /**
+ * @brief       Debounced check for the shutdown circuit opening during TS
+ *              activation (call once per control tick)
+ *
+ * @return      True once the shutdown circuit has read open for
+ *              CTRL_SHDN_OPEN_TICKS consecutive ticks
+ */
+static bool ctrl_shutdown_open(ctrl_context_t *ctrl_ptr)
+{
+    if (trc_ready())
+    {
+        ctrl_ptr->shdn_open_count = 0;
+        return false;
+    }
+
+    if (ctrl_ptr->shdn_open_count < CTRL_SHDN_OPEN_TICKS)
+    {
+        ctrl_ptr->shdn_open_count++;
+    }
+
+    return ctrl_ptr->shdn_open_count >= CTRL_SHDN_OPEN_TICKS;
+}
+
+/**
  * @brief wait for TS button to be held and released
  * then begin activating the TS
  *
@@ -267,6 +295,10 @@ static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr, bool tson
 {
     ctrl_ptr->current_mode = ctrl_ptr->requested_mode;
     dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_SET);
+
+    // not driving: the pump only runs while cooling is needed
+    ctrl_ptr->pump_pwr = ctrl_ptr->fans_ptr->fan_thermal_pwr;
+
     if (tson_pressed)
     {
         if (trc_ready())
@@ -275,7 +307,7 @@ static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr, bool tson
 
             trc_set_ts_on(GPIO_PIN_SET);
 
-            ctrl_ptr->neg_air_start = tx_time_get();
+            ctrl_ptr->neg_air_start = xTaskGetTickCount();
             return CTRL_STATE_WAIT_NEG_AIR;
         }
     }
@@ -299,11 +331,18 @@ static ctrl_state_t ctrl_proc_ts_button_wait(ctrl_context_t *ctrl_ptr, bool tson
  */
 static ctrl_state_t ctrl_proc_wait_neg_air(ctrl_context_t *ctrl_ptr)
 {
-    if (tx_time_get() >= ctrl_ptr->neg_air_start + TX_TIMER_TICKS_PER_SECOND / 4)
+    if (ctrl_shutdown_open(ctrl_ptr))
+    {
+        LOG_ERROR("SHDN opened during TS activation\n");
+        return CTRL_STATE_TS_ACTIVATION_FAILURE;
+    }
+
+    if (xTaskGetTickCount() >= ctrl_ptr->neg_air_start + configTICK_RATE_HZ / 4)
     {
         LOG_INFO("Neg AIR closed, turning on inverter\n");
+        pm100_forget_state(ctrl_ptr->pm100_ptr);
         ctrl_ptr->inverter_pwr = true;
-        ctrl_ptr->precharge_start = tx_time_get();
+        ctrl_ptr->precharge_start = xTaskGetTickCount();
         return CTRL_STATE_PRECHARGE_WAIT;
     }
     return CTRL_STATE_WAIT_NEG_AIR;
@@ -318,7 +357,13 @@ static ctrl_state_t ctrl_proc_wait_neg_air(ctrl_context_t *ctrl_ptr)
  */
 static ctrl_state_t ctrl_proc_precharge_wait(ctrl_context_t *ctrl_ptr)
 {
-    const uint32_t charge_time = tx_time_get() - ctrl_ptr->precharge_start;
+    if (ctrl_shutdown_open(ctrl_ptr))
+    {
+        LOG_ERROR("SHDN opened during precharge\n");
+        return CTRL_STATE_TS_ACTIVATION_FAILURE;
+    }
+
+    const TickType_t charge_time = xTaskGetTickCount() - ctrl_ptr->precharge_start;
     if (pm100_is_precharged(ctrl_ptr->pm100_ptr))
     {
         LOG_INFO("Precharge complete\n");
@@ -344,10 +389,31 @@ static ctrl_state_t ctrl_proc_precharge_wait(ctrl_context_t *ctrl_ptr)
  */
 static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr, bool tson_pressed, bool r2d_pressed)
 {
-    if (!trc_ready())
+    if (ctrl_shutdown_open(ctrl_ptr))
     {
         LOG_ERROR("SHDN opened\n");
+        if (ctrl_ptr->rtds_active)
+        {
+            rtds_set(ctrl_ptr->rtds_config_ptr, false);
+            ctrl_ptr->rtds_active = false;
+        }
         return CTRL_STATE_TS_ACTIVATION_FAILURE;
+    }
+
+    // R2D accepted and the ready-to-drive sound is playing: the control loop
+    // keeps running (so the shutdown check above still works) until it ends
+    if (ctrl_ptr->rtds_active)
+    {
+        if ((xTaskGetTickCount() - ctrl_ptr->rtds_start) < ctrl_ptr->rtds_config_ptr->active_ticks)
+        {
+            return CTRL_STATE_R2D_WAIT;
+        }
+
+        rtds_set(ctrl_ptr->rtds_config_ptr, false);
+        ctrl_ptr->rtds_active = false;
+        ctrl_ptr->apps_bps_start = xTaskGetTickCount();
+        LOG_INFO("R2D active\n");
+        return CTRL_STATE_TS_ON;
     }
 
     dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_SET);
@@ -390,9 +456,10 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr, bool tson_press
         {
             dash_set_r2d_led_state(ctrl_ptr->dash_ptr, GPIO_PIN_RESET);
             pm100_disable(ctrl_ptr->pm100_ptr);
-            rtds_activate(ctrl_ptr->rtds_config_ptr);
+            rtds_set(ctrl_ptr->rtds_config_ptr, true);
+            ctrl_ptr->rtds_active = true;
+            ctrl_ptr->rtds_start = xTaskGetTickCount();
             ctrl_ptr->pump_pwr = 1;
-            ctrl_ptr->apps_bps_start = tx_time_get();
 
             uint16_t torque_cap = (ctrl_ptr->current_mode == CTRL_MODE_CRAWL ||
                                    ctrl_ptr->current_mode == CTRL_MODE_REVERSE) ?
@@ -413,8 +480,8 @@ static ctrl_state_t ctrl_proc_r2d_wait(ctrl_context_t *ctrl_ptr, bool tson_press
             torque_map_set_output_max(&ctrl_ptr->torque_map, torque_cap);
             LOG_INFO("Torque cap (nm x10)%d\n", ctrl_ptr->torque_map.output_max);
 
-            LOG_INFO("R2D active\n");
-            return CTRL_STATE_TS_ON;
+            // TS_ON follows once the ready-to-drive sound has finished
+            return CTRL_STATE_R2D_WAIT;
         }
     }
 
@@ -452,16 +519,16 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
         {
             LOG_ERROR("BP and AP pressed\n");
 
-            if (tx_time_get() >= ctrl_ptr->apps_bps_start + (TX_TIMER_TICKS_PER_SECOND / 50))
+            if (xTaskGetTickCount() >= ctrl_ptr->apps_bps_start + (configTICK_RATE_HZ / 50))
             {
                 LOG_ERROR("BP-AP fault\n");
-                ctrl_ptr->apps_bps_fault_start = tx_time_get();
+                ctrl_ptr->apps_bps_fault_start = xTaskGetTickCount();
                 return CTRL_STATE_APPS_BPS_FAULT;
             }
         }
         else
         {
-            ctrl_ptr->apps_bps_start = tx_time_get();
+            ctrl_ptr->apps_bps_start = xTaskGetTickCount();
         }
 
         ctrl_ptr->torque_request =
@@ -472,7 +539,7 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
         ctrl_ptr->torque_request = remote_get_torque_reading(ctrl_ptr->remote_ctrl_ptr);
     }
 
-    LOG_INFO("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
+    LOG_DEBUG("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
 
     if (ctrl_ptr->torque_request == 0)
     {
@@ -511,7 +578,7 @@ static ctrl_state_t ctrl_proc_r2d_off(ctrl_context_t *ctrl_ptr)
 {
     ctrl_ptr->torque_request = 0;
     status_t pm100_status = pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-    ctrl_ptr->motor_torque_zero_start = tx_time_get();
+    ctrl_ptr->motor_torque_zero_start = xTaskGetTickCount();
     ctrl_ptr->pump_pwr = 0;
 
     if (pm100_status != STATUS_OK)
@@ -539,7 +606,7 @@ static ctrl_state_t ctrl_proc_r2d_off_wait(ctrl_context_t *ctrl_ptr)
         return CTRL_STATE_TS_RUN_FAULT;
     }
 
-    if (tx_time_get() >= ctrl_ptr->motor_torque_zero_start + TX_TIMER_TICKS_PER_SECOND / 2)
+    if (xTaskGetTickCount() >= ctrl_ptr->motor_torque_zero_start + configTICK_RATE_HZ / 2)
     {
         return CTRL_STATE_R2D_WAIT;
     }
@@ -593,14 +660,14 @@ static ctrl_state_t ctrl_proc_apps_bps_fault(ctrl_context_t *ctrl_ptr, bool tson
         if ((ctrl_ptr->apps_reading < ctrl_ptr->config_ptr->apps_bps_low_threshold) &&
             ctrl_ptr->bps_reading <= ctrl_ptr->config_ptr->apps_bps_fault_bps_threshold)
         {
-            if (tx_time_get() > ctrl_ptr->apps_bps_fault_start + TX_TIMER_TICKS_PER_SECOND / 10)
+            if (xTaskGetTickCount() > ctrl_ptr->apps_bps_fault_start + configTICK_RATE_HZ / 10)
             {
                 return CTRL_STATE_TS_ON;
             }
         }
         else
         {
-            ctrl_ptr->apps_bps_fault_start = tx_time_get();
+            ctrl_ptr->apps_bps_fault_start = xTaskGetTickCount();
         }
     }
 
@@ -632,8 +699,10 @@ static ctrl_state_t ctrl_handle_ts_fault(ctrl_context_t *ctrl_ptr, bool tson_pre
 
     ctrl_ptr->torque_request = 0;
     pm100_request_torque(ctrl_ptr->pm100_ptr, 0);
-    ctrl_ptr->pump_pwr = false;
-    ctrl_ptr->fans_ptr->fan_thermal_pwr = false;
+
+    // keep cooling while the inverter or motor is hot (the fans service's
+    // thermal hysteresis decides), e.g. after an over-temperature fault
+    ctrl_ptr->pump_pwr = ctrl_ptr->fans_ptr->fan_thermal_pwr;
 
     trc_set_ts_on(GPIO_PIN_RESET);
     dash_blink_ts_on_led(dash_ptr, config_ptr->error_led_toggle_ticks);
@@ -651,7 +720,7 @@ static ctrl_state_t ctrl_handle_ts_fault(ctrl_context_t *ctrl_ptr, bool tson_pre
  *
  * @param[in]   ctrl_ptr    Control context
  */
-void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
+static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 {
     ctrl_state_t next_state = ctrl_ptr->state;
     bool tson_pressed;
@@ -699,7 +768,11 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
     case CTRL_STATE_TS_ACTIVATION_FAILURE:
     case CTRL_STATE_TS_RUN_FAULT:
     {
-        LOG_ERROR("TS fault during activation or runtime\n");
+        // this state runs every tick, so only log on entry
+        if (ctrl_ptr->prev_state != ctrl_ptr->state)
+        {
+            LOG_ERROR("TS fault during activation or runtime\n");
+        }
         next_state = ctrl_handle_ts_fault(ctrl_ptr, tson_pressed);
         break;
     }
@@ -723,13 +796,16 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
     if (next_state == CTRL_STATE_TS_ON && ctrl_ptr->state != CTRL_STATE_TS_ON)
     {
-        // reset torque limiter integrator state on every entry to driving,
-        // including fault-recovery paths that skip ctrl_proc_r2d_wait
+        // reset torque limiter integrator state and the APPS/BPS plausibility
+        // timer on every entry to driving, including fault-recovery paths
+        // that skip ctrl_proc_r2d_wait
         torque_limiters_reset(&ctrl_ptr->torque_limiters);
+        ctrl_ptr->apps_bps_start = xTaskGetTickCount();
     }
 
     dash_clear_buttons(ctrl_ptr->dash_ptr);
 
+    ctrl_ptr->prev_state = ctrl_ptr->state;
     ctrl_ptr->state = next_state;
 }
 
@@ -738,9 +814,9 @@ void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
  *
  * @param[in]   ctrl_ptr
  */
-void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr)
+static void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr)
 {
-    canbc_states_t *states = canbc_lock_state(ctrl_ptr->canbc_ptr, TX_NO_WAIT);
+    canbc_states_t *states = canbc_lock_state(ctrl_ptr->canbc_ptr, 0);
 
     if (states != NULL)
     {

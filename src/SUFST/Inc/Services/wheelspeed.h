@@ -10,9 +10,11 @@
 #ifndef WHEELSPEED_H
 #define WHEELSPEED_H
 
+#include <FreeRTOS.h>
 #include <rtcan.h>
+#include <semphr.h>
 #include <stdint.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "config.h"
 #include "status.h"
@@ -37,10 +39,9 @@ typedef struct
 
 typedef struct
 {
-    TX_THREAD thread;
-    TX_SEMAPHORE sample_semaphore;
-    TX_TIMER sample_timer;
-    TX_MUTEX reading_mutex;
+    TaskHandle_t thread;
+    SemaphoreHandle_t reading_mutex;
+    StaticSemaphore_t reading_mutex_cb;
     rtcan_handle_t *rtcan_h;
     wheel_state_t wheel_fr;
     wheel_state_t wheel_fl;
@@ -48,11 +49,11 @@ typedef struct
     wheel_state_t wheel_rl;
     wheelspeed_reading_t last_reading;
     const config_wheelspeed_t *config_ptr;
+    TickType_t tx_error_log_tick; // rate limits the transmit failure log
 } wheelspeed_context_t;
 
 status_t wheelspeed_init(wheelspeed_context_t *wheelspeed_h,
                          rtcan_handle_t *rtcan_h,
-                         TX_BYTE_POOL *stack_pool_ptr,
                          const config_wheelspeed_t *config_ptr);
 
 void wheelspeed_handle_exti(wheelspeed_context_t *wheelspeed_h, uint16_t gpio_pin);

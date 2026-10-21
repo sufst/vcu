@@ -17,12 +17,13 @@
   */
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
-#include "app_threadx.h"
 #include "main.h"
+#include "cmsis_os.h"
 #include "adc.h"
 #include "can.h"
 #include "dma.h"
 #include "i2c.h"
+#include "iwdg.h"
 #include "spi.h"
 #include "tim.h"
 #include "usart.h"
@@ -31,6 +32,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "io.h"
+#include "watchdog.h"
 #include "adc_scan.h"
 /* USER CODE END Includes */
 
@@ -57,6 +59,7 @@
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MPU_Config(void);
+void MX_FREERTOS_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -74,6 +77,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
+  watchdog_check_reset_cause();
 
   /* USER CODE END 1 */
 
@@ -131,7 +135,14 @@ int main(void)
 
   /* USER CODE END 2 */
 
-  MX_ThreadX_Init();
+  /* Init scheduler */
+  osKernelInitialize();
+
+  /* Call init function for freertos objects (in freertos.c) */
+  MX_FREERTOS_Init();
+
+  /* Start scheduler */
+  osKernelStart();
 
   /* We should never get here as control is now taken by the scheduler */
 
@@ -264,11 +275,26 @@ void Error_Handler(void)
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
   __disable_irq();
+
+  /* put the outputs in a safe state: TS (AIRs) off, RTDS off */
+  VCU_Output_Low(TS_ON_GPIO_Port, TS_ON_Pin);
+  HAL_GPIO_WritePin(R2D_SIREN_GPIO_Port, R2D_SIREN_Pin, GPIO_PIN_RESET);
+
+  /* blink the heartbeat LED fast; HAL_Delay() can't be used here because
+     it needs the TIM6 interrupt, so busy-wait instead (~100 ms at 216 MHz) */
   while (1)
   {
     VCU_Output_Toggle(ROB_LED_GPIO_Port, ROB_LED_Pin);
-    HAL_Delay(100);
-
+    for (volatile uint32_t i = 0; i < 3000000U; i++)
+    {
+      /* keep the watchdog (if started) from restarting the VCU, so it stays
+         in this safe state with the fault visible (direct register write,
+         no HAL needed) */
+      if ((i & 0xFFFFU) == 0U)
+      {
+        IWDG->KR = 0xAAAAU;
+      }
+    }
   }
   /* USER CODE END Error_Handler_Debug */
 }

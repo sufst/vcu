@@ -3,53 +3,54 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "ff.h"
 #include "log.h"
 #include "main.h"
+#include "rtos_utils.h"
+#include "sd_card.h"
 
 static sd_context_t *global_sd_context;
 
-static void sd_thread_entry(ULONG input);
+/*
+ * FatFs objects. These contain the sector buffers that the SD card DMA reads
+ * into and writes from, so they are placed in .dma_bss (outside DTCM).
+ */
+static FATFS sd_fs __attribute__((section(".dma_bss"), aligned(4)));
+static FIL log_file __attribute__((section(".dma_bss"), aligned(4)));
 
-static bool sd_is_connected()
-{
-    // SD_CARD_DETECT has an external pullup, so is LOW if the SD card is inserted
-    return !HAL_GPIO_ReadPin(SD_CARD_DETECT_GPIO_Port, SD_CARD_DETECT_Pin);
-}
+static void sd_thread_entry(void *arg);
 
-static UINT create_log_file(sd_context_t *sd)
+/**
+ * @brief   Creates the next unused log_N.txt file and opens it for writing
+ */
+static FRESULT create_log_file(sd_context_t *sd)
 {
     char fname[16];
     sd->log_filename[0] = '\0';
 
-    for (UINT n = 1; n <= 999; n++)
+    for (unsigned int n = 1; n <= 999; n++)
     {
         snprintf(fname, sizeof(fname), "log_%u.txt", n);
-        FX_FILE test;
-        UINT s = fx_file_open(&sd->sd_media, &test, fname, FX_OPEN_FOR_READ);
-        if (s == FX_NOT_FOUND)
+        FRESULT s = f_stat(fname, NULL);
+        if (s == FR_NO_FILE)
         {
             strncpy(sd->log_filename, fname, sizeof(sd->log_filename) - 1);
             break;
         }
-        if (s == FX_SUCCESS)
+        if (s == FR_OK)
         {
-            fx_file_close(&test);
             continue;
         }
         return s;
     }
 
     if (sd->log_filename[0] == '\0')
-        return FX_NO_MORE_SPACE;
+        return FR_DENIED;
 
-    UINT s = fx_file_create(&sd->sd_media, sd->log_filename);
-    if (s != FX_SUCCESS && s != FX_ALREADY_CREATED)
-        return s;
-
-    return fx_file_open(&sd->sd_media, &sd->log_file, sd->log_filename, FX_OPEN_FOR_WRITE);
+    return f_open(&log_file, sd->log_filename, FA_WRITE | FA_CREATE_NEW);
 }
 
-status_t sd_init(sd_context_t *sd, TX_BYTE_POOL *stack_pool_ptr, const config_sd_t *config_ptr)
+status_t sd_init(sd_context_t *sd, const config_sd_t *config_ptr)
 {
     sd->config_ptr = config_ptr;
 
@@ -59,7 +60,7 @@ status_t sd_init(sd_context_t *sd, TX_BYTE_POOL *stack_pool_ptr, const config_sd
         return STATUS_OK;
     }
 
-    if (!sd_is_connected())
+    if (!sd_card_is_inserted())
     {
         LOG_ERROR("SD card not detected!\n");
         return STATUS_OK;
@@ -67,29 +68,22 @@ status_t sd_init(sd_context_t *sd, TX_BYTE_POOL *stack_pool_ptr, const config_sd
 
     LOG_INFO("Enabling SD card\n");
 
-    void *stack_ptr = NULL;
-    LOG_INFO("SD: allocate stack\n");
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
+    status_t status = STATUS_OK;
 
-    if (tx_status == TX_SUCCESS)
+    sd->msg_queue = xQueueCreateStatic(SD_LOG_QUEUE_DEPTH, SD_LOG_MSG_SIZE,
+                                       sd->msg_queue_mem, &sd->msg_queue_cb);
+
+    if (sd->msg_queue == NULL)
     {
-        LOG_INFO("SD: allocate queue\n");
-        tx_status = tx_queue_create(&sd->msg_queue, NULL, SD_LOG_MSG_SIZE_ULONG,
-                                    sd->msg_queue_mem, sizeof(sd->msg_queue_mem));
+        status = STATUS_ERROR;
     }
 
-    if (tx_status == TX_SUCCESS)
+    if (status == STATUS_OK)
     {
-        LOG_INFO("SD: allocate thread\n");
-        tx_status =
-            tx_thread_create(&sd->thread, (CHAR *)config_ptr->thread.name, sd_thread_entry,
-                             (ULONG)sd, stack_ptr, config_ptr->thread.stack_size,
-                             config_ptr->thread.priority, config_ptr->thread.priority,
-                             TX_NO_TIME_SLICE, TX_AUTO_START);
+        status = rtos_task_create(&config_ptr->thread, sd_thread_entry, sd, &sd->thread);
     }
 
-    if (tx_status != TX_SUCCESS)
+    if (status != STATUS_OK)
     {
         LOG_ERROR("SD init failure\n");
         return STATUS_ERROR;
@@ -103,60 +97,85 @@ status_t sd_init(sd_context_t *sd, TX_BYTE_POOL *stack_pool_ptr, const config_sd
     return STATUS_OK;
 }
 
+/**
+ * @brief   Queues a line to be written to the SD card log (non-blocking)
+ */
 void write_sd_log_line(const char *line)
 {
-    if (global_sd_context == NULL)
+    sd_context_t *sd = global_sd_context;
+
+    if (sd == NULL)
         return;
 
-    char buf[LOG_MSG_MAX_TRANSMITION_LEN];
+    char buf[SD_LOG_MSG_SIZE];
     strncpy(buf, line, sizeof(buf) - 1);
     buf[sizeof(buf) - 1] = '\0';
 
-    tx_queue_send(&global_sd_context->msg_queue, buf, TX_NO_WAIT);
+    (void)xQueueSend(sd->msg_queue, buf, 0);
 }
 
-static void sd_thread_entry(ULONG input)
+/**
+ * @brief   Stops SD logging and deletes the calling (SD) task
+ */
+static void sd_stop(void)
 {
-    sd_context_t *sd = (sd_context_t *)input;
+    global_sd_context = NULL;
+    vTaskDelete(NULL);
+}
 
-    UINT s = fx_media_open(&sd->sd_media, "SD", fx_stm32_sd_driver, NULL,
-                           sd->media_buffer, sizeof(sd->media_buffer));
+static void sd_thread_entry(void *arg)
+{
+    sd_context_t *sd = (sd_context_t *)arg;
 
-    if (s != FX_SUCCESS)
+    FRESULT s = f_mount(&sd_fs, "", 1);
+
+    if (s != FR_OK)
     {
-        LOG_ERROR("SD: fx_media_open failed (%u)\n", s);
-        return;
+        LOG_ERROR("SD: f_mount failed (%u)\n", s);
+        sd_stop();
     }
 
     s = create_log_file(sd);
-    if (s != FX_SUCCESS)
+    if (s != FR_OK)
     {
         LOG_ERROR("SD: failed to create log file (%u)\n", s);
-        fx_media_close(&sd->sd_media);
-        return;
+        (void)f_unmount("");
+        sd_stop();
     }
 
     LOG_INFO("SD: logging to %s\n", sd->log_filename);
 
-    char line[LOG_MSG_MAX_TRANSMITION_LEN];
-    UINT write_status;
+    char line[SD_LOG_MSG_SIZE];
+    const TickType_t flush_period = sd->config_ptr->flush_period_ticks;
+    TickType_t last_sync = xTaskGetTickCount();
 
+    // write lines as soon as they arrive (so the queue doesn't overflow and
+    // drop messages), and sync the file to the card every flush period
     while (1)
     {
-        while (tx_queue_receive(&sd->msg_queue, line, TX_NO_WAIT) == TX_SUCCESS)
+        const TickType_t since_sync = xTaskGetTickCount() - last_sync;
+        const TickType_t wait = (since_sync < flush_period) ? (flush_period - since_sync) : 0;
+
+        if (xQueueReceive(sd->msg_queue, line, wait) == pdPASS)
         {
-            write_status = fx_file_write(&sd->log_file, line, strlen(line));
-            if (write_status != FX_SUCCESS)
+            UINT written = 0;
+            const UINT len = strlen(line);
+            s = f_write(&log_file, line, len, &written);
+
+            if (s != FR_OK || written != len)
             {
                 global_sd_context = NULL;
-                LOG_ERROR("SD: fx_file_write failed (%u)\n", write_status);
-                fx_file_close(&sd->log_file);
-                fx_media_close(&sd->sd_media);
-                return;
+                LOG_ERROR("SD: f_write failed (%u)\n", s);
+                (void)f_close(&log_file);
+                (void)f_unmount("");
+                sd_stop();
             }
         }
 
-        fx_media_flush(&sd->sd_media);
-        tx_thread_sleep(sd->config_ptr->flush_period_ticks);
+        if ((xTaskGetTickCount() - last_sync) >= flush_period)
+        {
+            (void)f_sync(&log_file);
+            last_sync = xTaskGetTickCount();
+        }
     }
 }

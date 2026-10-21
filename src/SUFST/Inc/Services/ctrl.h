@@ -9,8 +9,9 @@
 #ifndef CTRL_H
 #define CTRL_H
 
+#include <FreeRTOS.h>
 #include <stdint.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "apps.h"
 #include "bps.h"
@@ -37,6 +38,7 @@
 #define CTRL_ERROR_PRECHARGE_TIMEOUT 0x04  // precharge timed out
 #define CTRL_ERROR_TRC_RUN_FAULT 0x08      // TRC faulted at runtime
 #define CTRL_ERROR_INVERTER_RUN_FAULT 0x10 // inverter faulted at runtime
+#define CTRL_ERROR_WATCHDOG_RESET 0x20     // the watchdog restarted the VCU (cleared by a fault ack)
 
 /**
  * @brief   Control state
@@ -81,9 +83,13 @@ typedef enum
 typedef struct
 {
     ctrl_state_t state;          // state machine state
+    ctrl_state_t prev_state;     // state on the previous tick
+    bool rtds_active;            // ready-to-drive sound playing (R2D_WAIT -> TS_ON)
+    uint8_t shdn_open_count;     // consecutive ticks the shutdown circuit read open
+    TickType_t rtds_start;       // tick the ready-to-drive sound started
     ctrl_mode_t current_mode;    // current ctrl mode
     ctrl_mode_t requested_mode;  // requested ctrl mode
-    TX_THREAD thread;            // service thread
+    TaskHandle_t thread;         // service thread
     uint16_t apps_reading;       // APPS reading (% * 10)
     uint16_t bps_reading;        // BPS reading (% * 10)
     uint16_t sagl_reading;       // steering angle reading (% * 40)
@@ -100,11 +106,11 @@ typedef struct
     bool inverter_pwr;
     bool pump_pwr;
 
-    uint32_t neg_air_start;
-    uint32_t precharge_start; // precharge start time in ticks
-    uint32_t motor_torque_zero_start;
-    uint32_t apps_bps_start;
-    uint32_t apps_bps_fault_start;
+    TickType_t neg_air_start;
+    TickType_t precharge_start; // precharge start time in ticks
+    TickType_t motor_torque_zero_start;
+    TickType_t apps_bps_start;
+    TickType_t apps_bps_fault_start;
     dash_context_t *dash_ptr;   // dash service
     pm100_context_t *pm100_ptr; // PM100 service
     canbc_context_t *canbc_ptr; // CANBC service
@@ -134,7 +140,6 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    canbc_context_t *canbc_ptr,
                    fans_context_t *fans_ptr,
                    wheelspeed_context_t *wheelspeed_ptr,
-                   TX_BYTE_POOL *stack_pool_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
                    const config_torque_map_t *torque_map_config_ptr,

@@ -2,49 +2,42 @@
 
 #include "log.h"
 #include "main.h"
+#include "rtos_utils.h"
 #include <can_s.h>
 
-static void fans_thread_entry(ULONG input);
+static void fans_thread_entry(void *arg);
 
 status_t fans_init(fans_context_t *fh,
                    rtcan_handle_t *rtcan_s_h,
-                   TX_BYTE_POOL *stack_pool_ptr,
                    const config_fans_t *config_ptr)
 {
-    if (!config_ptr->enable)
-        return STATUS_OK;
-
+    // always initialise the state, the control service uses it even when the
+    // fans service is disabled
     fh->config_ptr = config_ptr;
     fh->rtcan_s_h = rtcan_s_h;
     fh->fan_switch_status = false;
     fh->fan_thermal_pwr = false;
 
-    void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
+    if (!config_ptr->enable)
+        return STATUS_OK;
+
+    status_t status = STATUS_OK;
 
     // create CAN receive queue
-    if (tx_status == TX_SUCCESS)
+    if (rtcan_os_queue_create(&fh->can_rx_queue, NULL, sizeof(rtcan_msg_t *),
+                              FANS_RX_QUEUE_SIZE, fh->can_rx_queue_mem,
+                              sizeof(fh->can_rx_queue_mem)) != RTCAN_OS_OK)
     {
-        if (rtcan_os_queue_create(&fh->can_rx_queue, NULL, sizeof(rtcan_msg_t *),
-                                  FANS_RX_QUEUE_SIZE, fh->can_rx_queue_mem,
-                                  sizeof(fh->can_rx_queue_mem)) != RTCAN_OS_OK)
-        {
-            tx_status = TX_START_ERROR;
-        }
+        status = STATUS_ERROR;
     }
 
     // create thread
-    if (tx_status == TX_SUCCESS)
+    if (status == STATUS_OK)
     {
-        tx_status =
-            tx_thread_create(&fh->thread, (CHAR *)config_ptr->thread.name, fans_thread_entry,
-                             (ULONG)fh, stack_ptr, config_ptr->thread.stack_size,
-                             config_ptr->thread.priority, config_ptr->thread.priority,
-                             TX_NO_TIME_SLICE, TX_AUTO_START);
+        status = rtos_task_create(&config_ptr->thread, fans_thread_entry, fh, &fh->thread);
     }
 
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    return status;
 }
 
 static void process_broadcast(fans_context_t *fh, const rtcan_msg_t *msg_ptr)
@@ -56,9 +49,9 @@ static void process_broadcast(fans_context_t *fh, const rtcan_msg_t *msg_ptr)
     fh->fan_switch_status = fh->config_ptr->inverted ? !data.fan_switch : data.fan_switch;
 }
 
-static void fans_thread_entry(ULONG input)
+static void fans_thread_entry(void *arg)
 {
-    fans_context_t *fh = (fans_context_t *)input;
+    fans_context_t *fh = (fans_context_t *)arg;
 
     rtcan_status_t status =
         rtcan_subscribe(fh->rtcan_s_h, CAN_S_DASH_SENSORS_DIGITAL_FRAME_ID, fh->can_rx_queue);
@@ -66,7 +59,7 @@ static void fans_thread_entry(ULONG input)
     if (status != RTCAN_OK)
     {
         LOG_ERROR("Could not subscribe on message. Terminating thread\n");
-        tx_thread_terminate(&fh->thread);
+        vTaskDelete(NULL);
     }
 
     while (1)

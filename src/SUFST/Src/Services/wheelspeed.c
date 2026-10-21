@@ -2,69 +2,53 @@
 
 #include "log.h"
 #include "main.h"
+#include "rtos_utils.h"
 #include <can_s.h>
 
-static void wheelspeed_thread_entry(ULONG input);
-static void wheelspeed_timer_callback(ULONG input);
+static void wheelspeed_thread_entry(void *arg);
 static void compute_and_broadcast(wheelspeed_context_t *wh);
 static float compute_wheel_rpm(wheel_state_t *wheel, const config_wheelspeed_t *config);
 
 status_t wheelspeed_init(wheelspeed_context_t *wh,
                          rtcan_handle_t *rtcan_h,
-                         TX_BYTE_POOL *stack_pool_ptr,
                          const config_wheelspeed_t *config_ptr)
 {
     wh->config_ptr = config_ptr;
+    wh->tx_error_log_tick = 0;
     wh->rtcan_h = rtcan_h;
 
-    void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
+    status_t status = STATUS_OK;
 
-    if (tx_status == TX_SUCCESS)
+    wh->reading_mutex = xSemaphoreCreateMutexStatic(&wh->reading_mutex_cb);
+
+    if (wh->reading_mutex == NULL)
     {
-        tx_status = tx_mutex_create(&wh->reading_mutex, NULL, TX_INHERIT);
+        status = STATUS_ERROR;
     }
 
-    if (tx_status == TX_SUCCESS)
+    if (status == STATUS_OK)
     {
-        tx_status =
-            tx_semaphore_create(&wh->sample_semaphore, (CHAR *)"wheelspeed_sem", 0);
+        status = rtos_task_create(&config_ptr->thread, wheelspeed_thread_entry, wh,
+                                  &wh->thread);
     }
 
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status = tx_timer_create(&wh->sample_timer, (CHAR *)"wheelspeed_timer",
-                                    wheelspeed_timer_callback, (ULONG)wh,
-                                    config_ptr->sample_period_ticks,
-                                    config_ptr->sample_period_ticks, TX_AUTO_ACTIVATE);
-    }
-
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status =
-            tx_thread_create(&wh->thread, (CHAR *)config_ptr->thread.name,
-                             wheelspeed_thread_entry, (ULONG)wh, stack_ptr,
-                             config_ptr->thread.stack_size, config_ptr->thread.priority,
-                             config_ptr->thread.priority, TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    return status;
 }
 
-static void wheelspeed_timer_callback(ULONG input)
+/**
+ * @brief       Wheelspeed thread
+ *
+ * @details     Runs every sample period (fixed rate, so the pulse count
+ *              delta always covers exactly one sample period)
+ */
+static void wheelspeed_thread_entry(void *arg)
 {
-    wheelspeed_context_t *wh = (wheelspeed_context_t *)input;
-    tx_semaphore_put(&wh->sample_semaphore);
-}
-
-static void wheelspeed_thread_entry(ULONG input)
-{
-    wheelspeed_context_t *wh = (wheelspeed_context_t *)input;
+    wheelspeed_context_t *wh = (wheelspeed_context_t *)arg;
+    TickType_t last_wake_time = xTaskGetTickCount();
 
     while (1)
     {
-        tx_semaphore_get(&wh->sample_semaphore, TX_WAIT_FOREVER);
+        (void)xTaskDelayUntil(&last_wake_time, wh->config_ptr->sample_period_ticks);
         compute_and_broadcast(wh);
     }
 }
@@ -75,7 +59,7 @@ static float compute_wheel_rpm(wheel_state_t *wheel, const config_wheelspeed_t *
     uint32_t delta = current - wheel->prev_count;
     wheel->prev_count = current;
 
-    float revs_per_second = (float)delta * TX_TIMER_TICKS_PER_SECOND /
+    float revs_per_second = (float)delta * configTICK_RATE_HZ /
         ((float)config->ticks_per_wheel * (float)config->sample_period_ticks);
     return revs_per_second * 60.0;
 }
@@ -94,7 +78,7 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
     float mps_rr = rpm_rr / 60.0 * cfg->wheel_circumference_meters;
     float mps_rl = rpm_rl / 60.0 * cfg->wheel_circumference_meters;
 
-    if (tx_mutex_get(&wh->reading_mutex, 100) == TX_SUCCESS)
+    if (xSemaphoreTake(wh->reading_mutex, 100) == pdPASS)
     {
         wh->last_reading.fl_mps = mps_fl;
         wh->last_reading.fr_mps = mps_fr;
@@ -104,7 +88,7 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
         wh->last_reading.fr_rpm = rpm_fr;
         wh->last_reading.rl_rpm = rpm_rl;
         wh->last_reading.rr_rpm = rpm_rr;
-        tx_mutex_put(&wh->reading_mutex);
+        xSemaphoreGive(wh->reading_mutex);
     }
     else
     {
@@ -124,8 +108,11 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
             .extended = CAN_S_WHEEL_RPM_IS_EXTENDED,
         };
         can_s_wheel_rpm_pack(msg.data, &data, msg.length);
-        if (rtcan_transmit(wh->rtcan_h, &msg) != RTCAN_OK)
+        if (rtcan_transmit(wh->rtcan_h, &msg) != RTCAN_OK &&
+            rtos_every(&wh->tx_error_log_tick, configTICK_RATE_HZ))
+        {
             LOG_ERROR("wheelspeed: failed to transmit RPM\n");
+        }
     }
 
     {
@@ -141,8 +128,11 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
             .extended = CAN_S_WHEEL_SPEEDS_IS_EXTENDED,
         };
         can_s_wheel_speeds_pack(msg.data, &data, msg.length);
-        if (rtcan_transmit(wh->rtcan_h, &msg) != RTCAN_OK)
+        if (rtcan_transmit(wh->rtcan_h, &msg) != RTCAN_OK &&
+            rtos_every(&wh->tx_error_log_tick, configTICK_RATE_HZ))
+        {
             LOG_ERROR("wheelspeed: failed to transmit speeds\n");
+        }
     }
 }
 
@@ -162,11 +152,11 @@ status_t wheelspeed_get_speeds(wheelspeed_context_t *wh, wheelspeed_reading_t *r
 {
     status_t status = STATUS_ERROR;
 
-    if (tx_mutex_get(&wh->reading_mutex, 100) == TX_SUCCESS)
+    if (xSemaphoreTake(wh->reading_mutex, 100) == pdPASS)
     {
         *result = wh->last_reading;
         status = STATUS_OK;
-        tx_mutex_put(&wh->reading_mutex);
+        xSemaphoreGive(wh->reading_mutex);
     }
     else
     {

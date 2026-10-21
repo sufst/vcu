@@ -1,28 +1,41 @@
 #include "tick.h"
 
-static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout);
-static void unlock_tick_sensors(tick_context_t *tick_ptr);
-void tick_update_canbc_states(tick_context_t *tick_ptr);
+#include "rtos_utils.h"
 
-static void tick_thread_entry(ULONG input)
+static status_t lock_tick_sensors(tick_context_t *tick_ptr, TickType_t timeout);
+static void unlock_tick_sensors(tick_context_t *tick_ptr);
+static void tick_update_canbc_states(tick_context_t *tick_ptr);
+
+static void tick_thread_entry(void *arg)
 {
-    tick_context_t *tick_ptr = (tick_context_t *)input;
+    tick_context_t *tick_ptr = (tick_context_t *)arg;
     const config_tick_t *config_ptr = tick_ptr->config_ptr;
 
     while (1)
     {
-        lock_tick_sensors(tick_ptr, 100);
+        // the control task reads these under the lock, so skip this cycle
+        // rather than write them without it
+        if (lock_tick_sensors(tick_ptr, 100) != STATUS_OK)
+        {
+            if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+            {
+                LOG_ERROR("tick: sensor locking error\n");
+            }
+            vTaskDelay(config_ptr->period);
+            continue;
+        }
+
         tick_ptr->bps_status = bps_read(&tick_ptr->bps, &tick_ptr->bps_reading);
 
         bool bps_above_threshold = (tick_ptr->bps_reading > config_ptr->bps_light_threshold);
 
         if (bps_above_threshold && !tick_ptr->bps_prev_above)
         {
-            tick_ptr->bps_active_start = tx_time_get();
+            tick_ptr->bps_active_start = xTaskGetTickCount();
         }
         else if (bps_above_threshold)
         {
-            uint32_t active_ticks = tx_time_get() - tick_ptr->bps_active_start;
+            TickType_t active_ticks = xTaskGetTickCount() - tick_ptr->bps_active_start;
             tick_ptr->brakelight_pwr = (active_ticks >= config_ptr->bps_active_ticks);
         }
         else
@@ -44,15 +57,15 @@ static void tick_thread_entry(ULONG input)
         /*LOG_INFO(tick_ptr->log_ptr, "APPS: %d   status: %d\n",
           tick_ptr->apps_reading, tick_ptr->apps_status);*/
         tick_update_canbc_states(tick_ptr);
+
         unlock_tick_sensors(tick_ptr);
 
-        tx_thread_sleep(config_ptr->period);
+        vTaskDelay(config_ptr->period);
     }
 }
 
 status_t tick_init(tick_context_t *tick_ptr,
                    canbc_context_t *canbc_ptr,
-                   TX_BYTE_POOL *stack_pool_ptr,
                    const config_tick_t *config_ptr,
                    const config_apps_t *apps_config_ptr,
                    const config_bps_t *bps_config_ptr,
@@ -72,17 +85,18 @@ status_t tick_init(tick_context_t *tick_ptr,
     tick_ptr->brakelight_pwr = false;
     tick_ptr->bps_prev_above = false;
     tick_ptr->bps_active_start = 0;
+    tick_ptr->lock_error_log_tick = 0;
 
     status_t status = STATUS_OK;
 
-    void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
     // create state mutex
-    if (tx_status == TX_SUCCESS)
+    tick_ptr->sensor_mutex = xSemaphoreCreateMutexStatic(&tick_ptr->sensor_mutex_cb);
+
+    if (tick_ptr->sensor_mutex == NULL)
     {
-        tx_status = tx_mutex_create(&tick_ptr->sensor_mutex, NULL, TX_INHERIT);
+        status = STATUS_ERROR;
     }
+
     // initialise the APPS and BPS
     if (status == STATUS_OK)
     {
@@ -109,31 +123,19 @@ status_t tick_init(tick_context_t *tick_ptr,
         status = scs_create(&tick_ptr->mode_adc, &ext_inputs_config_ptr->mode_switch);
     }
 
-    if (tx_status == TX_SUCCESS)
+    // only start the thread if everything else initialised
+    if (status == STATUS_OK)
     {
-        tx_status =
-            tx_thread_create(&tick_ptr->thread, (CHAR *)config_ptr->thread.name,
-                             tick_thread_entry, (ULONG)tick_ptr, stack_ptr,
-                             config_ptr->thread.stack_size, config_ptr->thread.priority,
-                             config_ptr->thread.priority, TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-    if (tx_status != TX_SUCCESS)
-    {
-        status = STATUS_ERROR;
-    }
-
-    // check all ok
-    if (status != STATUS_OK)
-    {
-        tx_thread_terminate(&tick_ptr->thread);
+        status = rtos_task_create(&config_ptr->thread, tick_thread_entry, tick_ptr,
+                                  &tick_ptr->thread);
     }
 
     return status;
 }
 
-void tick_update_canbc_states(tick_context_t *tick_ptr)
+static void tick_update_canbc_states(tick_context_t *tick_ptr)
 {
-    canbc_states_t *states = canbc_lock_state(tick_ptr->canbc_ptr, TX_NO_WAIT);
+    canbc_states_t *states = canbc_lock_state(tick_ptr->canbc_ptr, 0);
 
     if (states != NULL)
     {
@@ -149,11 +151,9 @@ void tick_update_canbc_states(tick_context_t *tick_ptr)
     }
 }
 
-static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
+static status_t lock_tick_sensors(tick_context_t *tick_ptr, TickType_t timeout)
 {
-    UINT tx_status = tx_mutex_get(&tick_ptr->sensor_mutex, timeout);
-
-    if (tx_status == TX_SUCCESS)
+    if (xSemaphoreTake(tick_ptr->sensor_mutex, timeout) == pdPASS)
     {
         return STATUS_OK;
     }
@@ -165,7 +165,7 @@ static status_t lock_tick_sensors(tick_context_t *tick_ptr, uint32_t timeout)
 
 static void unlock_tick_sensors(tick_context_t *tick_ptr)
 {
-    tx_mutex_put(&tick_ptr->sensor_mutex);
+    xSemaphoreGive(tick_ptr->sensor_mutex);
 }
 
 status_t tick_get_bps_reading(tick_context_t *tick_ptr, uint16_t *result)
@@ -180,7 +180,10 @@ status_t tick_get_bps_reading(tick_context_t *tick_ptr, uint16_t *result)
     }
     else
     {
-        LOG_ERROR("BPS locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("BPS locking error\n");
+        }
     }
 
     return status;
@@ -198,7 +201,10 @@ status_t tick_get_apps_reading(tick_context_t *tick_ptr, uint16_t *result)
     }
     else
     {
-        LOG_ERROR("APPS locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("APPS locking error\n");
+        }
     }
 
     return status;
@@ -215,7 +221,10 @@ status_t tick_clear_apps_scs_error(tick_context_t *tick_ptr)
     }
     else
     {
-        LOG_ERROR("APPS locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("APPS locking error\n");
+        }
     }
 
     return status;
@@ -233,7 +242,10 @@ status_t tick_get_sagl_reading(tick_context_t *tick_ptr, uint16_t *result)
     }
     else
     {
-        LOG_ERROR("SAGL locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("SAGL locking error\n");
+        }
     }
 
     return status;
@@ -251,7 +263,10 @@ status_t tick_get_current_reading(tick_context_t *tick_ptr, uint16_t *result)
     }
     else
     {
-        LOG_ERROR("Current locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("Current locking error\n");
+        }
     }
 
     return status;
@@ -269,7 +284,10 @@ status_t tick_get_mode_adc_reading(tick_context_t *tick_ptr, uint16_t *result)
     }
     else
     {
-        LOG_ERROR("Mode switch locking error\n");
+        if (rtos_every(&tick_ptr->lock_error_log_tick, configTICK_RATE_HZ))
+        {
+            LOG_ERROR("Mode switch locking error\n");
+        }
     }
 
     return status;

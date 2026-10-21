@@ -9,12 +9,14 @@
 #define CANBC_H
 
 #include "log.h"
+#include <FreeRTOS.h>
 #include <can.h>
 #include <can_s.h>
 #include <can_t.h>
 #include <rtcan.h>
+#include <semphr.h>
 #include <stdint.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "config.h"
 #include "status.h"
@@ -42,17 +44,19 @@ typedef struct
  */
 typedef struct
 {
-    TX_THREAD thread;                 // service thread
-    TX_MUTEX state_mutex;             // mutex for locking broadcast states
+    TaskHandle_t thread;              // service thread
+    SemaphoreHandle_t state_mutex;    // mutex for locking broadcast states
+    StaticSemaphore_t state_mutex_cb; // state mutex control block
     rtcan_handle_t *rtcan_t_h;        // RTCAN instance for the tractive bus
     rtcan_handle_t *rtcan_s_h;        // RTCAN instance for the sensor bus
     canbc_states_t states;            // broadcasting states
-    uint16_t rolling_counter;         // counts number of broadcasts
     const config_canbc_t *config_ptr; // configuration
 
     uint8_t rtcan1_error; // sticky flag: CAN1 (CAN-S) transmit failure
     uint8_t rtcan2_error; // sticky flag: CAN2 (CAN-T) transmit failure
     uint8_t canbc_error; // sticky flag: canbc service failure (e.g. lock timeout)
+    TickType_t tx_error_log_tick_t; // rate limit of the CAN-T transmit failure log
+    TickType_t tx_error_log_tick_s; // rate limit of the CAN-S transmit failure log
 
 } canbc_context_t;
 
@@ -62,10 +66,9 @@ typedef struct
 status_t canbc_init(canbc_context_t *canbc_h,
                     rtcan_handle_t *rtcan_t_h,
                     rtcan_handle_t *rtcan_s_h,
-                    TX_BYTE_POOL *stack_pool_ptr,
                     const config_canbc_t *config_ptr);
 
-canbc_states_t *canbc_lock_state(canbc_context_t *canbc_h, uint32_t timeout);
+canbc_states_t *canbc_lock_state(canbc_context_t *canbc_h, TickType_t timeout);
 
 void canbc_unlock_state(canbc_context_t *canbc_h);
 

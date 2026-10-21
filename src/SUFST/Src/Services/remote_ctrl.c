@@ -7,17 +7,18 @@
 
 #include "remote_ctrl.h"
 
-static void remote_ctrl_thread_entry(ULONG input);
-static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_t timeout);
+#include "rtos_utils.h"
+
+static void remote_ctrl_thread_entry(void *arg);
+static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, TickType_t timeout);
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr);
-void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr);
+static void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr);
 
 static void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr,
                               const rtcan_msg_t *msg_ptr);
 
 status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
                           canbc_context_t *canbc_ptr,
-                          TX_BYTE_POOL *stack_pool_ptr,
                           rtcan_handle_t *rtcan_s_prt,
                           const config_remote_ctrl_t *config_ptr)
 {
@@ -25,60 +26,45 @@ status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
     remote_ctrl_ptr->rtcan_s_ptr = rtcan_s_prt;
     remote_ctrl_ptr->canbc_ptr = canbc_ptr;
     remote_ctrl_ptr->requests = (struct can_s_vcu_simulation_t){ 0 };
+    remote_ctrl_ptr->ts_on_prev = false;
+    remote_ctrl_ptr->r2d_prev = false;
+    remote_ctrl_ptr->timed_out = false;
 
     status_t status = STATUS_OK;
 
-    // create service thread
-    void *stack_ptr = NULL;
-    UINT tx_status = tx_byte_allocate(stack_pool_ptr, &stack_ptr,
-                                      config_ptr->thread.stack_size, TX_NO_WAIT);
-
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status =
-            tx_thread_create(&remote_ctrl_ptr->thread,
-                             (CHAR *)config_ptr->thread.name,
-                             remote_ctrl_thread_entry, (ULONG)remote_ctrl_ptr,
-                             stack_ptr, config_ptr->thread.stack_size,
-                             config_ptr->thread.priority, config_ptr->thread.priority,
-                             TX_NO_TIME_SLICE, TX_AUTO_START);
-    }
-
     // create CAN receive queue
-    if (tx_status == TX_SUCCESS)
-    {
-        if (rtcan_os_queue_create(&remote_ctrl_ptr->can_rx_queue, NULL,
-                                  sizeof(rtcan_msg_t *), REMOTE_CTRL_RX_QUEUE_SIZE,
-                                  remote_ctrl_ptr->can_rx_queue_mem,
-                                  sizeof(remote_ctrl_ptr->can_rx_queue_mem)) != RTCAN_OS_OK)
-        {
-            tx_status = TX_START_ERROR;
-        }
-    }
-
-    // create state mutex
-    if (tx_status == TX_SUCCESS)
-    {
-        tx_status = tx_mutex_create(&remote_ctrl_ptr->sensor_mutex, NULL, TX_INHERIT);
-    }
-
-    if (tx_status != TX_SUCCESS)
+    if (rtcan_os_queue_create(&remote_ctrl_ptr->can_rx_queue, NULL, sizeof(rtcan_msg_t *),
+                              REMOTE_CTRL_RX_QUEUE_SIZE, remote_ctrl_ptr->can_rx_queue_mem,
+                              sizeof(remote_ctrl_ptr->can_rx_queue_mem)) != RTCAN_OS_OK)
     {
         status = STATUS_ERROR;
     }
 
-    // check all ok
-    if (status != STATUS_OK)
+    // create state mutex
+    if (status == STATUS_OK)
     {
-        tx_thread_terminate(&remote_ctrl_ptr->thread);
+        remote_ctrl_ptr->sensor_mutex =
+            xSemaphoreCreateMutexStatic(&remote_ctrl_ptr->sensor_mutex_cb);
+
+        if (remote_ctrl_ptr->sensor_mutex == NULL)
+        {
+            status = STATUS_ERROR;
+        }
+    }
+
+    // create service thread (only once everything it uses exists)
+    if (status == STATUS_OK)
+    {
+        status = rtos_task_create(&config_ptr->thread, remote_ctrl_thread_entry,
+                                  remote_ctrl_ptr, &remote_ctrl_ptr->thread);
     }
 
     return status;
 }
 
-static void remote_ctrl_thread_entry(ULONG input)
+static void remote_ctrl_thread_entry(void *arg)
 {
-    remote_ctrl_context_t *remote_ctrl_ptr = (remote_ctrl_context_t *)input;
+    remote_ctrl_context_t *remote_ctrl_ptr = (remote_ctrl_context_t *)arg;
     const config_remote_ctrl_t *config_ptr = remote_ctrl_ptr->config_ptr;
 
     uint32_t rtcan_channel = CAN_S_VCU_SIMULATION_FRAME_ID;
@@ -89,7 +75,7 @@ static void remote_ctrl_thread_entry(ULONG input)
     if (status != RTCAN_OK)
     {
         LOG_ERROR("Failed to subscribe to the CAN_S_VCU_SIMULATION message");
-        tx_thread_terminate(&remote_ctrl_ptr->thread);
+        vTaskDelete(NULL);
     }
 
     while (1)
@@ -101,20 +87,30 @@ static void remote_ctrl_thread_entry(ULONG input)
 
         if (rec_status == RTCAN_OS_OK && msg_ptr != NULL)
         {
+            remote_ctrl_ptr->timed_out = false;
+
             if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
             {
                 process_broadcast(remote_ctrl_ptr, msg_ptr);
-                rtcan_msg_consumed(remote_ctrl_ptr->rtcan_s_ptr, msg_ptr);
                 unlock_sim_sensors(remote_ctrl_ptr);
             }
             else
             {
                 LOG_ERROR("Error locking sensors\n");
             }
+
+            // always release the message, or the RTCAN receive pool leaks
+            rtcan_msg_consumed(remote_ctrl_ptr->rtcan_s_ptr, msg_ptr);
         }
         else if (rec_status == RTCAN_OS_TIMEOUT)
         {
-            LOG_ERROR("Broadcast timeout\n");
+            // the remote control is normally not connected, so only log
+            // when the link is lost, not every timeout
+            if (!remote_ctrl_ptr->timed_out)
+            {
+                LOG_WARN("Remote control: broadcast timeout\n");
+                remote_ctrl_ptr->timed_out = true;
+            }
             reset_remote_ctrl_requests(remote_ctrl_ptr);
         }
         else
@@ -122,15 +118,13 @@ static void remote_ctrl_thread_entry(ULONG input)
             LOG_ERROR("Broadcast Error: %d\n", rec_status);
             reset_remote_ctrl_requests(remote_ctrl_ptr);
         }
-        tx_thread_sleep(config_ptr->period);
+        vTaskDelay(config_ptr->period);
     }
 }
 
-static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_t timeout)
+static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, TickType_t timeout)
 {
-    UINT tx_status = tx_mutex_get(&remote_ctrl_ptr->sensor_mutex, timeout);
-
-    if (tx_status == TX_SUCCESS)
+    if (xSemaphoreTake(remote_ctrl_ptr->sensor_mutex, timeout) == pdPASS)
     {
         return STATUS_OK;
     }
@@ -139,7 +133,7 @@ static status_t lock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr, uint32_
 
 static void unlock_sim_sensors(remote_ctrl_context_t *remote_ctrl_ptr)
 {
-    tx_mutex_put(&remote_ctrl_ptr->sensor_mutex);
+    xSemaphoreGive(remote_ctrl_ptr->sensor_mutex);
 }
 
 uint16_t remote_get_torque_reading(remote_ctrl_context_t *remote_ctrl_ptr)
@@ -207,7 +201,7 @@ uint8_t remote_get_r2d_pressed(remote_ctrl_context_t *remote_ctrl_ptr)
     return result;
 }
 
-void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t *msg_ptr)
+static void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t *msg_ptr)
 {
     switch (msg_ptr->identifier)
     {
@@ -221,7 +215,7 @@ void process_broadcast(remote_ctrl_context_t *remote_ctrl_ptr, const rtcan_msg_t
     }
 }
 
-void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr)
+static void reset_remote_ctrl_requests(remote_ctrl_context_t *remote_ctrl_ptr)
 {
     if (lock_sim_sensors(remote_ctrl_ptr, 100) == STATUS_OK)
     {

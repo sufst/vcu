@@ -12,10 +12,12 @@
 #ifndef PM100_H
 #define PM100_H
 
+#include <FreeRTOS.h>
 #include <can_t.h>
 #include <rtcan.h>
+#include <semphr.h>
 #include <stdint.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "config.h"
 #include "log.h"
@@ -38,12 +40,13 @@
  */
 typedef struct
 {
-    TX_THREAD thread;
+    TaskHandle_t thread;
     rtcan_handle_t *rtcan_t_ptr;
     rtcan_handle_t *rtcan_s_ptr;
     rtcan_queue_t can_rx_queue;
     uint32_t can_rx_queue_mem[RTCAN_OS_QUEUE_MEM_SIZE(PM100_RX_QUEUE_SIZE, sizeof(rtcan_msg_t *)) / sizeof(uint32_t)];
-    TX_MUTEX state_mutex;
+    SemaphoreHandle_t state_mutex;
+    StaticSemaphore_t state_mutex_cb;
     bool broadcasts_valid;
     struct can_t_pm100_internal_states_t states;
     struct can_t_pm100_fault_codes_t faults;
@@ -56,17 +59,17 @@ typedef struct
     uint16_t error;
     const config_pm100_t *config_ptr;
     bool reverse_mode_dangerous;
+    bool request_failed; // last torque request failed (limits error logging)
+    bool lockout_logged; // lockout warning already logged
 } pm100_context_t;
 
 /*
  * public functions
  */
 status_t pm100_init(pm100_context_t *pm100_ptr,
-                    TX_BYTE_POOL *stack_pool_ptr,
                     rtcan_handle_t *rtcan_t_ptr,
                     rtcan_handle_t *rtcan_s_ptr,
                     const config_pm100_t *config_ptr);
-status_t pm100_lvs_on(pm100_context_t *pm100_ptr);
 status_t pm100_lvs_off(pm100_context_t *pm100_ptr);
 bool pm100_is_precharged(pm100_context_t *pm100_ptr);
 int16_t pm100_motor_temp(pm100_context_t *pm100_ptr);
@@ -76,5 +79,6 @@ float pm100_electrical_power_w(pm100_context_t *pm100_ptr);
 status_t pm100_disable(pm100_context_t *pm100_ptr);
 status_t pm100_request_torque(pm100_context_t *pm100_ptr, uint16_t torque);
 void pm100_clear_error(pm100_context_t *pm100_ptr);
+void pm100_forget_state(pm100_context_t *pm100_ptr);
 
 #endif

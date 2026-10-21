@@ -13,7 +13,6 @@
 #include <gpio.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <tx_api.h>
 #include <usart.h>
 
 #include "torque_map_funcs.h"
@@ -23,8 +22,8 @@
  */
 typedef struct
 {
-    uint32_t priority;   // thread priority
-    uint32_t stack_size; // stack size
+    uint32_t priority;   // FreeRTOS task priority (higher number = higher priority)
+    uint32_t stack_size; // stack size in bytes
     const char *name;    // name
 } config_thread_t;
 
@@ -50,10 +49,7 @@ typedef struct
     config_thread_t thread; // control thread config
     uint32_t schedule_ticks; // number of ticks between runs of the control loop thread
     bool r2d_requires_brake; // whether or not the brake needs to be pressed for R2D activation
-    uint32_t ts_ready_timeout_ticks; // ticks after which waiting for TS ready times out
-    uint32_t ts_ready_poll_ticks; // how often to poll input when waiting for TS ready
     uint32_t precharge_timeout_ticks; // ticks after which waiting for precharge times out
-    uint32_t ready_wait_led_toggle_ticks; // ticks between toggling the TS on LED while waiting for 'TS ready' from relay controller
     uint32_t error_led_toggle_ticks; // ticks between toggling TS on LED in activation error
     uint16_t apps_bps_high_threshold; // apps reading to fault when brake also pressed
     uint16_t apps_bps_low_threshold; // apps reading to recover from fault
@@ -71,11 +67,8 @@ typedef struct
 {
     config_thread_t thread; // dash thread config
     uint32_t btn_active_ticks; // ticks for which a button must be pressed for it to be considered 'activated'
-    uint32_t btn_sample_ticks; // ticks between sampling buttons
     bool vc_run_check;         // whether or not the visual check should run
     uint32_t vc_led_on_ticks; // number of ticks for which the visual check should last
-    bool vc_all_leds_on; // whether or not the visual check turns on all LEDs, or just the VC LEDs
-    uint32_t vc_stagger_ticks; // ticks between turning on each visible check LED (set to zero to turn all on at once)
 } config_dash_t;
 
 /**
@@ -95,7 +88,6 @@ typedef struct
 typedef struct
 {
     config_scs_t scs;             // SCS configuration
-    float fully_pressed_fraction; // threshold above which considered 'fully pressed'
 } config_bps_t;
 
 /**
@@ -133,7 +125,6 @@ typedef struct
     uint32_t broadcast_timeout_ticks; // maximum number of ticks to wait for a broadcast
     uint32_t torque_request_timeout_ticks;
     uint32_t precharge_timeout_ticks;
-    uint8_t speed_mode;
 } config_pm100_t;
 
 /**
@@ -166,7 +157,6 @@ typedef struct
     uint16_t period;
     uint32_t broadcast_timeout_ticks;
     uint16_t torque_limit; // Nm, limit torque as a precaution
-    uint16_t power_limit;  // W, limit power as a precaution
 } config_remote_ctrl_t;
 
 /**
@@ -198,17 +188,7 @@ typedef struct
 {
     uint8_t rtcan_s_priority;
     uint8_t rtcan_t_priority;
-    uint8_t ts_ctrl_thread_priority;
-    bool tracex_enable;
-    uint16_t driver_ctrl_tick_rate;
 } config_rtos_t;
-
-typedef struct
-{
-    bool run_apps_testbench;
-    bool run_fault_state_testbench;
-    uint8_t apps_testbench_laps;
-} config_testbenches;
 
 typedef struct
 {
@@ -300,7 +280,6 @@ typedef struct
     config_heartbeat_t heartbeat;
     config_log_t log;
     config_rtos_t rtos;
-    config_testbenches testbenches;
     config_wheelspeed_t wheelspeed;
     config_torque_limiters_t torque_limiters;
     config_sd_t sd;
@@ -312,47 +291,7 @@ typedef struct
 /*
  * public functions
  */
-const config_t *config_get();
+const config_t *config_get(void);
 
-
-/***************************************************************************
- *
- * NOTE: MIGRATION OF OLD CONFIG SYSTEM BELOW IN PROGRESS!
- *
- ***************************************************************************/
-
-/***************************************************************************
- * RTOS
-//  ***************************************************************************/
-
-// #define RTCAN_S_PRIORITY                    3
-// #define RTCAN_T_PRIORITY                    2   // critical systems more
-// important than sensors #define TS_CTRL_THREAD_PRIORITY		        2
-
-// #define TRACEX_ENABLE                       0
-//        // enable TraceX logging
-
-// #define DRIVER_CTRL_TICK_RATE               100 // times per second
-
-/***************************************************************************
- * CAN / inverter
- ***************************************************************************/
-
-#define SELECTED_DRIVER_PROFILE DRIVER_PROFILE_DEFAULT
-
-// #define INVERTER_SPEED_MODE                     0       // replace torque requests with speed requests
-// #define INVERTER_TORQUE_REQUEST_TIMEOUT	        100		// in ms
-
-
-// /***************************************************************************
-//  * testbenches
-//  ***************************************************************************/
-
-// // enable flags
-// #define RUN_APPS_TESTBENCH		            0		// APPS input from lookup table
-// #define RUN_FAULT_STATE_TESTBENCH	        0		// 'USER' button (after ready to drive) causes fault state
-
-// // testbench parameters
-// #define APPS_TESTBENCH_LAPS 	            1		// 1 for standing start only, 2+ to add flying laps
 
 #endif

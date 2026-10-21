@@ -56,8 +56,10 @@ void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, ROB_LED_Pin|VC_LEDS_Pin|LED_4_Pin|R2D_LED_Pin
-                          |LED_2_Pin|TS_ON_LED_Pin|TS_ON_Pin|BRAKELIGHT_EN_Pin
-                          |STATUS_Pin, GPIO_PIN_RESET);
+                          |LED_2_Pin|TS_ON_LED_Pin|BRAKELIGHT_EN_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOE, TS_ON_Pin|STATUS_Pin, GPIO_PIN_SET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOC, RS232_FORCEOFF_Pin|RS232_FORCEON_Pin|IMU_MODE_Pin|EEPROM_WC_Pin, GPIO_PIN_RESET);

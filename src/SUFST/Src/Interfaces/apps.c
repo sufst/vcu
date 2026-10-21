@@ -17,6 +17,7 @@ status_t apps_init(apps_context_t *apps_ptr, const config_apps_t *config_ptr)
 {
     apps_ptr->config_ptr = config_ptr;
     apps_ptr->scs_error = SCS_ERROR_NONE;
+    apps_ptr->discrepancy_logged = false;
 
     // initialise both SCS instances
     status_t status = scs_create(&apps_ptr->apps_1_signal, &config_ptr->apps_1_scs);
@@ -93,12 +94,18 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
         status = STATUS_ERROR;
         scs_error |= SCS_ERROR_APPS_DISCREPANCY;
 
-        LOG_WARN("APPS A1:%d[%s] A2:%d[%s] diff:%d[!]\n", reading_1,
-                 scs_label(status_1, status_1_verbose), reading_2,
-                 scs_label(status_2, status_2_verbose), diff);
+        // this runs every 10 ms, so only warn when the discrepancy starts
+        if (!apps_ptr->discrepancy_logged)
+        {
+            LOG_WARN("APPS A1:%d[%s] A2:%d[%s] diff:%d[!]\n", reading_1,
+                     scs_label(status_1, status_1_verbose), reading_2,
+                     scs_label(status_2, status_2_verbose), diff);
+            apps_ptr->discrepancy_logged = true;
+        }
     }
     else
     {
+        apps_ptr->discrepancy_logged = false;
         LOG_DEBUG("APPS A1:%d[%s] A2:%d[%s] diff:%d\n", reading_1,
                   scs_label(status_1, status_1_verbose), reading_2,
                   scs_label(status_2, status_2_verbose), diff);
@@ -109,19 +116,4 @@ status_t apps_read(apps_context_t *apps_ptr, uint16_t *reading_ptr)
 
     apps_ptr->scs_error = scs_error;
     return status;
-}
-
-/**
- * @brief       Reads the APPS to check if it is plausible
- *
- * @details     This should be used when you don't care what the actual reading
- *              is, but you want to know if the APPS is plausible
- *
- * @param[in]   apps_ptr    APPS context
- */
-bool apps_check_plausibility(apps_context_t *apps_ptr)
-{
-    uint16_t reading = 0;
-    status_t status = apps_read(apps_ptr, &reading);
-    return (status == STATUS_OK);
 }

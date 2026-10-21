@@ -1,13 +1,15 @@
 #include "config.h"
 
+#include <FreeRTOS.h>
+
 /**
  * @brief   Convert seconds to ticks
  *
  * @note    The maximum precision is determined by how many ticks there are per
- *          second. E.g. TX_TIMER_TICKS_PER_SECOND = 1000 gives down to 0.001s.
+ *          second. E.g. configTICK_RATE_HZ = 1000 gives down to 0.001s.
  *          Antyhing less than this rounds down to zero ticks.
  */
-#define SECONDS_TO_TICKS(x) (TX_TIMER_TICKS_PER_SECOND * x)
+#define SECONDS_TO_TICKS(x) (configTICK_RATE_HZ * (x))
 
 /**
  * @brief   VCU configuration instance
@@ -19,20 +21,25 @@
  *
  * @warning Make sure every single state in the struct is given a value,
  *          otherwise the value will default to zero
+ *
+ * @note    Thread priorities are FreeRTOS priorities: a HIGHER number means a
+ *          HIGHER priority (the opposite of ThreadX). The values below keep
+ *          the relative ordering of the old ThreadX priorities
+ *          (FreeRTOS priority = 40 - ThreadX priority), and must be below
+ *          configMAX_PRIORITIES (56).
+ *
+ * @note    Stack sizes are in bytes.
  */
 static const config_t config_instance = {
     .dash = {
         .thread = {
             .name = "Dash",
-            .priority = 4,
-            .stack_size = 1024
+            .priority = 36,
+            .stack_size = 2048
         },
         .btn_active_ticks = SECONDS_TO_TICKS(0.5),
-        .btn_sample_ticks = SECONDS_TO_TICKS(0.1),
         .vc_run_check = true,     
-        .vc_all_leds_on = true,
-        .vc_led_on_ticks = SECONDS_TO_TICKS(2),
-        .vc_stagger_ticks = SECONDS_TO_TICKS(0.25)
+        .vc_led_on_ticks = SECONDS_TO_TICKS(2)
     },
     .apps = {
 	    // .apps_1_scs = {
@@ -85,14 +92,13 @@ static const config_t config_instance = {
             .min_mapped = 0,
             .max_mapped = 1000,
             .outside_bounds_fraction = 0.5f
-        },
-        .fully_pressed_fraction = 0.25f
+        }
     },
     .ctrl = {
         .thread = {
             .name = "Control",
-            .priority = 2,
-            .stack_size = 1024
+            .priority = 38,
+            .stack_size = 2048
         },
         .schedule_ticks = SECONDS_TO_TICKS(0.01), // 100Hz control loop
         .r2d_requires_brake = true,
@@ -100,10 +106,7 @@ static const config_t config_instance = {
         .apps_bps_fault_bps_threshold = 150, // brake threshold (% * 10) to trigger apps bps fault
 	    .apps_bps_low_threshold = 50, // required APPS (% * 10) to go out of a APPS bps fault
 	    .apps_bps_high_threshold = 300, // required APPS (% * 10) to go into a APPS bps fault - set this to a big number (e.g. 2000), instead of default 300 (30%) to temporarily disable for scrut hardware demos
-        .ts_ready_poll_ticks = SECONDS_TO_TICKS(0.1),
-        .ts_ready_timeout_ticks = SECONDS_TO_TICKS(5),
         .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
-        .ready_wait_led_toggle_ticks = SECONDS_TO_TICKS(0.5),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2500,
         .endurance_max_torque = 1100,
@@ -126,19 +129,18 @@ static const config_t config_instance = {
     .pm100 = {
         .thread = {
             .name = "PM100",
-            .priority = 3,
-            .stack_size = 1024
+            .priority = 37,
+            .stack_size = 2048
         },
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
         .torque_request_timeout_ticks = SECONDS_TO_TICKS(0.1), // 100 ms
-        .precharge_timeout_ticks = SECONDS_TO_TICKS(1),
-        .speed_mode = 0
+        .precharge_timeout_ticks = SECONDS_TO_TICKS(1)
     },
     .tick = {
         .thread = {
             .name = "TICK",
-            .priority = 3,
-            .stack_size = 1024
+            .priority = 37,
+            .stack_size = 2048
         },
         .period = SECONDS_TO_TICKS(0.01),
         .bps_light_threshold = 200, // Turn breaklight on at 2%
@@ -148,27 +150,26 @@ static const config_t config_instance = {
     .remote_ctrl = {
         .thread = {
             .name = "REMOTE",
-            .priority = 3,
-            .stack_size = 1024
+            .priority = 37,
+            .stack_size = 2048
         },
         .period = SECONDS_TO_TICKS(0.01),
         .torque_limit = 2300,
-        .power_limit = 10000,
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(1)
     },
     .canbc = {
         .thread = {
             .name = "CANBC",
-            .priority = 4,
-            .stack_size = 1024
+            .priority = 36,
+            .stack_size = 2048
         },
         .broadcast_period_ticks = SECONDS_TO_TICKS(0.1)
     },
     .heartbeat = {
         .thread = {
             .name = "HEARTBEAT",
-            .priority = 16,
-            .stack_size = 512
+            .priority = 24,
+            .stack_size = 2048
         },
         .blink_period_ticks = SECONDS_TO_TICKS(0.25),
         .fast_blink_period_ticks = SECONDS_TO_TICKS(0.05)
@@ -176,8 +177,8 @@ static const config_t config_instance = {
     .log = {
         .thread = {
             .name = "LOG",
-            .priority = 15,
-            .stack_size = 1024,
+            .priority = 25,
+            .stack_size = 2048,
         },
         .min_level = LOG_LEVEL_INFO,
         .min_sd_log_level = LOG_LEVEL_WARN,
@@ -187,29 +188,21 @@ static const config_t config_instance = {
     .sd = {
         .thread = {
             .name = "SD",
-            .priority = 16,
+            .priority = 24,
             .stack_size = 8192,
         },
         .enable = true,
         .flush_period_ticks = SECONDS_TO_TICKS(10)
     },
     .rtos = {
-        .rtcan_s_priority = 3,
-        .rtcan_t_priority = 2,
-        .ts_ctrl_thread_priority = 2,
-        .tracex_enable = false,
-        .driver_ctrl_tick_rate = 100
-    },
-    .testbenches = {
-        .run_apps_testbench = false,
-        .run_fault_state_testbench = false,
-        .apps_testbench_laps = 1
+        .rtcan_s_priority = 37,
+        .rtcan_t_priority = 38, // critical systems bus is more important than sensors
     },
     .wheelspeed = {
         .thread = {
             .name = "WHEELSPEED",
-            .priority = 4,
-            .stack_size = 1024,
+            .priority = 36,
+            .stack_size = 2048,
         },
         .ticks_per_wheel = 48,
         .wheel_circumference_meters = 1.305,
@@ -239,8 +232,8 @@ static const config_t config_instance = {
     .usb_msc = {
         .thread = {
             .name = "USB_MSC",
-            .priority = 16,
-            .stack_size = 8192
+            .priority = 24,
+            .stack_size = 2048
         }
     },
     .ext_inputs = {
@@ -275,8 +268,8 @@ static const config_t config_instance = {
     .fans = {
         .thread = {
             .name = "FANS",
-            .priority = 12,
-            .stack_size = 1024,
+            .priority = 28,
+            .stack_size = 2048,
         },
         .broadcast_timeout_ticks = SECONDS_TO_TICKS(10),
         .enable = true,
@@ -289,7 +282,7 @@ static const config_t config_instance = {
 /**
  * @brief   Returns the VCU configuration instance
  */
-const config_t *config_get()
+const config_t *config_get(void)
 {
     return &config_instance;
 }

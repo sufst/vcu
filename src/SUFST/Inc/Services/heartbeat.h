@@ -7,21 +7,21 @@
 #ifndef HEARTBEAT_H
 #define HEARTBEAT_H
 
+#include <FreeRTOS.h>
 #include <stdbool.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "config.h"
 #include "status.h"
 
 typedef struct
 {
-    TX_THREAD thread;
+    TaskHandle_t thread;
     const config_heartbeat_t *config_ptr;
     volatile bool fast_mode;
 } heartbeat_context_t;
 
 status_t heartbeat_init(heartbeat_context_t *heartbeat_h,
-                        TX_BYTE_POOL *stack_pool_ptr,
                         const config_heartbeat_t *config_ptr);
 
 void heartbeat_set_fast(void);

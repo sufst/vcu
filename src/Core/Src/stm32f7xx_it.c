@@ -83,6 +83,8 @@ void NMI_Handler(void)
 
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
+  /* switch the outputs to a safe state and blink, see Error_Handler() */
+  Error_Handler();
   while (1)
   {
   }
@@ -95,7 +97,11 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  /* switch TS_ON (AIRs) off and the RTDS off straight away with single
+     register writes, before anything else that might fail (e.g. if the
+     fault was caused by a stack overflow); Error_Handler() repeats this */
+  TS_ON_GPIO_Port->BSRR = TS_ON_Pin;
+  R2D_SIREN_GPIO_Port->BSRR = (uint32_t)R2D_SIREN_Pin << 16U;
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
@@ -116,6 +122,7 @@ void MemManage_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+    Error_Handler();
     /* USER CODE END W1_MemoryManagement_IRQn 0 */
   }
 }
@@ -131,6 +138,7 @@ void BusFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_BusFault_IRQn 0 */
+    Error_Handler();
     /* USER CODE END W1_BusFault_IRQn 0 */
   }
 }
@@ -146,6 +154,7 @@ void UsageFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+    Error_Handler();
     /* USER CODE END W1_UsageFault_IRQn 0 */
   }
 }

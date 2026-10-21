@@ -57,12 +57,11 @@ lint:
   ignore:
     - linters: [ALL]
       paths:
-        - src/AZURE_RTOS/**
         - src/Core/**
         - src/Drivers/**
         - src/Middlewares/**
-        - src/FileX/**
-        - src/USBX/**
+        - src/FATFS/**
+        - src/USB_DEVICE/**
         - scripts/**
     - linters: [clang-format]
       paths:

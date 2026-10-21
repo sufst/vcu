@@ -6,7 +6,8 @@
 
 #include "scs.h"
 
-#include <tx_api.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 #include "adc_scan.h"
 #include "clip_to_range.h"
@@ -94,7 +95,7 @@ status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
 
     if (scs_ptr->status != STATUS_OK)
     {
-        scs_ptr->invalid_start_tick = tx_time_get();
+        scs_ptr->invalid_start_tick = xTaskGetTickCount();
         scs_ptr->is_valid = false;
         scs_ptr->mapped_reading = scs_ptr->config_ptr->min_mapped;
     }
@@ -102,17 +103,12 @@ status_t scs_read(scs_t *scs_ptr, uint16_t *reading_ptr)
     return scs_ptr->status;
 }
 
-uint16_t get_adc(const scs_t *scs_ptr)
-{
-    return scs_ptr->adc_reading;
-}
-
 /**
  * @brief       Map raw ADC reading of safety critical signal, with clipping
  *
  * @param[in]   scs_ptr     Pointer to SCS instance
  */
-uint16_t map_adc_reading(scs_t *scs_ptr)
+static uint16_t map_adc_reading(scs_t *scs_ptr)
 {
     uint16_t clipped = clip_to_range(scs_ptr->adc_reading, scs_ptr->config_ptr->min_adc,
                                      scs_ptr->config_ptr->max_adc);
@@ -158,7 +154,7 @@ uint16_t map_adc_reading(scs_t *scs_ptr)
  * @return      true                The signal is valid
  * @return      false               The signal is invalid
  */
-scs_status_t
+static scs_status_t
 validate(uint16_t adc_reading, uint16_t max_adc_reading, uint16_t min_adc_reading, uint32_t max_diff)
 {
     scs_status_t status = STATUS_THRESHOLD_ERROR;

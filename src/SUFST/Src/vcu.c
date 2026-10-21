@@ -10,19 +10,24 @@
 
 #include <stdbool.h>
 
+#include "io.h"
+#include "trc.h"
+#include "watchdog.h"
+
 /**
  * @brief       Initialises the VCU and all system services
  *
  * @param[in]   vcu_ptr         VCU instance
  * @param[in]   can_t_h         Critical systems CAN bus handle
  * @param[in]   can_s_h         Sensor CAN bus handle
- * @param[in]   app_mem_pool    Pointer to RTOS application memory pool
  * @param[in]   config_ptr      Pointer to VCU configuration instance
+ *
+ * @note        Called before the RTOS scheduler is started, so none of the
+ *              service threads created here run until this returns
  */
 status_t vcu_init(vcu_context_t *vcu_ptr,
                   CAN_HandleTypeDef *can_t_h,
                   CAN_HandleTypeDef *can_s_h,
-                  TX_BYTE_POOL *app_mem_pool,
                   const config_t *config_ptr)
 {
     vcu_ptr->config_ptr = config_ptr;
@@ -32,20 +37,30 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     // logging services (first so we can log errors)
     if (status == STATUS_OK)
     {
-        status = log_init(&vcu_ptr->log, app_mem_pool, &vcu_ptr->config_ptr->log);
+        status = log_init(&vcu_ptr->log, &vcu_ptr->config_ptr->log);
+    }
+
+    if (watchdog_caused_last_reset())
+    {
+        LOG_WARN("VCU was restarted by the watchdog\n");
     }
 
     // heartbeat
     if (status == STATUS_OK)
     {
-        status = heartbeat_init(&vcu_ptr->heartbeat, app_mem_pool,
+        status = heartbeat_init(&vcu_ptr->heartbeat,
                                 &vcu_ptr->config_ptr->heartbeat);
     }
 
     // enter USB mass storage mode if requested
     if (status == STATUS_OK && usb_mass_storage_mode_button_held())
     {
-        return usb_msc_init(&vcu_ptr->usb_msc, app_mem_pool,
+        // the control and PM100 services (which normally do this) don't run
+        // in USB mode, so make sure the TS and the inverter stay off
+        trc_set_ts_on(GPIO_PIN_RESET);
+        VCU_Output_Low(STATUS_GPIO_Port, STATUS_Pin);
+
+        return usb_msc_init(&vcu_ptr->usb_msc,
                             &vcu_ptr->config_ptr->usb_msc);
     }
 
@@ -83,6 +98,10 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     CAN_HandleTypeDef *can_handles[] = { can_s_h, can_t_h };
     const uint32_t rtcan_priorities[] = { vcu_ptr->config_ptr->rtos.rtcan_s_priority,
                                           vcu_ptr->config_ptr->rtos.rtcan_t_priority };
+
+    // RTCAN creates its Tx/Rx threads through CMSIS-RTOS2; give them the same
+    // stack size they had with ThreadX (the CMSIS default would be smaller)
+    const size_t rtcan_stack_size = 1024U;
     const CAN_FilterTypeDef *rtcan_filters[] = { can_s_filters, can_t_filters };
     const uint32_t rtcan_filter_counts[] = { 1U, 1U };
 
@@ -92,8 +111,8 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
         {
             const rtcan_config_t rtcan_config = {
                 .thread_priority = rtcan_priorities[i],
-                .tx_thread_stack_size = 0U,
-                .rx_thread_stack_size = 0U,
+                .tx_thread_stack_size = rtcan_stack_size,
+                .rx_thread_stack_size = rtcan_stack_size,
                 .tx_thread_stack_mem = NULL,
                 .rx_thread_stack_mem = NULL,
                 .filters = rtcan_filters[i],
@@ -125,19 +144,19 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     if (status == STATUS_OK)
     {
         status = canbc_init(&vcu_ptr->canbc, &vcu_ptr->rtcan_t, &vcu_ptr->rtcan_s,
-                            app_mem_pool, &vcu_ptr->config_ptr->canbc);
+                            &vcu_ptr->config_ptr->canbc);
     }
 
     // dash
     if (status == STATUS_OK)
     {
-        status = dash_init(&vcu_ptr->dash, app_mem_pool, &vcu_ptr->config_ptr->dash);
+        status = dash_init(&vcu_ptr->dash, &vcu_ptr->config_ptr->dash);
     }
 
     // tick
     if (status == STATUS_OK)
     {
-        status = tick_init(&vcu_ptr->tick, &vcu_ptr->canbc, app_mem_pool,
+        status = tick_init(&vcu_ptr->tick, &vcu_ptr->canbc,
                            &vcu_ptr->config_ptr->tick, &vcu_ptr->config_ptr->apps,
                            &vcu_ptr->config_ptr->bps, &vcu_ptr->config_ptr->ext_inputs);
     }
@@ -145,7 +164,7 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     // pm100
     if (status == STATUS_OK)
     {
-        status = pm100_init(&vcu_ptr->pm100, app_mem_pool, &vcu_ptr->rtcan_t,
+        status = pm100_init(&vcu_ptr->pm100, &vcu_ptr->rtcan_t,
                             &vcu_ptr->rtcan_s, &vcu_ptr->config_ptr->pm100);
     }
 
@@ -154,7 +173,7 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     {
         status = ctrl_init(&vcu_ptr->ctrl, &vcu_ptr->dash, &vcu_ptr->pm100,
                            &vcu_ptr->tick, &vcu_ptr->remote_ctrl, &vcu_ptr->canbc,
-                           &vcu_ptr->fans, &vcu_ptr->wheelspeed, app_mem_pool,
+                           &vcu_ptr->fans, &vcu_ptr->wheelspeed,
                            &vcu_ptr->config_ptr->ctrl, &vcu_ptr->config_ptr->rtds,
                            &vcu_ptr->config_ptr->torque_map,
                            &vcu_ptr->config_ptr->torque_limiters);
@@ -163,7 +182,7 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     // remote control
     if (status == STATUS_OK)
     {
-        status = remote_ctrl_init(&vcu_ptr->remote_ctrl, &vcu_ptr->canbc, app_mem_pool,
+        status = remote_ctrl_init(&vcu_ptr->remote_ctrl, &vcu_ptr->canbc,
                                   &vcu_ptr->rtcan_s, &vcu_ptr->config_ptr->remote_ctrl);
     }
 
@@ -171,20 +190,20 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
     if (status == STATUS_OK)
     {
         status = wheelspeed_init(&vcu_ptr->wheelspeed, &vcu_ptr->rtcan_s,
-                                 app_mem_pool, &vcu_ptr->config_ptr->wheelspeed);
+                                 &vcu_ptr->config_ptr->wheelspeed);
     }
 
     // fans
     if (status == STATUS_OK)
     {
-        status = fans_init(&vcu_ptr->fans, &vcu_ptr->rtcan_s, app_mem_pool,
+        status = fans_init(&vcu_ptr->fans, &vcu_ptr->rtcan_s,
                            &vcu_ptr->config_ptr->fans);
     }
 
     // sd card
     if (status == STATUS_OK)
     {
-        status = sd_init(&vcu_ptr->sd, app_mem_pool, &vcu_ptr->config_ptr->sd);
+        status = sd_init(&vcu_ptr->sd, &vcu_ptr->config_ptr->sd);
     }
 
     if (status != STATUS_OK)
@@ -233,7 +252,7 @@ status_t vcu_handle_can_tx_mailbox_callback(vcu_context_t *vcu_ptr, CAN_HandleTy
  */
 status_t vcu_handle_can_rx_it(vcu_context_t *vcu_ptr, CAN_HandleTypeDef *can_h, uint32_t rx_fifo)
 {
-    rtcan_status_t status;
+    rtcan_status_t status = RTCAN_OK;
 
     if (vcu_ptr->rtcan_t.hcan == can_h)
     {
@@ -261,10 +280,26 @@ status_t vcu_handle_can_rx_it(vcu_context_t *vcu_ptr, CAN_HandleTypeDef *can_h, 
  */
 status_t vcu_handle_can_err(vcu_context_t *vcu_ptr, CAN_HandleTypeDef *can_h)
 {
-    rtcan_status_t status;
+    rtcan_status_t status = RTCAN_OK;
 
-    LOG_ERROR("CAN error 0x%08lX on %s\n", HAL_CAN_GetError(can_h),
-              (can_h == vcu_ptr->rtcan_t.hcan) ? "CAN_T" : "CAN_S");
+    // this runs in the CAN error interrupt, which can fire for every failed
+    // transmission (e.g. bus unplugged), so log at most once per second per
+    // bus, or when the error changes
+    static uint32_t last_error[2];
+    static TickType_t last_log_tick[2];
+    static bool logged[2];
+    const uint32_t error = HAL_CAN_GetError(can_h);
+    const unsigned bus = (can_h == vcu_ptr->rtcan_t.hcan) ? 0 : 1;
+    const TickType_t now = xTaskGetTickCountFromISR();
+
+    if (!logged[bus] || error != last_error[bus] ||
+        (now - last_log_tick[bus]) >= configTICK_RATE_HZ)
+    {
+        LOG_ERROR("CAN error 0x%08lX on %s\n", error, bus == 0 ? "CAN_T" : "CAN_S");
+        logged[bus] = true;
+        last_error[bus] = error;
+        last_log_tick[bus] = now;
+    }
 
     if (vcu_ptr->rtcan_t.hcan == can_h)
     {

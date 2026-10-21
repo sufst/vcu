@@ -8,11 +8,13 @@
 #ifndef REMOTE_CTRL_H
 #define REMOTE_CTRL_H
 
+#include <FreeRTOS.h>
 #include <can_s.h>
 #include <can_t.h>
 #include <rtcan.h>
+#include <semphr.h>
 #include <stdint.h>
-#include <tx_api.h>
+#include <task.h>
 
 #include "canbc.h"
 #include "config.h"
@@ -23,8 +25,9 @@
 
 typedef struct
 {
-    TX_THREAD thread;
-    TX_MUTEX sensor_mutex;
+    TaskHandle_t thread;
+    SemaphoreHandle_t sensor_mutex;
+    StaticSemaphore_t sensor_mutex_cb;
     const config_remote_ctrl_t *config_ptr;
     canbc_context_t *canbc_ptr;
     rtcan_handle_t *rtcan_s_ptr;
@@ -34,11 +37,11 @@ typedef struct
     struct can_s_vcu_simulation_t requests;
     bool ts_on_prev;
     bool r2d_prev;
+    bool timed_out; // no messages from the remote control (limits logging)
 } remote_ctrl_context_t;
 
 status_t remote_ctrl_init(remote_ctrl_context_t *remote_ctrl_ptr,
                           canbc_context_t *canbc_ptr,
-                          TX_BYTE_POOL *stack_pool_ptr,
                           rtcan_handle_t *rtcan_s_prt,
                           const config_remote_ctrl_t *config_ptr);
 

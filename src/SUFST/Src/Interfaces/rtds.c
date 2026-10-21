@@ -1,26 +1,23 @@
 #include "rtds.h"
 
-#include <tx_api.h>
+#include <FreeRTOS.h>
+#include <task.h>
 
 #include "io.h"
 
 /**
- * @brief       Activates the RTDS and sleeps the calling thread for the
- *              duration of activation
+ * @brief       Switches the ready-to-drive sound on or off
+ *
+ * @details     The control task times the sound (config active_ticks)
+ *              itself, so the control loop keeps running while it plays
  *
  * @param[in]   config_ptr  RTDS configuration
+ * @param[in]   on          True to sound the RTDS
  */
-status_t rtds_activate(const config_rtds_t *config_ptr)
+void rtds_set(const config_rtds_t *config_ptr, bool on)
 {
-
-    // unlinke other outouts, the RTDS is active high.
-    HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_SET);
-    LOG_INFO("Waiting - RTDS\n");
-    UINT tx_status = tx_thread_sleep(config_ptr->active_ticks);
-    LOG_INFO("Waited - RTDS\n");
-    HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_RESET);
-
-    return (tx_status == TX_SUCCESS) ? STATUS_OK : STATUS_ERROR;
+    // unlike the other outputs, the RTDS is active high
+    HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, on ? GPIO_PIN_SET : GPIO_PIN_RESET);
 }
 
 /**
@@ -66,7 +63,7 @@ void rtds_pulse_tick(rtds_pulse_context_t *pulse_ptr, bool enable)
         // rising edge: start the pulse immediately with the RTDS on
         pulse_ptr->active = true;
         pulse_ptr->pin_on = true;
-        pulse_ptr->phase_start = tx_time_get();
+        pulse_ptr->phase_start = xTaskGetTickCount();
         HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin, GPIO_PIN_SET);
         return;
     }
@@ -74,11 +71,11 @@ void rtds_pulse_tick(rtds_pulse_context_t *pulse_ptr, bool enable)
     uint32_t phase_ticks = pulse_ptr->pin_on ? config_ptr->pulse_on_ticks :
                                                config_ptr->pulse_off_ticks;
 
-    if (tx_time_get() >= pulse_ptr->phase_start + phase_ticks)
+    if (xTaskGetTickCount() >= pulse_ptr->phase_start + phase_ticks)
     {
         pulse_ptr->pin_on = !pulse_ptr->pin_on;
         HAL_GPIO_WritePin(config_ptr->port, config_ptr->pin,
                           pulse_ptr->pin_on ? GPIO_PIN_SET : GPIO_PIN_RESET);
-        pulse_ptr->phase_start = tx_time_get();
+        pulse_ptr->phase_start = xTaskGetTickCount();
     }
 }
