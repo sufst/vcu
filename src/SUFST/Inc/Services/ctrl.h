@@ -19,13 +19,13 @@
 #include "config.h"
 #include "dash.h"
 #include "fans.h"
+#include "launch_ctrl.h"
 #include "log.h"
 #include "pm100.h"
 #include "remote_ctrl.h"
 #include "rtds.h"
 #include "status.h"
 #include "tick.h"
-#include "torque_limiters.h"
 #include "torque_map.h"
 #include "wheelspeed.h"
 
@@ -95,7 +95,10 @@ typedef struct
     uint16_t sagl_reading;       // steering angle reading (% * 40)
     uint16_t current_reading;    // current reading (% * 40)
     int16_t motor_speed_reading; // motor speed reading (rpm)
-    float front_wheel_rpm;    // max(FL, FR) wheel rpm, ground speed reference
+    float fl_wheel_rpm;       // front left wheel rpm
+    float fr_wheel_rpm;       // front right wheel rpm
+    uint32_t wheelspeed_sample_count; // wheelspeed sample counter (new front data when it changes)
+    bool front_new_sample;    // a new wheelspeed sample arrived since the last control tick
     float electrical_power_w; // DC-bus power reading (W)
     uint16_t torque_request;  // last torque request
     uint8_t shdn_reading;
@@ -119,7 +122,10 @@ typedef struct
     remote_ctrl_context_t *remote_ctrl_ptr; // tick thread (reads certain sensors)
     wheelspeed_context_t *wheelspeed_ptr; // wheelspeed service (front speed reference)
     torque_map_t torque_map;              // torque map (APPS -> torque request)
-    torque_limiters_context_t torque_limiters; // slip / power de-ramp limiters
+    launch_ctrl_context_t launch_ctrl;         // launch control (standing starts) + power limit
+    const config_launch_ctrl_t *launch_ctrl_config_ptr; // launch control config
+    TickType_t launch_ctrl_last_tick;          // tick of the previous launch control step
+    TickType_t launch_ctrl_log_tick;           // rate limit for launch control fault log lines
 
     const config_ctrl_t *config_ptr;      // config
     const config_rtds_t *rtds_config_ptr; // RTDS config
@@ -143,6 +149,6 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
                    const config_torque_map_t *torque_map_config_ptr,
-                   const config_torque_limiters_t *torque_limiters_config_ptr);
+                   const config_launch_ctrl_t *launch_ctrl_config_ptr);
 
 #endif

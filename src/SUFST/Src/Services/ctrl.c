@@ -9,10 +9,12 @@
 #include "clip_to_range.h"
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "mode_switch_values.h"
 #include "rtds.h"
 #include "rtos_utils.h"
+#include "sd_logging.h"
 #include "trc.h"
 #include "watchdog.h"
 
@@ -22,6 +24,10 @@
 static void ctrl_thread_entry(void *arg);
 static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr);
 static void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
+static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver_torque);
+static void ctrl_log_launch_ctrl(ctrl_context_t *ctrl_ptr,
+                                 launch_ctrl_state_t prev_state,
+                                 uint16_t driver_torque);
 
 // the shutdown circuit must read open on this many consecutive control ticks
 // (10 ms each) before an activation is aborted, so a single glitch (e.g.
@@ -42,7 +48,7 @@ static void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr);
  * @param[in]   config_ptr              Configuration
  * @param[in]   rtds_config_ptr         RTDS configuration
  * @param[in]   torque_map_config_ptr   Torque map configuration
- * @param[in]   torque_limiters_config_ptr  Torque limiters configuration
+ * @param[in]   launch_ctrl_config_ptr  Launch control configuration
  */
 status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    dash_context_t *dash_ptr,
@@ -55,7 +61,7 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
                    const config_ctrl_t *config_ptr,
                    const config_rtds_t *rtds_config_ptr,
                    const config_torque_map_t *torque_map_config_ptr,
-                   const config_torque_limiters_t *torque_limiters_config_ptr)
+                   const config_launch_ctrl_t *launch_ctrl_config_ptr)
 {
     ctrl_ptr->state = CTRL_STATE_TS_BUTTON_WAIT;
     ctrl_ptr->prev_state = CTRL_STATE_TS_BUTTON_WAIT;
@@ -78,7 +84,13 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->sagl_reading = 0;
     ctrl_ptr->current_reading = 0;
     ctrl_ptr->motor_speed_reading = 0;
-    ctrl_ptr->front_wheel_rpm = 0;
+    ctrl_ptr->fl_wheel_rpm = 0;
+    ctrl_ptr->fr_wheel_rpm = 0;
+    ctrl_ptr->wheelspeed_sample_count = 0;
+    ctrl_ptr->front_new_sample = false;
+    ctrl_ptr->launch_ctrl_config_ptr = launch_ctrl_config_ptr;
+    ctrl_ptr->launch_ctrl_last_tick = 0;
+    ctrl_ptr->launch_ctrl_log_tick = 0;
     ctrl_ptr->torque_request = 0;
     ctrl_ptr->shdn_reading = 0;
     ctrl_ptr->precharge_start = 0;
@@ -89,10 +101,10 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     // initialise the torque map
     status_t status = torque_map_init(&ctrl_ptr->torque_map, torque_map_config_ptr);
 
-    // initialise the torque limiters (slip control, etc.)
+    // initialise launch control (and the power limit)
     if (status == STATUS_OK)
     {
-        torque_limiters_init(&ctrl_ptr->torque_limiters, torque_limiters_config_ptr);
+        launch_ctrl_init(&ctrl_ptr->launch_ctrl, launch_ctrl_config_ptr);
     }
 
     // make sure TS is disabled
@@ -156,12 +168,14 @@ static void ctrl_thread_entry(void *arg)
         ctrl_ptr->electrical_power_w = pm100_electrical_power_w(ctrl_ptr->pm100_ptr);
 
         wheelspeed_reading_t wheelspeed_reading;
+        ctrl_ptr->front_new_sample = false;
         if (wheelspeed_get_speeds(ctrl_ptr->wheelspeed_ptr, &wheelspeed_reading) == STATUS_OK)
         {
-            ctrl_ptr->front_wheel_rpm =
-                (wheelspeed_reading.fl_rpm > wheelspeed_reading.fr_rpm) ?
-                wheelspeed_reading.fl_rpm :
-                wheelspeed_reading.fr_rpm;
+            ctrl_ptr->front_new_sample =
+                (wheelspeed_reading.sample_count != ctrl_ptr->wheelspeed_sample_count);
+            ctrl_ptr->wheelspeed_sample_count = wheelspeed_reading.sample_count;
+            ctrl_ptr->fl_wheel_rpm = wheelspeed_reading.fl_rpm;
+            ctrl_ptr->fr_wheel_rpm = wheelspeed_reading.fr_rpm;
         }
 
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ?
@@ -541,19 +555,10 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 
     LOG_DEBUG("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
 
-    if (ctrl_ptr->torque_request == 0)
-    {
-        // off-throttle - reset integral part
-        torque_limiters_reset(&ctrl_ptr->torque_limiters);
-    }
-    else
-    {
-        bool slip_enabled = (ctrl_ptr->current_mode == CTRL_MODE_TORQUE_CTRL);
-        ctrl_ptr->torque_request =
-            torque_limiters_apply(&ctrl_ptr->torque_limiters, ctrl_ptr->torque_request,
-                                  slip_enabled, ctrl_ptr->motor_speed_reading,
-                                  ctrl_ptr->front_wheel_rpm, ctrl_ptr->electrical_power_w);
-    }
+    // launch control (TORQUE_CTRL only) and the power limit (every mode):
+    // runs every tick, including at zero request, and only ever lowers the
+    // request
+    ctrl_ptr->torque_request = ctrl_apply_launch_ctrl(ctrl_ptr, ctrl_ptr->torque_request);
 
     ctrl_ptr->torque_request =
         clip_to_range(ctrl_ptr->torque_request, 0, ctrl_ptr->config_ptr->hard_max_torque);
@@ -796,10 +801,12 @@ static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
     if (next_state == CTRL_STATE_TS_ON && ctrl_ptr->state != CTRL_STATE_TS_ON)
     {
-        // reset torque limiter integrator state and the APPS/BPS plausibility
-        // timer on every entry to driving, including fault-recovery paths
-        // that skip ctrl_proc_r2d_wait
-        torque_limiters_reset(&ctrl_ptr->torque_limiters);
+        // reset launch control and the APPS/BPS plausibility timer on every
+        // entry to driving, including fault-recovery paths that skip
+        // ctrl_proc_r2d_wait
+        launch_ctrl_init(&ctrl_ptr->launch_ctrl, ctrl_ptr->launch_ctrl_config_ptr);
+        ctrl_ptr->launch_ctrl_last_tick =
+            xTaskGetTickCount() - ctrl_ptr->config_ptr->schedule_ticks;
         ctrl_ptr->apps_bps_start = xTaskGetTickCount();
     }
 
@@ -807,6 +814,102 @@ static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
 
     ctrl_ptr->prev_state = ctrl_ptr->state;
     ctrl_ptr->state = next_state;
+}
+
+/**
+ * @brief       Runs one step of launch control on the driver torque request
+ *
+ * @param[in]   ctrl_ptr        Control context
+ * @param[in]   driver_torque   Torque request after the torque map (Nm * 10)
+ *
+ * @return      Torque request to pass on (never above driver_torque)
+ */
+static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver_torque)
+{
+    const TickType_t now = xTaskGetTickCount();
+    const launch_ctrl_inputs_t inputs = {
+        .dt_s = (float)(now - ctrl_ptr->launch_ctrl_last_tick) / (float)configTICK_RATE_HZ,
+        .driver_torque = driver_torque,
+        .motor_rpm = ctrl_ptr->motor_speed_reading,
+        .fl_rpm = ctrl_ptr->fl_wheel_rpm,
+        .fr_rpm = ctrl_ptr->fr_wheel_rpm,
+        .front_new_sample = ctrl_ptr->front_new_sample,
+        .launch_mode_selected = (ctrl_ptr->current_mode == CTRL_MODE_TORQUE_CTRL),
+        .brake_pressed = (ctrl_ptr->bps_reading > ctrl_ptr->config_ptr->bps_on_threshold),
+        .electrical_power_w = ctrl_ptr->electrical_power_w,
+    };
+    ctrl_ptr->launch_ctrl_last_tick = now;
+
+    const launch_ctrl_state_t prev_state = ctrl_ptr->launch_ctrl.state;
+    const uint16_t torque = launch_ctrl_apply(&ctrl_ptr->launch_ctrl, &inputs);
+
+    ctrl_log_launch_ctrl(ctrl_ptr, prev_state, driver_torque);
+
+    return torque;
+}
+
+/**
+ * @brief       Writes launch control data to the SD card log
+ *
+ * @details     One line on every state change into or out of ACTIVE or
+ *              FAULT, and one line per front wheel sample (50 Hz) while a
+ *              launch is ACTIVE. Changes that don't involve ACTIVE (faults
+ *              while waiting) are written at most every 100 ms. The routine
+ *              OFF / ARMED / DONE changes are not logged, so driving around
+ *              in launch mode doesn't fill the log. Line format:
+ *
+ *              LC,<tick>,<state>,<fault>,<driver>,<limit>,<output>,<v_ground>,<v_rear>,<v_front>
+ *
+ *              state / fault: launch_ctrl_state_t / launch_ctrl_fault_t
+ *              driver: request into launch control, limit: what it wants,
+ *              output: what it passed on (= driver in shadow mode)
+ *              v_ground: estimated car speed, v_rear: from motor speed,
+ *              v_front: faster front wheel
+ *              torques in Nm * 10, speeds in cm/s. The lines go straight to
+ *              the SD queue, not over UART, so they cannot hold up the
+ *              control loop.
+ *
+ * @param[in]   ctrl_ptr        Control context
+ * @param[in]   prev_state      Launch control state before this step
+ * @param[in]   driver_torque   Torque request passed to launch control (Nm * 10)
+ */
+static void ctrl_log_launch_ctrl(ctrl_context_t *ctrl_ptr,
+                                 launch_ctrl_state_t prev_state,
+                                 uint16_t driver_torque)
+{
+    const launch_ctrl_context_t *lc = &ctrl_ptr->launch_ctrl;
+    const bool changed = (lc->state != prev_state);
+    const bool active_change = changed &&
+        (lc->state == LAUNCH_CTRL_STATE_ACTIVE || prev_state == LAUNCH_CTRL_STATE_ACTIVE);
+    const bool fault_change = changed &&
+        (lc->state == LAUNCH_CTRL_STATE_FAULT || prev_state == LAUNCH_CTRL_STATE_FAULT);
+    const bool sample = (lc->state == LAUNCH_CTRL_STATE_ACTIVE) && ctrl_ptr->front_new_sample;
+
+    if (!(active_change || sample ||
+          (fault_change &&
+           rtos_every(&ctrl_ptr->launch_ctrl_log_tick, configTICK_RATE_HZ / 10))))
+    {
+        return;
+    }
+
+    char line[SD_LOG_MSG_SIZE];
+
+    // the C library formatter is not re-entrant (as in log.c)
+    taskENTER_CRITICAL();
+    snprintf(line, sizeof(line), "LC,%lu,%d,%d,%u,%d,%u,%d,%d,%d\n",
+             (unsigned long)xTaskGetTickCount(), (int)lc->state, (int)lc->fault,
+             (unsigned)driver_torque, (int)lc->limit, (unsigned)lc->output,
+             (int)(lc->v_ground_est * 100.0f), (int)(lc->v_driven * 100.0f),
+             (int)(lc->v_front * 100.0f));
+    taskEXIT_CRITICAL();
+
+    write_sd_log_line(line);
+
+    if (active_change || fault_change)
+    {
+        LOG_INFO("Launch control state %d -> %d (fault %d)\n", (int)prev_state,
+                 (int)lc->state, (int)lc->fault);
+    }
 }
 
 /**

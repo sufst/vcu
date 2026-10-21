@@ -4,6 +4,7 @@
 #
 #   1. firmware build check  (only if arm-none-eabi-gcc is installed)
 #   2. unit tests            (torque map, limiters, APPS/BPS, ... with the real config)
+#                            + launch control tests (with its default tuning)
 #   3. simulation scenarios  (the real VCU code on FreeRTOS with a fake HAL)
 #
 # Usage:
@@ -41,7 +42,7 @@ if [ "${1:-}" = "--one" ]; then
     sd_write_error)
         "$B/fatimg" mkfs "$img" 32 || exit 1
         export VCU_SIM_SD_IMAGE="$img" VCU_SIM_SD_FAIL_AFTER=8 ;;
-    usb_mode)
+    usb_mode|launch_ctrl|launch_ctrl_shadow)
         "$B/fatimg" mkfs "$img" 32 || exit 1
         export VCU_SIM_SD_IMAGE="$img" ;;
     esac
@@ -87,6 +88,38 @@ if [ "${1:-}" = "--one" ]; then
             chk $([ "$n_apps" -ge 1 ] && echo 1 || echo 0) "APPS discrepancy warnings on the card ($n_apps)"
             chk $([ "$n_info" -eq 0 ] && echo 1 || echo 0) "INFO lines not written to the card (min SD level WARN)"
             chk $(echo "$old" | grep -q "^previous session" && echo 1 || echo 0) "existing log_1.txt left untouched"
+            echo "RESULT: $pass/$total card checks passed"
+            [ $pass -eq $total ]
+        } >>"$log" 2>&1 || rc=1
+    fi
+
+    # launch control: read the LC lines back from the card
+    # (LC,<tick>,<state>,<fault>,<driver>,<limit>,<output>,<v_ground>,<v_rear>,<v_front>)
+    if { [ "$name" = "launch_ctrl" ] || [ "$name" = "launch_ctrl_shadow" ]; } && [ $rc -eq 0 ]; then
+        {
+            echo "== launch control lines on the SD card"
+            "$B/fatimg" cat "$img" log_1.txt | grep "^LC," >"$B/sd/$name.csv"
+            lc() { awk -F, "$1" "$B/sd/$name.csv" | wc -l | tr -d ' '; }
+            n_all=$(lc '1')
+            n_data=$(lc '$3 == 2')
+            n_cut=$(lc '$3 == 2 && $7 < $5')
+            n_want=$(lc '$3 == 2 && $6 < $5')
+            n_done=$(lc '$3 == 3')
+            n_sign=$(lc '$3 == 4 && $4 == 3')
+            n_bad=$(lc '$7 > $5')
+            head -3 "$B/sd/$name.csv"; echo "..."
+            pass=0; total=0
+            chk() { total=$((total + 1)); if [ "$1" = 1 ]; then pass=$((pass + 1)); echo "  PASS: $2"; else echo "  FAIL: $2"; fi; }
+            chk $([ "$n_data" -ge 50 ] && echo 1 || echo 0) "ACTIVE data lines on the card at ~50 Hz ($n_data of $n_all lines)"
+            chk $([ "$n_bad" -eq 0 ] && echo 1 || echo 0) "no line with output above the driver request"
+            chk $([ "$n_want" -ge 1 ] && echo 1 || echo 0) "lines where the limit is below the driver request ($n_want)"
+            chk $([ "$n_done" -ge 1 ] && echo 1 || echo 0) "launch end (DONE) logged ($n_done)"
+            if [ "$name" = "launch_ctrl" ]; then
+                chk $([ "$n_cut" -ge 1 ] && echo 1 || echo 0) "lines where torque was actually cut ($n_cut)"
+                chk $([ "$n_sign" -ge 1 ] && echo 1 || echo 0) "MOTOR_REVERSE fault logged ($n_sign)"
+            else
+                chk $([ "$n_cut" -eq 0 ] && echo 1 || echo 0) "shadow mode: torque never cut ($n_cut)"
+            fi
             echo "RESULT: $pass/$total card checks passed"
             [ $pass -eq $total ]
         } >>"$log" 2>&1 || rc=1
@@ -175,6 +208,26 @@ if $CC $CFLAGS $INC "$TESTS/unit/test_units.c" "$V/SUFST/Src/config.c" "$V"/SUFS
     fi
 else
     echo "FAIL  unit tests did not compile:"; head -30 "$B/logs/unit_build.log"; failed=1
+fi
+
+# launch control: pure C, no VCU headers, so built strictly and with sanitizers
+# (AddressSanitizer only where it works: some macOS versions crash it at start-up)
+SANITIZE="-fsanitize=undefined"
+echo 'int main(void){return 0;}' >"$B/asan_probe.c"
+if $CC -fsanitize=address "$B/asan_probe.c" -o "$B/asan_probe" 2>/dev/null && sh -c "\"$B/asan_probe\" 2>/dev/null" 2>/dev/null; then
+    SANITIZE="-fsanitize=address,undefined"
+fi
+if $CC -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion -O2 -g \
+    $SANITIZE -I"$V/SUFST/Inc/Functions" \
+    "$TESTS/unit/test_launch_ctrl.c" "$TESTS/unit/launch_ctrl_config_default.c" \
+    "$V/SUFST/Src/Functions/launch_ctrl.c" -lm -o "$B/launch_ctrl_tests" 2>"$B/logs/launch_ctrl_build.log"; then
+    if "$B/launch_ctrl_tests" >"$B/logs/launch_ctrl_tests.log" 2>&1; then
+        echo "PASS  launch control $(grep RESULT "$B/logs/launch_ctrl_tests.log")"
+    else
+        echo "FAIL  launch control tests:"; grep -E "FAIL|RESULT" "$B/logs/launch_ctrl_tests.log"; failed=1
+    fi
+else
+    echo "FAIL  launch control tests did not compile:"; head -30 "$B/logs/launch_ctrl_build.log"; failed=1
 fi
 
 # ---------------------------------------------------------- 3. simulation build

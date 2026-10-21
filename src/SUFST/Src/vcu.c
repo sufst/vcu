@@ -176,7 +176,7 @@ status_t vcu_init(vcu_context_t *vcu_ptr,
                            &vcu_ptr->fans, &vcu_ptr->wheelspeed,
                            &vcu_ptr->config_ptr->ctrl, &vcu_ptr->config_ptr->rtds,
                            &vcu_ptr->config_ptr->torque_map,
-                           &vcu_ptr->config_ptr->torque_limiters);
+                           &vcu_ptr->config_ptr->launch_ctrl);
     }
 
     // remote control

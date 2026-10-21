@@ -94,8 +94,7 @@ src/SUFST/Src/config.c \
 src/SUFST/Src/rtos_utils.c \
 src/SUFST/Src/Functions/clip_to_range.c \
 src/SUFST/Src/Functions/torque_map.c \
-src/SUFST/Src/Functions/compressor.c \
-src/SUFST/Src/Functions/torque_limiters.c \
+src/SUFST/Src/Functions/launch_ctrl.c \
 src/SUFST/Src/Functions/mode_switch_values.c \
 src/SUFST/Src/Interfaces/usb_mass_storage_mode.c \
 src/SUFST/Src/Interfaces/sd_card.c \

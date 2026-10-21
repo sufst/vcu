@@ -35,7 +35,7 @@ tests/run_tests.sh
 It takes about 2 minutes and prints one line per test. A good run ends with:
 
 ```
-scenarios: 48 passed, 0 failed (of 48)
+scenarios: 49 passed, 0 failed (of 49)
 ALL TESTS PASSED
 ```
 
@@ -44,9 +44,13 @@ What it runs:
 1. **Firmware build check** - builds the release and debug firmware (skipped if the ARM toolchain
    isn't installed), fails on any new compiler warning, and runs the stack/RAM analysis
    ([step 1b](#step-1b-check-the-ram-budget)).
-2. **92 unit checks** on the pure logic, using the real calibration from `config.c`: torque map,
-   torque limiters (slip + 75 kW power limit), APPS/BPS scaling and plausibility, mode switch.
-3. **48 simulation scenarios**, each in a fresh process, in real time. Run
+2. **84 unit checks** on the pure logic, using the real calibration from `config.c`: torque map,
+   the 75 kW power limit (part of launch control), launch control config, APPS/BPS scaling and
+   plausibility, mode switch. Plus **36 launch control checks** (`tests/unit/test_launch_ctrl.c`)
+   with its starting tuning from `tests/unit/launch_ctrl_config_default.c`: never more torque
+   than the driver asks for, arming only from rest, wheelspin cut, lift-off/brake/timeout exits,
+   sensor faults falling back to driver torque, shadow mode, power limit in every mode.
+3. **49 simulation scenarios**, each in a fresh process, in real time. Run
    `tests/build/vcu_sim --list` to see them all. They cover:
    - power-up, heartbeat, CAN broadcast rates, wheel speeds
    - TS activation, precharge (and its timeout), R2D (needs brake + long press), RTDS timing
@@ -55,7 +59,11 @@ What it runs:
    - APPS/BPS plausibility, APPS sensor disagreement/unplugged, brake sensor failure
    - shutdown circuit opening before and while driving
    - PM100 run faults (both fault words), POST fault, enable lockout, inverter going silent
-   - power limiter, slip control, fans and their hysteresis, dash fan switch, brake light
+   - power limiter, fans and their hysteresis, dash fan switch, brake light
+   - launch control on a simple car model: a full launch from rest with launch control live
+     (torque cut, floor/cap, exit at 20 m/s, lift-off, wrong motor speed sign -> fault),
+     `config.c` as shipped (shadow mode) never changing the torque (both read the `LC,...` lines
+     back from the SD card image), and no launch control outside torque control mode
    - 3000 random CAN frames while driving, a storm of CAN error interrupts
    - a 30 s random-driving soak test (no control loop stalls, no memory leaks)
    - the shutdown circuit opening during the AIR wait, precharge and the RTDS (and short glitches
@@ -85,7 +93,7 @@ Every scenario's full output (state changes, all log lines, PASS/FAIL per check)
 
 **Run this after every change you make to the VCU code**, before flashing. If you change
 behaviour on purpose (e.g. a new threshold in `config.c`), update the matching test in
-`tests/sim/src/sim_main.c` or `tests/unit/test_units.c`.
+`tests/sim/src/sim_main.c`, `tests/unit/test_units.c` or `tests/unit/test_launch_ctrl.c`.
 
 What the PC tests can't check: real timing on the STM32, the ADC and DMA, the CAN controllers and
 transceivers, the SD card hardware and the USB stack. That's what steps 3-8 are for.

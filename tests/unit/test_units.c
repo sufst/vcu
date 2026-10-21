@@ -1,8 +1,10 @@
 /*
  * Unit tests for the VCU's pure logic, using the real calibration in
  * src/SUFST/Src/config.c:
- *   clip_to_range, mode switch decoding, torque map, compressor,
- *   torque limiters (slip + power), SCS validation/mapping, APPS, BPS.
+ *   clip_to_range, mode switch decoding, torque map, power limit and
+ *   launch control config, SCS validation/mapping, APPS, BPS.
+ *
+ * Launch control logic has its own tests in test_launch_ctrl.c.
  *
  * Built and run by tests/run_tests.sh. No RTOS is running: the few RTOS and
  * logging functions these modules call are stubbed below.
@@ -15,11 +17,10 @@
 #include "apps.h"
 #include "bps.h"
 #include "clip_to_range.h"
-#include "compressor.h"
 #include "config.h"
+#include "launch_ctrl.h"
 #include "mode_switch_values.h"
 #include "scs.h"
-#include "torque_limiters.h"
 #include "torque_map.h"
 
 /* ---------------------------------------------------------------- stubs */
@@ -175,69 +176,66 @@ static void test_torque_map(void)
     CHECK(torque_map_apply(&map, 1000) == 0, "invalid map function always gives 0 torque");
 }
 
-static void test_compressor(void)
+/* one launch control step with the real config, launch mode not selected */
+static uint16_t power_limited(uint16_t torque, float power_w, bool launch_mode)
 {
-    print_section("compressor");
-    config_compressor_t c = { .threshold = 100, .p_gain = 2, .i_gain = 1, .integral_decay = 0.5f,
-                              .integral_max = 50, .integral_enabled = false };
-    compressor_context_t ctx;
-    compressor_init(&ctx, &c);
-    CHECK(compressor_apply(&ctx, 1000, 500, false) == 1000, "gate inactive -> unchanged");
-    CHECK(compressor_apply(&ctx, 1000, 90, true) == 1000, "below threshold -> unchanged");
-    CHECK(compressor_apply(&ctx, 1000, 100, true) == 1000, "at threshold -> unchanged");
-    CHECK(compressor_apply(&ctx, 1000, 150, true) == 900, "50 over threshold x p_gain 2 -> -100");
-    CHECK(compressor_apply(&ctx, 50, 150, true) == 0, "never goes below zero");
-    CHECK(compressor_apply(&ctx, 1000, INFINITY, true) == 0, "infinite measurement -> 0 (safe)");
-
-    c.integral_enabled = true;
-    c.p_gain = 0;
-    compressor_init(&ctx, &c);
-    uint16_t a = compressor_apply(&ctx, 1000, 110, true);
-    uint16_t b = compressor_apply(&ctx, 1000, 110, true);
-    CHECK(a == 990 && b < a, "integral builds up (%u then %u)", a, b);
-    for (int i = 0; i < 100; i++)
-        b = compressor_apply(&ctx, 1000, 1000, true);
-    CHECK(b == 950, "integral clamped to integral_max (%u)", b);
-    for (int i = 0; i < 60; i++)
-        b = compressor_apply(&ctx, 1000, 0, true);
-    CHECK(b >= 999, "integral decays when below threshold (%u)", b);
-    compressor_apply(&ctx, 1000, 1000, true);
-    compressor_reset(&ctx);
-    CHECK(ctx.integral == 0.0f, "reset clears the integral");
+    launch_ctrl_context_t ctx;
+    launch_ctrl_init(&ctx, &config_get()->launch_ctrl);
+    launch_ctrl_inputs_t in = { .dt_s = 0.01f,
+                                .driver_torque = torque,
+                                .front_new_sample = true,
+                                .launch_mode_selected = launch_mode,
+                                .electrical_power_w = power_w };
+    return launch_ctrl_apply(&ctx, &in);
 }
 
-static void test_torque_limiters(void)
+static void test_power_limit(void)
 {
-    print_section("torque limiters (config: slip P-only 10%, power 75 kW)");
+    print_section("power limit in launch control (config: 75 kW, every mode)");
+    CHECK(power_limited(1000, 70000, false) == 1000, "70 kW -> unchanged");
+    CHECK(power_limited(1000, 75000, false) == 1000, "75 kW -> unchanged");
+    CHECK(power_limited(1000, 76000, false) == 800, "76 kW -> -100 Nm*10 x2");
+    CHECK(power_limited(1000, 80000, false) == 0, "80 kW -> 0");
+    CHECK(power_limited(1000, INFINITY, false) == 0, "power unknown (inverter data missing) -> 0");
+    CHECK(power_limited(1000, NAN, false) == 0, "power reading NaN -> 0");
+    CHECK(power_limited(0, 0, false) == 0, "0 request stays 0");
+    CHECK(power_limited(1000, 76000, true) == 800, "also applies in launch mode");
+}
+
+static void test_launch_ctrl_config(void)
+{
+    print_section("launch control config (must match the rest of config.c)");
     const config_t *cfg = config_get();
-    torque_limiters_context_t tl;
-    torque_limiters_init(&tl, &cfg->torque_limiters);
-    const float gear = cfg->torque_limiters.gear_ratio;
+    const config_launch_ctrl_t *lc = &cfg->launch_ctrl;
 
-    CHECK(tl.min_denominator_rpm >= cfg->torque_limiters.min_motor_speed_rpm / gear - 0.01f,
-          "min denominator raised to min motor speed / gear (%.1f)", tl.min_denominator_rpm);
+    CHECK(lc->front_circumference_m == cfg->wheelspeed.wheel_circumference_meters,
+          "front circumference matches wheelspeed");
+    CHECK(lc->front_pulses_per_rev == (float)cfg->wheelspeed.ticks_per_wheel,
+          "front pulses per rev matches wheelspeed");
+    CHECK(fabsf(lc->front_window_s - (float)cfg->wheelspeed.sample_period_ticks /
+                    (float)configTICK_RATE_HZ) < 1e-6f,
+          "front window matches wheelspeed sample period");
+    CHECK(lc->torque_max <= cfg->ctrl.hard_max_torque, "torque max within hard max torque");
+    CHECK(lc->torque_floor <= lc->torque_start && lc->torque_start <= lc->torque_max,
+          "floor <= start <= max");
+    CHECK(lc->abort_torque < lc->trigger_torque, "abort torque below trigger torque");
 
-    CHECK(torque_limiters_apply(&tl, 1000, false, (int16_t)(1000 * gear), 500, 0) == 1000,
-          "slip control disabled -> no slip derate");
-    CHECK(torque_limiters_apply(&tl, 1000, true, (int16_t)(1000 * gear), 1000, 0) == 1000,
-          "no slip (rear == front) -> unchanged");
-    CHECK(torque_limiters_apply(&tl, 1000, true, (int16_t)(1000 * gear), 500, 0) == 0,
-          "100%% slip -> torque cut to 0");
-    uint16_t t = torque_limiters_apply(&tl, 1000, true, (int16_t)(1000 * gear), 900, 0);
-    CHECK(t < 1000 && t > 900, "11%% slip -> small derate (%u)", t);
-    CHECK(torque_limiters_apply(&tl, 1000, true, 100, 10, 0) == 1000,
-          "motor below min speed -> slip control inactive");
-    CHECK(torque_limiters_apply(&tl, 1000, true, 3000, 20, 0) == 1000,
-          "front wheels too slow to trust -> slip control inactive");
-    CHECK(torque_limiters_apply(&tl, 1000, true, -3000, 500, 0) == 1000,
-          "negative motor speed -> slip control inactive");
-
-    CHECK(torque_limiters_apply(&tl, 1000, false, 0, 0, 70000) == 1000, "70 kW -> unchanged");
-    CHECK(torque_limiters_apply(&tl, 1000, false, 0, 0, 76000) == 800, "76 kW -> -100 Nm*10 x2");
-    CHECK(torque_limiters_apply(&tl, 1000, false, 0, 0, 80000) == 0, "80 kW -> 0");
-    CHECK(torque_limiters_apply(&tl, 1000, false, 0, 0, INFINITY) == 0,
-          "power unknown (inverter data missing) -> 0");
-    CHECK(torque_limiters_apply(&tl, 0, false, 0, 0, 0) == 0, "0 request stays 0");
+    // with the real config a spinning launch must never raise the request
+    launch_ctrl_context_t ctx;
+    launch_ctrl_init(&ctx, lc);
+    int ok = 1;
+    for (int i = 0; i < 100; i++)
+    {
+        launch_ctrl_inputs_t in = {
+            .dt_s = 0.01f,
+            .driver_torque = (i < 10) ? 0 : 2300,
+            .motor_rpm = (int16_t)(i < 10 ? 0 : 50 * i),
+            .front_new_sample = (i % 2) == 0,
+            .launch_mode_selected = true,
+        };
+        ok &= (launch_ctrl_apply(&ctx, &in) <= in.driver_torque);
+    }
+    CHECK(ok, "output never above the driver request");
 }
 
 static void set_apps(uint16_t a1, uint16_t a2)
@@ -339,8 +337,8 @@ int main(int argc, char **argv)
     test_clip_to_range();
     test_mode_switch();
     test_torque_map();
-    test_compressor();
-    test_torque_limiters();
+    test_power_limit();
+    test_launch_ctrl_config();
     test_scs();
     test_apps();
     test_bps();

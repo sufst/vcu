@@ -35,6 +35,7 @@ typedef struct
     float fr_rpm;
     float rl_rpm;
     float rr_rpm;
+    uint32_t sample_count; // increments on every new sample (detects new data)
 } wheelspeed_reading_t;
 
 typedef struct

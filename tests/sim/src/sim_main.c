@@ -992,37 +992,283 @@ static void sc_power_limit(void)
     CHECK(last_torque == 2500, "back to full torque below 75 kW (%d)", last_torque);
 }
 
-static void sc_slip_control(void)
+/* ======================================================= launch control */
+
+/*
+ * Simple car for the launch control scenarios (1 ms steps): the commanded
+ * torque drives the rear wheels through the gearbox, the tyres push the car
+ * with a Pacejka-like grip curve (peak at ~14% slip, ~75% of the peak left
+ * when spinning), and the front wheels roll at car speed.
+ * The PM100 motor speed and all four wheel speed sensors follow the model.
+ */
+#define CAR_GEAR 3.18
+#define CAR_RADIUS 0.20     // rear rolling radius (m), same as config.c
+#define CAR_MASS 320.0      // kg with driver
+#define CAR_WHEEL_MASS 25.0 // rotating parts (motor, driveline, rear wheels) as mass at the tyre (kg)
+#define CAR_REAR_LOAD 0.6   // fraction of the weight on the rear axle
+#define CAR_PULSE_M (1.305 / 48.0)
+#define CAR_MAX_MOTOR_RPM 6000.0 // the inverter gives no more torque above this
+
+static volatile double car_mu = 0.8;    // tyre grip (0.8: cold / dusty track)
+static volatile double car_v, car_w;    // car and rear wheel surface speed (m/s)
+static volatile int car_motor_sign = 1; // -1: PM100 reports forward as negative
+static volatile int car_running;
+static volatile int car_stop_req; // set by car_stop(), done by car_task (no race with a step)
+
+static void car_task(void *arg)
 {
-    vTaskDelay(500);
-    set_mode(CTRL_MODE_TORQUE_CTRL);
-    vTaskDelay(100);
-    CHECK(drive_ready(), "driving in TORQUE_CTRL (slip control on)");
-    wheel_period_ms = 5; // front wheels 250 rpm
-    inv.motor_rpm = 795;  // rear 250 rpm (gear 3.18): no slip
-    int t = torque_after(1000, 300);
-    CHECK(t == 2500, "no slip -> full torque (%d)", t);
-    inv.motor_rpm = 1590; // rear 500 rpm: 100% slip
-    vTaskDelay(100);
-    CHECK(last_torque == 0, "100%% wheel slip -> torque cut (%d)", last_torque);
-    inv.motor_rpm = 900; // ~13% slip
-    vTaskDelay(100);
-    CHECK(last_torque > 2000 && last_torque < 2500, "13%% slip -> small derate (%d)", last_torque);
-    inv.motor_rpm = 795;
-    vTaskDelay(100);
-    CHECK(last_torque == 2500, "grip restored -> full torque (%d)", last_torque);
+    (void)arg;
+    TickType_t last = xTaskGetTickCount();
+    double front_pulses = 0, rear_pulses = 0;
+    for (;;)
+    {
+        vTaskDelayUntil(&last, 1);
+        if (!car_running)
+            continue;
+        if (car_stop_req)
+        {
+            car_v = 0;
+            car_w = 0;
+            car_stop_req = 0;
+        }
+        const double dt = 0.001;
+        double torque_nm = (vcu.ctrl.state == CTRL_STATE_TS_ON && last_torque > 0) ? last_torque / 10.0 : 0.0;
+        double v = car_v, w = car_w;
+        if (w / CAR_RADIUS * 60.0 / (2.0 * M_PI) * CAR_GEAR >= CAR_MAX_MOTOR_RPM)
+            torque_nm = 0.0;
+        double drive_n = torque_nm * CAR_GEAR * 0.93 / CAR_RADIUS;
+        double slip = (w - v) / (v > 1.0 ? v : 1.0);
+        double grip_n = car_mu * CAR_REAR_LOAD * CAR_MASS * 9.81 * sin(1.5 * atan(12.0 * slip));
+        w += (drive_n - grip_n) / CAR_WHEEL_MASS * dt;
+        v += grip_n / CAR_MASS * dt;
+        car_w = (w > 0) ? w : 0;
+        car_v = (v > 0) ? v : 0;
+
+        inv.motor_rpm = (int16_t)(car_motor_sign * car_w / CAR_RADIUS * 60.0 / (2.0 * M_PI) * CAR_GEAR);
+
+        front_pulses += car_v * dt / CAR_PULSE_M;
+        rear_pulses += car_w * dt / CAR_PULSE_M;
+        for (; front_pulses >= 1.0; front_pulses -= 1.0)
+        {
+            vcu_handle_gpio_exti(&vcu, WHEELSPEED_FL_Pin);
+            vcu_handle_gpio_exti(&vcu, WHEELSPEED_FR_Pin);
+        }
+        for (; rear_pulses >= 1.0; rear_pulses -= 1.0)
+        {
+            vcu_handle_gpio_exti(&vcu, WHEELSPEED_RL_Pin);
+            vcu_handle_gpio_exti(&vcu, WHEELSPEED_RR_Pin);
+        }
+    }
 }
 
-static void sc_slip_only_in_torque_ctrl(void)
+/* bring the car to rest (the model has no brakes): waits for the torque
+ * command to reach 0 first, or the wheels spin up again and it creeps on */
+static void car_stop(void)
+{
+    for (int t = 0; t < 200 && last_torque > 0; t++)
+        vTaskDelay(1);
+    car_stop_req = 1;
+    while (car_running && car_stop_req)
+        vTaskDelay(1);
+}
+
+typedef struct
+{
+    int ms_to_done;      // time from flooring it to launch control handing back (-1 = never)
+    double v_done;       // car speed then (m/s)
+    double v_1s;         // car speed 1 s after flooring it (m/s)
+    double max_slip_1s;  // worst slip ratio (w - v) / v above 2 m/s in the first second
+    double mean_slip;    // mean slip ratio above 2 m/s while launch control was active
+    int max_torque;      // highest torque command while active (Nm * 10)
+    int min_torque;      // lowest torque command while active
+    int first_torque;    // first non-zero torque command after flooring it
+    int above_driver;    // torque commands above the 2500 full-pedal request
+    float min_limit;     // lowest torque launch control wanted while active
+    int any_is_active;   // launch_ctrl_is_active() was true at some point
+} launch_result_t;
+
+/* floor it from rest and follow the launch until launch control hands back */
+static launch_result_t launch(uint32_t max_ms)
+{
+    launch_result_t r = { .ms_to_done = -1, .max_torque = 0, .min_torque = 99999, .first_torque = -1,
+                          .min_limit = 99999.0f };
+    double slip_sum = 0;
+    int slip_n = 0;
+    const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
+    const unsigned cmds0 = torque_cmds;
+
+    set_pedal(1000);
+    for (uint32_t t = 0; t < max_ms; t++)
+    {
+        vTaskDelay(1);
+        if (r.first_torque < 0 && torque_cmds != cmds0 && last_torque > 0)
+            r.first_torque = last_torque;
+        double v = car_v, slip = (v > 2.0) ? (car_w - v) / v : 0.0;
+        if (t == 1000)
+            r.v_1s = v;
+        if (t < 1000 && slip > r.max_slip_1s)
+            r.max_slip_1s = slip;
+        if (lc->state == LAUNCH_CTRL_STATE_ACTIVE)
+        {
+            if (last_torque > r.max_torque)
+                r.max_torque = last_torque;
+            if (last_torque < r.min_torque)
+                r.min_torque = last_torque;
+            if (lc->limit < r.min_limit)
+                r.min_limit = lc->limit;
+            r.any_is_active |= launch_ctrl_is_active(lc);
+            if (v > 2.0)
+            {
+                slip_sum += slip;
+                slip_n++;
+            }
+        }
+        if (last_torque > 2500)
+            r.above_driver++;
+        if (r.ms_to_done < 0 && t > 50 && lc->state != LAUNCH_CTRL_STATE_ACTIVE)
+        {
+            r.ms_to_done = (int)t;
+            r.v_done = v;
+            if (t >= 1000)
+                break;
+        }
+    }
+    r.mean_slip = slip_n ? slip_sum / slip_n : 0.0;
+    set_pedal(0);
+    return r;
+}
+
+static void print_launch(const char *name, const launch_result_t *r)
+{
+    NOTE("%s: first torque %.1f Nm, %.1f m/s after 1 s, worst slip %.0f%% in the first second, "
+         "mean slip %.0f%% while active, torque %.1f..%.1f Nm, handed back after %d ms at %.1f m/s",
+         name, r->first_torque / 10.0, r->v_1s, r->max_slip_1s * 100, r->mean_slip * 100,
+         r->min_torque / 10.0, r->max_torque / 10.0, r->ms_to_done, r->v_done);
+}
+
+/* drive in mode with the car model; lc_cfg replaces config.c's launch control settings */
+static int launch_setup(const config_launch_ctrl_t *lc_cfg, ctrl_mode_t mode)
 {
     vTaskDelay(500);
-    set_mode(CTRL_MODE_MAX);
+    if (lc_cfg)
+        vcu.ctrl.launch_ctrl_config_ptr = lc_cfg; // picked up on entry to TS_ON
+    wheel_period_ms = 0; // the car model drives the wheel speed sensors
+    car_stop();
+    car_running = 1;
+    xTaskCreate(car_task, "carsim", 1024, NULL, 46, NULL);
+    set_mode(mode);
     vTaskDelay(100);
-    CHECK(drive_ready(), "driving in MAX (slip control off)");
-    wheel_period_ms = 5;
-    inv.motor_rpm = 1590; // 100% slip
-    int t = torque_after(1000, 300);
-    CHECK(t == 2500, "100%% slip ignored outside TORQUE_CTRL (%d)", t);
+    return drive_ready();
+}
+
+static config_launch_ctrl_t lc_live_cfg;
+
+static void sc_launch_ctrl(void)
+{
+    lc_live_cfg = config_get()->launch_ctrl;
+    lc_live_cfg.shadow_mode = false;
+    const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
+
+    CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_TORQUE_CTRL), "driving in TORQUE_CTRL, launch control live (shadow mode off)");
+    vTaskDelay(200);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "stationary in TORQUE_CTRL -> ARMED (%d)", lc->state);
+
+    launch_result_t r = launch(6000);
+    print_launch("launch control live", &r);
+    CHECK(r.first_torque >= 1700 && r.first_torque <= 1900,
+          "launch starts near torque_start + slip term (%.1f Nm)", r.first_torque / 10.0);
+    CHECK(r.min_torque < 2300, "wheelspin -> torque cut below the driver request (min %.1f Nm)",
+          r.min_torque / 10.0);
+    CHECK(r.min_torque >= lc_live_cfg.torque_floor, "never below torque_floor (%.1f Nm)", r.min_torque / 10.0);
+    CHECK(r.max_torque <= lc_live_cfg.torque_max, "never above torque_max (%.1f Nm)", r.max_torque / 10.0);
+    CHECK(r.above_driver == 0, "never more than the driver asked for");
+    CHECK(r.mean_slip > 0.05 && r.mean_slip < 0.25, "slip held near the 12%% target while active (%.0f%%)",
+          r.mean_slip * 100);
+    CHECK(r.ms_to_done > 0 && r.v_done > 18.0 && r.v_done < 23.0,
+          "hands back at the 20 m/s exit speed (%.1f m/s after %d ms)", r.v_done, r.ms_to_done);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_DONE && lc->fault == LAUNCH_CTRL_FAULT_NONE, "DONE, no fault");
+    CHECK(vcu.ctrl.state == CTRL_STATE_TS_ON, "still driving");
+
+    // stop, release the pedal: re-arms
+    car_stop();
+    vTaskDelay(300);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "stopped with the pedal released -> ARMED again (%d)", lc->state);
+
+    // lift-off ends a launch
+    set_pedal(1000);
+    vTaskDelay(300);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ACTIVE, "second launch ACTIVE");
+    set_pedal(0);
+    vTaskDelay(50);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_DONE, "lift-off -> DONE (%d)", lc->state);
+
+    // PM100 motor speed with the wrong sign -> fault -> plain driver torque
+    car_stop();
+    car_motor_sign = -1;
+    vTaskDelay(300);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "re-armed (%d)", lc->state);
+    set_pedal(1000);
+    int faulted = 0;
+    for (int t = 0; t < 1000 && !faulted; t++)
+    {
+        vTaskDelay(1);
+        faulted = (lc->state == LAUNCH_CTRL_STATE_FAULT);
+    }
+    vTaskDelay(30);
+    CHECK(faulted && lc->fault == LAUNCH_CTRL_FAULT_MOTOR_REVERSE, "wrong motor speed sign -> MOTOR_REVERSE fault (%d)",
+          lc->fault);
+    CHECK(last_torque == 2500, "fault -> full driver torque passed through (%d)", last_torque);
+    set_pedal(0);
+    car_motor_sign = 1;
+    car_stop();
+
+    vTaskDelay(11000); // > SD flush period (10 s); run_tests.sh reads the LC lines back from the card
+}
+
+static void sc_launch_ctrl_shadow(void)
+{
+    // config.c as it is (shadow mode on)
+    const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
+    CHECK(config_get()->launch_ctrl.shadow_mode, "config.c has launch control in shadow mode");
+    CHECK(launch_setup(NULL, CTRL_MODE_TORQUE_CTRL), "driving in TORQUE_CTRL with config.c");
+    vTaskDelay(200);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "ARMED (%d)", lc->state);
+
+    launch_result_t r = launch(6000);
+    print_launch("shadow mode (no wheelspin control)", &r);
+    CHECK(r.first_torque == 2500, "first torque command is the full request (%d)", r.first_torque);
+    CHECK(r.min_torque == 2500 && r.max_torque == 2500,
+          "shadow mode: the full 250 Nm goes to the inverter for the whole launch (%d..%d)",
+          r.min_torque, r.max_torque);
+    CHECK(r.min_limit < 2500.0f, "launch control computed a lower limit (down to %.1f Nm)", r.min_limit / 10.0f);
+    CHECK(!r.any_is_active, "launch_ctrl_is_active() false in shadow mode");
+    CHECK(r.ms_to_done > 0, "launch ends (%d ms)", r.ms_to_done);
+    CHECK(r.above_driver == 0, "never more than the driver asked for");
+    car_stop();
+
+    vTaskDelay(11000); // > SD flush period (10 s)
+}
+
+static void sc_launch_ctrl_only_in_torque_ctrl(void)
+{
+    // launch control live, but driving in MAX: no launch control at all
+    lc_live_cfg = config_get()->launch_ctrl;
+    lc_live_cfg.shadow_mode = false;
+    const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
+    CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_MAX), "driving in MAX, launch control live");
+    vTaskDelay(200);
+    set_pedal(1000);
+    int all_full = 1, all_off = 1;
+    for (int t = 0; t < 800; t++)
+    {
+        vTaskDelay(1);
+        if (t > 30)
+            all_full &= (last_torque == 2500);
+        all_off &= (lc->state == LAUNCH_CTRL_STATE_OFF);
+    }
+    set_pedal(0);
+    CHECK(all_off, "launch control stays OFF outside TORQUE_CTRL");
+    CHECK(all_full, "full 250 Nm with the wheels spinning (%d)", last_torque);
 }
 
 static void sc_fans(void)
@@ -1497,8 +1743,9 @@ static const scenario_t scenarios[] = {
     { "inverter_lockout", sc_inverter_lockout, "PM100 enable lockout cleared with disable commands" },
     { "inverter_silent_while_driving", sc_inverter_silent_while_driving, "PM100 stops broadcasting while driving" },
     { "power_limit", sc_power_limit, "75 kW power limiter" },
-    { "slip_control", sc_slip_control, "slip control in TORQUE_CTRL mode" },
-    { "slip_only_in_torque_ctrl", sc_slip_only_in_torque_ctrl, "no slip control in other modes" },
+    { "launch_ctrl", sc_launch_ctrl, "launch control live: wheelspin from rest, exit, lift-off, sign fault" },
+    { "launch_ctrl_shadow", sc_launch_ctrl_shadow, "launch control in shadow mode (config.c) never changes torque" },
+    { "launch_ctrl_only_in_torque_ctrl", sc_launch_ctrl_only_in_torque_ctrl, "no launch control in other modes" },
     { "fans", sc_fans, "fan thresholds, hysteresis, dash fan switch" },
     { "remote_ctrl", sc_remote_ctrl, "remote control mode: TS/R2D/torque over CAN-S, limit, timeout" },
     { "remote_ignored_in_other_modes", sc_remote_ignored_in_other_modes, "remote ignored outside REMOTE mode" },

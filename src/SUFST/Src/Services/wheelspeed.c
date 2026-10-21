@@ -88,6 +88,7 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
         wh->last_reading.fr_rpm = rpm_fr;
         wh->last_reading.rl_rpm = rpm_rl;
         wh->last_reading.rr_rpm = rpm_rr;
+        wh->last_reading.sample_count++;
         xSemaphoreGive(wh->reading_mutex);
     }
     else
