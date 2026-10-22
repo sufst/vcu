@@ -3,10 +3,16 @@
  * @brief   Launch control for standing starts (accel event).
  *
  * @details A torque LIMITER with a state machine:
- *            OFF -> ARMED (launch mode selected, car stationary)
- *                -> ACTIVE (driver asks for torque from rest)
+ *            OFF -> ARMED (launch mode selected, car stopped, driver holds
+ *                          the brake for arm_hold_s)
+ *                -> ACTIVE (brake off, pedal floored to trigger_pedal)
  *                -> DONE (exit speed / lift-off / brake / timeout)
+ *            ARMED -> OFF (car rolls with the pedal released, or the pedal
+ *                          is pressed without reaching trigger_pedal within
+ *                          arm_press_window_s: the driver is just driving)
  *            any -> FAULT (bad sensor data) -> plain driver torque
+ *          OFF, DONE and FAULT all need the same stop + brake hold to arm
+ *          again, so a launch never starts without the driver asking for it.
  *
  *          While ACTIVE it holds the driven wheels at a target slip:
  *            target wheel speed = max(v_ground * (1 + slip_ratio),
@@ -79,8 +85,11 @@ typedef struct
     float motor_rpm_sign;        // +1, or -1 if the PM100 reports forward as negative
 
     // arming / exit
-    float stationary_mps;    // below this the car counts as stationary
-    uint16_t trigger_torque; // request (Nm x 10) that starts a launch from rest
+    float stationary_mps;      // below this the car counts as stationary
+    float arm_hold_s;          // brake held this long at a standstill -> ARMED
+    uint16_t trigger_pedal;    // pedal (% x 10) that starts a launch when ARMED
+    uint16_t pedal_pressed;    // pedal (% x 10) above this counts as pressed
+    float arm_press_window_s;  // pressed this long without reaching trigger_pedal -> disarm
     uint16_t abort_torque;   // request below this ends the launch (lift-off)
     float exit_speed_mps;    // hand back to normal driving above this
     float timeout_s;         // hand back after this long regardless
@@ -116,7 +125,8 @@ typedef struct
     float fl_rpm;              // front left wheel rpm (wheelspeed.c)
     float fr_rpm;              // front right wheel rpm
     bool front_new_sample;     // true on the first call after a new 20 ms count
-    bool launch_mode_selected; // e.g. current_mode == CTRL_MODE_TORQUE_CTRL
+    uint16_t pedal;            // APPS reading, % x 10
+    bool launch_mode_selected; // current_mode == CTRL_MODE_LAUNCH_CTRL
     bool brake_pressed;        // bps above the brake-on threshold
     float electrical_power_w;  // PM100 DC-bus power (W), INFINITY if unknown
 } launch_ctrl_inputs_t;
@@ -128,6 +138,8 @@ typedef struct
     launch_ctrl_fault_t fault;
 
     float t_active_s;
+    float brake_hold_s; // how long the brake has been held at a standstill (for arming)
+    float press_s;      // how long the pedal has been pressed while ARMED
     float since_front_s;
     float v_ground_est; // m/s
     float v_driven;     // m/s, from motor rpm

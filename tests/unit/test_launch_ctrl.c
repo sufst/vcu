@@ -27,10 +27,12 @@ static int checks = 0, failures = 0;
         }                                                                      \
     } while (0)
 
-/* motor rpm that makes the driven wheels go at v m/s */
+/* PM100 motor rpm reading that makes the driven wheels go at v m/s (with the
+ * PM100's sign convention: forward reads negative on our car) */
 static int16_t rpm_for(float v)
 {
-    return (int16_t)lroundf(v / 0.20f / (2.0f * 3.14159265f / 60.0f) * 3.18f);
+    return (int16_t)lroundf(launch_ctrl_config_default.motor_rpm_sign * v / 0.20f /
+                            (2.0f * 3.14159265f / 60.0f) * 3.18f);
 }
 /* wheel rpm reading for a front speed of v m/s, as the 48-pulse 20 ms count would report it */
 static float front_rpm_for(float v)
@@ -45,6 +47,7 @@ static launch_ctrl_inputs_t inputs(uint16_t drv, float v_driven, float v_front, 
     memset(&in, 0, sizeof in);
     in.dt_s = 0.01f;
     in.driver_torque = drv;
+    in.pedal = (uint16_t)((drv >= 2300) ? 1000 : drv * 1000 / 2300); // 2300 = floored
     in.motor_rpm = rpm_for(v_driven);
     in.fl_rpm = front_rpm_for(v_front);
     in.fr_rpm = in.fl_rpm;
@@ -54,14 +57,21 @@ static launch_ctrl_inputs_t inputs(uint16_t drv, float v_driven, float v_front, 
     return in;
 }
 
-/* sit still for a moment so the controller arms */
-static void arm(launch_ctrl_context_t *ctx)
+/* stand still with the brake held for t seconds */
+static void hold_brake(launch_ctrl_context_t *ctx, float t)
 {
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < (int)lroundf(t / 0.01f); i++)
     {
         launch_ctrl_inputs_t in = inputs(0, 0.0f, 0.0f, i);
+        in.brake_pressed = true;
         launch_ctrl_apply(ctx, &in);
     }
+}
+
+/* the driver's arming routine: stop, hold the brake for arm_hold_s (+ a bit) */
+static void arm(launch_ctrl_context_t *ctx)
+{
+    hold_brake(ctx, launch_ctrl_config_default.arm_hold_s + 0.05f);
 }
 
 static void test_disabled_passes_through(void)
@@ -93,7 +103,7 @@ static void test_arms_only_when_stationary(void)
     launch_ctrl_context_t ctx;
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     arm(&ctx);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stationary + mode selected -> ARMED");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stationary + brake held 5 s -> ARMED");
 
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     for (int i = 0; i < 50; i++)
@@ -150,10 +160,13 @@ static void test_never_exceeds_driver_fuzz(void)
     int ok = 1;
     for (int i = 0; i < 200000; i++)
     {
+        if (i % 2000 == 0)
+            arm(&ctx); // random inputs never hold the brake for 5 s, so arm now and then
         launch_ctrl_inputs_t in;
         in.dt_s = (rand() % 50 == 0) ? 0.0f : 0.01f;
         in.driver_torque = (uint16_t)(rand() % 2600);
-        in.motor_rpm = (int16_t)(rand() % 8000 - 500);
+        in.pedal = (uint16_t)(rand() % 1001);
+        in.motor_rpm = (int16_t)(launch_ctrl_config_default.motor_rpm_sign * (float)(rand() % 8000 - 500));
         in.fl_rpm = (float)(rand() % 1500);
         in.fr_rpm = (rand() % 3) ? in.fl_rpm : (float)(rand() % 1500);
         in.front_new_sample = rand() % 2;
@@ -163,6 +176,7 @@ static void test_never_exceeds_driver_fuzz(void)
         if (rand() % 100 == 0)
         {
             in.driver_torque = 0;
+            in.pedal = 0;
             in.motor_rpm = 0;
             in.fl_rpm = 0;
             in.fr_rpm = 0;
@@ -200,13 +214,102 @@ static void test_lift_off_and_brake_end_launch(void)
     launch_ctrl_apply(&ctx, &in);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "brake -> DONE");
 
-    /* must come to a stop with the pedal released before it re-arms */
-    in = inputs(2300, 0.0f, 0.0f, 12);
+    /* stopping alone does not re-arm: the driver has to hold the brake again */
+    for (int i = 0; i < 1000; i++)
+    {
+        in = inputs(0, 0.0f, 0.0f, i);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "no re-arm from just standing still");
+    arm(&ctx);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "re-arms after stop + 5 s brake hold");
+}
+
+static void run_to_active(launch_ctrl_context_t *ctx);
+
+static void test_arming_protocol(void)
+{
+    printf("arming: stop + 5 s brake hold, then full pedal starts the launch\n");
+    const config_launch_ctrl_t *c = &launch_ctrl_config_default;
+    launch_ctrl_context_t ctx;
+    launch_ctrl_inputs_t in;
+
+    launch_ctrl_init(&ctx, c);
+    for (int i = 0; i < 1000; i++)
+    {
+        in = inputs(0, 0.0f, 0.0f, i);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake does not arm");
+
+    hold_brake(&ctx, c->arm_hold_s - 0.1f);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "brake held a little under 5 s -> not armed yet");
+    in = inputs(0, 0.0f, 0.0f, 0);
+    launch_ctrl_apply(&ctx, &in); // brake released for one step
+    hold_brake(&ctx, c->arm_hold_s - 0.1f);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "releasing the brake restarts the 5 s");
+    hold_brake(&ctx, 0.2f);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "5 s unbroken brake hold -> ARMED");
+
+    launch_ctrl_init(&ctx, c);
+    for (int i = 0; i < 600; i++)
+    {
+        in = inputs(0, 1.0f, 0.0f, i); // creeping
+        in.brake_pressed = true;
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "brake held while moving does not arm");
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(0, 1.0f, 0.0f, 0); // rolls with the pedal released
     launch_ctrl_apply(&ctx, &in);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "no re-arm with pedal pressed");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "armed car rolls -> disarmed");
+
+    launch_ctrl_init(&ctx, c);
     arm(&ctx);
+    uint16_t out = 0;
+    for (int i = 0; i < 60; i++)
+    {
+        in = inputs(700, 0.5f, 0.0f, i); // ~30% pedal, just driving off
+        out = launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "part pedal for > 0.5 s -> disarmed");
+    CHECK(out == 700, "part pedal -> plain driver torque");
+
+    launch_ctrl_init(&ctx, c);
     arm(&ctx);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "re-arms after stop + pedal released");
+    in = inputs(2300, 0.0f, 0.0f, 0);
+    in.brake_pressed = true;
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "full pedal with the brake still on -> stays ARMED");
+    for (int i = 0; i < 20; i++) // pedal ramps 0 -> 100% over 0.2 s
+    {
+        in = inputs((uint16_t)(2300 * (i + 1) / 20), 0.0f, 0.0f, i);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE, "brake off, pedal floored within 0.5 s -> ACTIVE");
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(2300, 0.0f, 0.0f, 0);
+    in.pedal = (uint16_t)(c->trigger_pedal - 10); // floored, but below 90%
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "pedal below 90% does not start a launch");
+    in.pedal = c->trigger_pedal;
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE, "pedal at 90% starts the launch");
+
+    launch_ctrl_init(&ctx, c);
+    run_to_active(&ctx);
+    in = inputs(2300, 2.0f, 9.0f, 0); // front spike -> FAULT
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT, "FAULT");
+    hold_brake(&ctx, 1.0f);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT, "FAULT stays until a full brake hold");
+    arm(&ctx);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED && ctx.fault == LAUNCH_CTRL_FAULT_NONE,
+          "brake hold after a fault re-arms and clears the fault");
 }
 
 static void run_to_active(launch_ctrl_context_t *ctx)
@@ -247,7 +350,7 @@ static void test_faults_fall_back_to_driver(void)
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     run_to_active(&ctx);
     in = inputs(2300, 2.0f, 0.0f, 0);
-    in.motor_rpm = -500; // wrong sign convention
+    in.motor_rpm = rpm_for(-1.2f); // wrong sign convention (or rolling backwards)
     launch_ctrl_apply(&ctx, &in);
     CHECK(ctx.fault == LAUNCH_CTRL_FAULT_MOTOR_REVERSE, "negative motor rpm -> MOTOR_REVERSE");
 
@@ -351,6 +454,7 @@ int main(void)
     test_releases_when_gripping();
     test_never_exceeds_driver_fuzz();
     test_lift_off_and_brake_end_launch();
+    test_arming_protocol();
     test_faults_fall_back_to_driver();
     test_shadow_mode();
     test_power_limit();

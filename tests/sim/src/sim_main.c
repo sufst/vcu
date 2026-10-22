@@ -999,7 +999,8 @@ static void sc_power_limit(void)
  * torque drives the rear wheels through the gearbox, the tyres push the car
  * with a Pacejka-like grip curve (peak at ~14% slip, ~75% of the peak left
  * when spinning), and the front wheels roll at car speed.
- * The PM100 motor speed and all four wheel speed sensors follow the model.
+ * The PM100 motor speed and all four wheel speed sensors follow the model,
+ * with our car's quirks: forward motor speed reads negative, FR reads ~30% low.
  */
 #define CAR_GEAR 3.18
 #define CAR_RADIUS 0.20     // rear rolling radius (m), same as config.c
@@ -1011,7 +1012,8 @@ static void sc_power_limit(void)
 
 static volatile double car_mu = 0.8;    // tyre grip (0.8: cold / dusty track)
 static volatile double car_v, car_w;    // car and rear wheel surface speed (m/s)
-static volatile int car_motor_sign = 1; // -1: PM100 reports forward as negative
+static volatile int car_motor_sign = -1; // the PM100 reports forward as negative on our car
+#define CAR_FR_SCALE 0.7                 // FR sensor reads ~30% low on our car
 static volatile int car_running;
 static volatile int car_stop_req; // set by car_stop(), done by car_task (no race with a step)
 
@@ -1019,7 +1021,7 @@ static void car_task(void *arg)
 {
     (void)arg;
     TickType_t last = xTaskGetTickCount();
-    double front_pulses = 0, rear_pulses = 0;
+    double fl_pulses = 0, fr_pulses = 0, rear_pulses = 0;
     for (;;)
     {
         vTaskDelayUntil(&last, 1);
@@ -1046,13 +1048,13 @@ static void car_task(void *arg)
 
         inv.motor_rpm = (int16_t)(car_motor_sign * car_w / CAR_RADIUS * 60.0 / (2.0 * M_PI) * CAR_GEAR);
 
-        front_pulses += car_v * dt / CAR_PULSE_M;
+        fl_pulses += car_v * dt / CAR_PULSE_M;
+        fr_pulses += CAR_FR_SCALE * car_v * dt / CAR_PULSE_M;
         rear_pulses += car_w * dt / CAR_PULSE_M;
-        for (; front_pulses >= 1.0; front_pulses -= 1.0)
-        {
+        for (; fl_pulses >= 1.0; fl_pulses -= 1.0)
             vcu_handle_gpio_exti(&vcu, WHEELSPEED_FL_Pin);
+        for (; fr_pulses >= 1.0; fr_pulses -= 1.0)
             vcu_handle_gpio_exti(&vcu, WHEELSPEED_FR_Pin);
-        }
         for (; rear_pulses >= 1.0; rear_pulses -= 1.0)
         {
             vcu_handle_gpio_exti(&vcu, WHEELSPEED_RL_Pin);
@@ -1163,19 +1165,37 @@ static int launch_setup(const config_launch_ctrl_t *lc_cfg, ctrl_mode_t mode)
 
 static config_launch_ctrl_t lc_live_cfg;
 
+/* the driver's arming routine: standing still, hold the brake for 5 s, let go */
+static void lc_arm(void)
+{
+    set_pedal(0);
+    set_brake(BRAKE_ON);
+    vTaskDelay(5200);
+    set_brake(BRAKE_OFF);
+    vTaskDelay(50);
+}
+
 static void sc_launch_ctrl(void)
 {
     lc_live_cfg = config_get()->launch_ctrl;
     lc_live_cfg.shadow_mode = false;
     const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
 
-    CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_TORQUE_CTRL), "driving in TORQUE_CTRL, launch control live (shadow mode off)");
-    vTaskDelay(200);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "stationary in TORQUE_CTRL -> ARMED (%d)", lc->state);
+    CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_LAUNCH_CTRL), "driving in LAUNCH_CTRL, launch control live (shadow mode off)");
+    vTaskDelay(1000);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake -> not armed (%d)", lc->state);
+    set_brake(BRAKE_ON);
+    vTaskDelay(4500);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "brake held 4.5 s -> not armed yet (%d)", lc->state);
+    vTaskDelay(700);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake held 5 s -> ARMED (%d)", lc->state);
+    set_brake(BRAKE_OFF);
+    vTaskDelay(1000);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake released, still ARMED (%d)", lc->state);
 
     launch_result_t r = launch(6000);
     print_launch("launch control live", &r);
-    CHECK(r.first_torque >= 1700 && r.first_torque <= 1900,
+    CHECK(r.first_torque >= lc_live_cfg.torque_start + 200 && r.first_torque <= lc_live_cfg.torque_start + 400,
           "launch starts near torque_start + slip term (%.1f Nm)", r.first_torque / 10.0);
     CHECK(r.min_torque < 2300, "wheelspin -> torque cut below the driver request (min %.1f Nm)",
           r.min_torque / 10.0);
@@ -1189,10 +1209,12 @@ static void sc_launch_ctrl(void)
     CHECK(lc->state == LAUNCH_CTRL_STATE_DONE && lc->fault == LAUNCH_CTRL_FAULT_NONE, "DONE, no fault");
     CHECK(vcu.ctrl.state == CTRL_STATE_TS_ON, "still driving");
 
-    // stop, release the pedal: re-arms
+    // stopping alone does not re-arm; the brake hold does
     car_stop();
     vTaskDelay(300);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "stopped with the pedal released -> ARMED again (%d)", lc->state);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_DONE, "stopped -> still DONE, no automatic re-arm (%d)", lc->state);
+    lc_arm();
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake hold -> ARMED again (%d)", lc->state);
 
     // lift-off ends a launch
     set_pedal(1000);
@@ -1202,10 +1224,24 @@ static void sc_launch_ctrl(void)
     vTaskDelay(50);
     CHECK(lc->state == LAUNCH_CTRL_STATE_DONE, "lift-off -> DONE (%d)", lc->state);
 
+    // armed, but the driver just drives off on part pedal: disarms, plain torque
+    car_stop();
+    lc_arm();
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "re-armed (%d)", lc->state);
+    set_pedal(300);
+    vTaskDelay(800);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "part pedal -> disarmed (%d)", lc->state);
+    const int part_torque = last_torque;
+    set_pedal(1000);
+    vTaskDelay(300);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF && last_torque == 2500 && part_torque > 0,
+          "after disarming, flooring it is plain driving, no launch (%d)", lc->state);
+    set_pedal(0);
+
     // PM100 motor speed with the wrong sign -> fault -> plain driver torque
     car_stop();
-    car_motor_sign = -1;
-    vTaskDelay(300);
+    car_motor_sign = 1;
+    lc_arm();
     CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "re-armed (%d)", lc->state);
     set_pedal(1000);
     int faulted = 0;
@@ -1219,7 +1255,7 @@ static void sc_launch_ctrl(void)
           lc->fault);
     CHECK(last_torque == 2500, "fault -> full driver torque passed through (%d)", last_torque);
     set_pedal(0);
-    car_motor_sign = 1;
+    car_motor_sign = -1;
     car_stop();
 
     vTaskDelay(11000); // > SD flush period (10 s); run_tests.sh reads the LC lines back from the card
@@ -1230,8 +1266,8 @@ static void sc_launch_ctrl_shadow(void)
     // config.c as it is (shadow mode on)
     const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
     CHECK(config_get()->launch_ctrl.shadow_mode, "config.c has launch control in shadow mode");
-    CHECK(launch_setup(NULL, CTRL_MODE_TORQUE_CTRL), "driving in TORQUE_CTRL with config.c");
-    vTaskDelay(200);
+    CHECK(launch_setup(NULL, CTRL_MODE_LAUNCH_CTRL), "driving in LAUNCH_CTRL with config.c");
+    lc_arm();
     CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "ARMED (%d)", lc->state);
 
     launch_result_t r = launch(6000);
@@ -1249,14 +1285,14 @@ static void sc_launch_ctrl_shadow(void)
     vTaskDelay(11000); // > SD flush period (10 s)
 }
 
-static void sc_launch_ctrl_only_in_torque_ctrl(void)
+static void sc_launch_ctrl_only_in_launch_ctrl(void)
 {
     // launch control live, but driving in MAX: no launch control at all
     lc_live_cfg = config_get()->launch_ctrl;
     lc_live_cfg.shadow_mode = false;
     const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
     CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_MAX), "driving in MAX, launch control live");
-    vTaskDelay(200);
+    lc_arm(); // the arming routine does nothing outside LAUNCH_CTRL
     set_pedal(1000);
     int all_full = 1, all_off = 1;
     for (int t = 0; t < 800; t++)
@@ -1267,7 +1303,7 @@ static void sc_launch_ctrl_only_in_torque_ctrl(void)
         all_off &= (lc->state == LAUNCH_CTRL_STATE_OFF);
     }
     set_pedal(0);
-    CHECK(all_off, "launch control stays OFF outside TORQUE_CTRL");
+    CHECK(all_off, "launch control stays OFF outside LAUNCH_CTRL");
     CHECK(all_full, "full 250 Nm with the wheels spinning (%d)", last_torque);
 }
 
@@ -1745,7 +1781,7 @@ static const scenario_t scenarios[] = {
     { "power_limit", sc_power_limit, "75 kW power limiter" },
     { "launch_ctrl", sc_launch_ctrl, "launch control live: wheelspin from rest, exit, lift-off, sign fault" },
     { "launch_ctrl_shadow", sc_launch_ctrl_shadow, "launch control in shadow mode (config.c) never changes torque" },
-    { "launch_ctrl_only_in_torque_ctrl", sc_launch_ctrl_only_in_torque_ctrl, "no launch control in other modes" },
+    { "launch_ctrl_only_in_launch_ctrl", sc_launch_ctrl_only_in_launch_ctrl, "no launch control in other modes" },
     { "fans", sc_fans, "fan thresholds, hysteresis, dash fan switch" },
     { "remote_ctrl", sc_remote_ctrl, "remote control mode: TS/R2D/torque over CAN-S, limit, timeout" },
     { "remote_ignored_in_other_modes", sc_remote_ignored_in_other_modes, "remote ignored outside REMOTE mode" },

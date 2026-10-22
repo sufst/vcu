@@ -555,7 +555,7 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 
     LOG_DEBUG("ADC: %d, Torque: %d\n", ctrl_ptr->apps_reading, ctrl_ptr->torque_request);
 
-    // launch control (TORQUE_CTRL only) and the power limit (every mode):
+    // launch control (LAUNCH_CTRL only) and the power limit (every mode):
     // runs every tick, including at zero request, and only ever lowers the
     // request
     ctrl_ptr->torque_request = ctrl_apply_launch_ctrl(ctrl_ptr, ctrl_ptr->torque_request);
@@ -834,7 +834,8 @@ static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver
         .fl_rpm = ctrl_ptr->fl_wheel_rpm,
         .fr_rpm = ctrl_ptr->fr_wheel_rpm,
         .front_new_sample = ctrl_ptr->front_new_sample,
-        .launch_mode_selected = (ctrl_ptr->current_mode == CTRL_MODE_TORQUE_CTRL),
+        .pedal = ctrl_ptr->apps_reading,
+        .launch_mode_selected = (ctrl_ptr->current_mode == CTRL_MODE_LAUNCH_CTRL),
         .brake_pressed = (ctrl_ptr->bps_reading > ctrl_ptr->config_ptr->bps_on_threshold),
         .electrical_power_w = ctrl_ptr->electrical_power_w,
     };
@@ -851,12 +852,13 @@ static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver
 /**
  * @brief       Writes launch control data to the SD card log
  *
- * @details     One line on every state change into or out of ACTIVE or
- *              FAULT, and one line per front wheel sample (50 Hz) while a
- *              launch is ACTIVE. Changes that don't involve ACTIVE (faults
- *              while waiting) are written at most every 100 ms. The routine
- *              OFF / ARMED / DONE changes are not logged, so driving around
- *              in launch mode doesn't fill the log. Line format:
+ * @details     One line on every state change into or out of ARMED,
+ *              ACTIVE or FAULT, and one line per front wheel sample (50 Hz)
+ *              while a launch is ACTIVE. Fault changes that don't involve
+ *              ACTIVE (faults while armed) are written at most every 100 ms.
+ *              OFF <-> DONE changes are not logged. Arming takes a 5 s brake
+ *              hold, so driving around in launch mode doesn't fill the log.
+ *              Line format:
  *
  *              LC,<tick>,<state>,<fault>,<driver>,<limit>,<output>,<v_ground>,<v_rear>,<v_front>
  *
@@ -881,11 +883,13 @@ static void ctrl_log_launch_ctrl(ctrl_context_t *ctrl_ptr,
     const bool changed = (lc->state != prev_state);
     const bool active_change = changed &&
         (lc->state == LAUNCH_CTRL_STATE_ACTIVE || prev_state == LAUNCH_CTRL_STATE_ACTIVE);
+    const bool armed_change = changed &&
+        (lc->state == LAUNCH_CTRL_STATE_ARMED || prev_state == LAUNCH_CTRL_STATE_ARMED);
     const bool fault_change = changed &&
         (lc->state == LAUNCH_CTRL_STATE_FAULT || prev_state == LAUNCH_CTRL_STATE_FAULT);
     const bool sample = (lc->state == LAUNCH_CTRL_STATE_ACTIVE) && ctrl_ptr->front_new_sample;
 
-    if (!(active_change || sample ||
+    if (!(active_change || armed_change || sample ||
           (fault_change &&
            rtos_every(&ctrl_ptr->launch_ctrl_log_tick, configTICK_RATE_HZ / 10))))
     {
@@ -905,7 +909,7 @@ static void ctrl_log_launch_ctrl(ctrl_context_t *ctrl_ptr,
 
     write_sd_log_line(line);
 
-    if (active_change || fault_change)
+    if (active_change || armed_change || fault_change)
     {
         LOG_INFO("Launch control state %d -> %d (fault %d)\n", (int)prev_state,
                  (int)lc->state, (int)lc->fault);

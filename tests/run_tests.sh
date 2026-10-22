@@ -105,6 +105,7 @@ if [ "${1:-}" = "--one" ]; then
             n_cut=$(lc '$3 == 2 && $7 < $5')
             n_want=$(lc '$3 == 2 && $6 < $5')
             n_done=$(lc '$3 == 3')
+            n_armed=$(lc '$3 == 1')
             n_sign=$(lc '$3 == 4 && $4 == 3')
             n_bad=$(lc '$7 > $5')
             head -3 "$B/sd/$name.csv"; echo "..."
@@ -114,6 +115,7 @@ if [ "${1:-}" = "--one" ]; then
             chk $([ "$n_bad" -eq 0 ] && echo 1 || echo 0) "no line with output above the driver request"
             chk $([ "$n_want" -ge 1 ] && echo 1 || echo 0) "lines where the limit is below the driver request ($n_want)"
             chk $([ "$n_done" -ge 1 ] && echo 1 || echo 0) "launch end (DONE) logged ($n_done)"
+            chk $([ "$n_armed" -ge 1 ] && echo 1 || echo 0) "arming (ARMED) logged ($n_armed)"
             if [ "$name" = "launch_ctrl" ]; then
                 chk $([ "$n_cut" -ge 1 ] && echo 1 || echo 0) "lines where torque was actually cut ($n_cut)"
                 chk $([ "$n_sign" -ge 1 ] && echo 1 || echo 0) "MOTOR_REVERSE fault logged ($n_sign)"

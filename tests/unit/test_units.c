@@ -218,7 +218,9 @@ static void test_launch_ctrl_config(void)
     CHECK(lc->torque_max <= cfg->ctrl.hard_max_torque, "torque max within hard max torque");
     CHECK(lc->torque_floor <= lc->torque_start && lc->torque_start <= lc->torque_max,
           "floor <= start <= max");
-    CHECK(lc->abort_torque < lc->trigger_torque, "abort torque below trigger torque");
+    CHECK(lc->pedal_pressed < lc->trigger_pedal && lc->trigger_pedal <= 1000,
+          "pedal pressed threshold below trigger pedal, trigger reachable");
+    CHECK(lc->arm_hold_s > 0.0f, "arming needs a brake hold");
 
     // with the real config a spinning launch must never raise the request
     launch_ctrl_context_t ctx;
@@ -229,7 +231,7 @@ static void test_launch_ctrl_config(void)
         launch_ctrl_inputs_t in = {
             .dt_s = 0.01f,
             .driver_torque = (i < 10) ? 0 : 2300,
-            .motor_rpm = (int16_t)(i < 10 ? 0 : 50 * i),
+            .motor_rpm = (int16_t)(i < 10 ? 0.0f : lc->motor_rpm_sign * 50.0f * (float)i),
             .front_new_sample = (i % 2) == 0,
             .launch_mode_selected = true,
         };

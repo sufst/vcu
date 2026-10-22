@@ -127,6 +127,8 @@ void launch_ctrl_init(launch_ctrl_context_t *ctx, const config_launch_ctrl_t *cf
     ctx->state = LAUNCH_CTRL_STATE_OFF;
     ctx->fault = LAUNCH_CTRL_FAULT_NONE;
     ctx->t_active_s = 0.0f;
+    ctx->brake_hold_s = 0.0f;
+    ctx->press_s = 0.0f;
     ctx->since_front_s = 0.0f;
     ctx->v_ground_est = 0.0f;
     ctx->v_driven = 0.0f;
@@ -165,10 +167,12 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     {
         ctx->state = LAUNCH_CTRL_STATE_OFF;
         ctx->fault = LAUNCH_CTRL_FAULT_NONE;
+        ctx->brake_hold_s = 0.0f;
         return driver;
     }
 
     bool stationary = is_stationary(ctx);
+    bool pressed = in->pedal > c->pedal_pressed;
 
     /* plausibility only matters when we might act on the data */
     if (ctx->state == LAUNCH_CTRL_STATE_ARMED || ctx->state == LAUNCH_CTRL_STATE_ACTIVE)
@@ -184,23 +188,39 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     switch (ctx->state)
     {
     case LAUNCH_CTRL_STATE_OFF:
-        if (stationary)
+    case LAUNCH_CTRL_STATE_DONE:
+    case LAUNCH_CTRL_STATE_FAULT:
+        /* arm only when the driver asks for it: stopped, brake held for
+         * arm_hold_s without a break */
+        if (stationary && in->brake_pressed)
         {
-            ctx->state = LAUNCH_CTRL_STATE_ARMED;
+            ctx->brake_hold_s += in->dt_s;
+            if (ctx->brake_hold_s >= c->arm_hold_s)
+            {
+                ctx->state = LAUNCH_CTRL_STATE_ARMED;
+                ctx->fault = LAUNCH_CTRL_FAULT_NONE;
+                ctx->brake_hold_s = 0.0f;
+                ctx->press_s = 0.0f;
+            }
+        }
+        else
+        {
+            ctx->brake_hold_s = 0.0f;
         }
         break;
 
     case LAUNCH_CTRL_STATE_ARMED:
-        if (driver >= c->trigger_torque && !in->brake_pressed)
+        ctx->press_s = pressed ? ctx->press_s + in->dt_s : 0.0f;
+        if (in->pedal >= c->trigger_pedal && !in->brake_pressed)
         {
             ctx->state = LAUNCH_CTRL_STATE_ACTIVE;
             ctx->t_active_s = 0.0f;
             ctx->v_ground_est = 0.0f;
             ctx->integrator = (float)c->torque_start;
         }
-        else if (!stationary)
+        else if ((!stationary && !pressed) || ctx->press_s > c->arm_press_window_s)
         {
-            ctx->state = LAUNCH_CTRL_STATE_DONE; // rolling start: no launch
+            ctx->state = LAUNCH_CTRL_STATE_OFF; // rolled or just driving: disarm
         }
         break;
 
@@ -210,16 +230,6 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
             ctx->t_active_s > c->timeout_s || ctx->v_ground_est > c->exit_speed_mps)
         {
             ctx->state = LAUNCH_CTRL_STATE_DONE;
-        }
-        break;
-
-    case LAUNCH_CTRL_STATE_DONE:
-    case LAUNCH_CTRL_STATE_FAULT:
-        /* re-arm only after a full stop with the pedal released */
-        if (stationary && driver == 0)
-        {
-            ctx->state = LAUNCH_CTRL_STATE_OFF;
-            ctx->fault = LAUNCH_CTRL_FAULT_NONE;
         }
         break;
     }
