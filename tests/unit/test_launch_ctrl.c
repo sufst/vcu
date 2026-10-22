@@ -242,14 +242,21 @@ static void test_arming_protocol(void)
     }
     CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake does not arm");
 
-    hold_brake(&ctx, c->arm_hold_s - 0.1f);
+    CHECK(launch_ctrl_arm_progress(&ctx) == 0, "no brake hold -> progress 0%");
+    hold_brake(&ctx, c->arm_hold_s / 2.0f);
+    CHECK(launch_ctrl_arm_progress(&ctx) >= 48 && launch_ctrl_arm_progress(&ctx) <= 52,
+          "half the hold -> progress ~50%");
+    hold_brake(&ctx, c->arm_hold_s / 2.0f - 0.1f);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "brake held a little under 5 s -> not armed yet");
     in = inputs(0, 0.0f, 0.0f, 0);
     launch_ctrl_apply(&ctx, &in); // brake released for one step
+    CHECK(launch_ctrl_arm_progress(&ctx) == 0, "releasing the brake -> progress back to 0%");
     hold_brake(&ctx, c->arm_hold_s - 0.1f);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "releasing the brake restarts the 5 s");
+    CHECK(ctx.stationary, "stationary flag set while stopped");
     hold_brake(&ctx, 0.2f);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "5 s unbroken brake hold -> ARMED");
+    CHECK(launch_ctrl_arm_progress(&ctx) == 100, "ARMED -> progress 100%");
 
     launch_ctrl_init(&ctx, c);
     for (int i = 0; i < 600; i++)

@@ -935,6 +935,11 @@ static void ctrl_update_canbc_states(ctrl_context_t *ctrl_ptr)
         states->state.vcu_requested_mode = (uint8_t)ctrl_ptr->requested_mode;
         states->state.vcu_current_mode = (uint8_t)ctrl_ptr->current_mode;
         states->state.vcu_drs_active = ctrl_ptr->shdn_reading;
+        states->launch_ctrl.vcu_lc_state = (uint8_t)ctrl_ptr->launch_ctrl.state;
+        states->launch_ctrl.vcu_lc_fault = (uint8_t)ctrl_ptr->launch_ctrl.fault;
+        states->launch_ctrl.vcu_lc_shadow_mode = ctrl_ptr->launch_ctrl_config_ptr->shadow_mode;
+        states->launch_ctrl.vcu_lc_stationary = ctrl_ptr->launch_ctrl.stationary;
+        states->launch_ctrl.vcu_lc_arm_progress = launch_ctrl_arm_progress(&ctrl_ptr->launch_ctrl);
         states->errors.vcu_ctrl_error = ctrl_ptr->error;
         states->errors.vcu_pm100_error = ctrl_ptr->pm100_ptr->error;
         states->pdm.inverter = ctrl_ptr->inverter_pwr;

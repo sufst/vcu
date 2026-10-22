@@ -102,6 +102,9 @@ void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *h)
     vcu_handle_can_tx_mailbox_callback(&vcu, h);
 }
 
+static volatile int last_bc_lc_state = -1, last_bc_lc_progress = -1, last_bc_lc_stationary = -1;
+static volatile unsigned lc_frames;
+
 void sim_on_tx(int bus, uint32_t id, const uint8_t *data, uint8_t len)
 {
     (void)bus;
@@ -126,6 +129,15 @@ void sim_on_tx(int bus, uint32_t id, const uint8_t *data, uint8_t len)
     else if (id == CAN_S_WHEEL_RPM_FRAME_ID)
     {
         wheel_rpm_frames++;
+    }
+    else if (id == CAN_T_VCU_LAUNCH_CTRL_FRAME_ID)
+    {
+        struct can_t_vcu_launch_ctrl_t lcm;
+        can_t_vcu_launch_ctrl_unpack(&lcm, data, len);
+        last_bc_lc_state = lcm.vcu_lc_state;
+        last_bc_lc_progress = lcm.vcu_lc_arm_progress;
+        last_bc_lc_stationary = lcm.vcu_lc_stationary;
+        lc_frames++;
     }
     else if (id == CAN_T_VCU_STATE_FRAME_ID)
     {
@@ -1184,11 +1196,23 @@ static void sc_launch_ctrl(void)
     CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_LAUNCH_CTRL), "driving in LAUNCH_CTRL, launch control live (shadow mode off)");
     vTaskDelay(1000);
     CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake -> not armed (%d)", lc->state);
+    CHECK(last_bc_lc_state == LAUNCH_CTRL_STATE_OFF && last_bc_lc_progress == 0 && last_bc_lc_stationary == 1,
+          "CAN: launch control OFF, 0%%, stopped (%d, %d%%, %d)", last_bc_lc_state, last_bc_lc_progress,
+          last_bc_lc_stationary);
+    unsigned lc0 = lc_frames;
     set_brake(BRAKE_ON);
-    vTaskDelay(4500);
+    vTaskDelay(2500);
+    CHECK(last_bc_lc_progress >= 40 && last_bc_lc_progress <= 55, "CAN: arming progress ~50%% after 2.5 s (%d%%)",
+          last_bc_lc_progress);
+    vTaskDelay(2000);
     CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "brake held 4.5 s -> not armed yet (%d)", lc->state);
     vTaskDelay(700);
     CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake held 5 s -> ARMED (%d)", lc->state);
+    vTaskDelay(150);
+    CHECK(last_bc_lc_state == LAUNCH_CTRL_STATE_ARMED && last_bc_lc_progress == 100,
+          "CAN: launch control ARMED, 100%% (%d, %d%%)", last_bc_lc_state, last_bc_lc_progress);
+    CHECK(lc_frames - lc0 >= 50 && lc_frames - lc0 <= 56, "CAN: launch control message at 10 Hz (%u in 5.35 s)",
+          lc_frames - lc0);
     set_brake(BRAKE_OFF);
     vTaskDelay(1000);
     CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake released, still ARMED (%d)", lc->state);

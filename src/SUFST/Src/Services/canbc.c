@@ -117,6 +117,23 @@ static void send_bc_messages(canbc_context_t *canbc_h)
         }
     }
 
+    // launch control (for the dash)
+    {
+        rtcan_msg_t message = { .identifier = CAN_T_VCU_LAUNCH_CTRL_FRAME_ID,
+                                .length = CAN_T_VCU_LAUNCH_CTRL_LENGTH,
+                                .extended = CAN_T_VCU_LAUNCH_CTRL_IS_EXTENDED };
+
+        can_t_vcu_launch_ctrl_pack(message.data, &snapshot.launch_ctrl, message.length);
+        if (rtcan_transmit(canbc_h->rtcan_t_h, &message) != RTCAN_OK)
+        {
+            canbc_h->rtcan2_error = 1;
+            if (rtos_every(&canbc_h->tx_error_log_tick_t, configTICK_RATE_HZ))
+            {
+                LOG_ERROR("canbc: failed to transmit VCU launch control\n");
+            }
+        }
+    }
+
     // sensors
     {
         rtcan_msg_t message = { .identifier = CAN_S_VCU_SENSORS_FRAME_ID,
