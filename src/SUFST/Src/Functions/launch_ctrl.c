@@ -8,6 +8,8 @@
 
 #include "launch_ctrl.h"
 
+#include <stddef.h>
+
 #define LC_PI 3.14159265f
 
 static float clampf(float x, float lo, float hi)
@@ -129,6 +131,7 @@ void launch_ctrl_init(launch_ctrl_context_t *ctx, const config_launch_ctrl_t *cf
     ctx->t_active_s = 0.0f;
     ctx->brake_hold_s = 0.0f;
     ctx->press_s = 0.0f;
+    ctx->stationary = false;
     ctx->since_front_s = 0.0f;
     ctx->v_ground_est = 0.0f;
     ctx->v_driven = 0.0f;
@@ -162,6 +165,7 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     ctx->v_front = maxf(in->fl_rpm, in->fr_rpm) / 60.0f * c->front_circumference_m;
     ctx->since_front_s = in->front_new_sample ? 0.0f : ctx->since_front_s + in->dt_s;
     ctx->limit = (float)driver;
+    ctx->stationary = is_stationary(ctx);
 
     if (!c->enable || !in->launch_mode_selected)
     {
@@ -171,7 +175,7 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
         return driver;
     }
 
-    bool stationary = is_stationary(ctx);
+    bool stationary = ctx->stationary;
     bool pressed = in->pedal > c->pedal_pressed;
 
     /* plausibility only matters when we might act on the data */
@@ -259,4 +263,13 @@ uint16_t launch_ctrl_apply(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_
 bool launch_ctrl_is_active(const launch_ctrl_context_t *ctx)
 {
     return ctx->state == LAUNCH_CTRL_STATE_ACTIVE && !ctx->cfg->shadow_mode;
+}
+
+uint8_t launch_ctrl_arm_progress(const launch_ctrl_context_t *ctx)
+{
+    if (ctx->state == LAUNCH_CTRL_STATE_ARMED || ctx->state == LAUNCH_CTRL_STATE_ACTIVE)
+        return 100;
+    if (ctx->cfg == NULL || !(ctx->cfg->arm_hold_s > 0.0f)) // NULL: ctrl init failed early
+        return 0;
+    return (uint8_t)clampf(100.0f * ctx->brake_hold_s / ctx->cfg->arm_hold_s, 0.0f, 100.0f);
 }

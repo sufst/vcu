@@ -140,6 +140,7 @@ typedef struct
     float t_active_s;
     float brake_hold_s; // how long the brake has been held at a standstill (for arming)
     float press_s;      // how long the pedal has been pressed while ARMED
+    bool stationary;    // car counts as stopped (for the dash)
     float since_front_s;
     float v_ground_est; // m/s
     float v_driven;     // m/s, from motor rpm
@@ -161,5 +162,11 @@ uint16_t launch_ctrl_apply(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_
 
 /** @brief True while the launch part is limiting (false in shadow mode). */
 bool launch_ctrl_is_active(const launch_ctrl_context_t *ctx);
+
+/**
+ * @brief   Arming progress for the dash, 0..100 %: how far through the brake
+ *          hold the driver is, 100 once ARMED or ACTIVE.
+ */
+uint8_t launch_ctrl_arm_progress(const launch_ctrl_context_t *ctx);
 
 #endif

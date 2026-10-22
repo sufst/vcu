@@ -36,6 +36,7 @@ typedef struct
     struct can_s_vcu_temps_t temps;
     struct can_t_vcu_state_t state;
     struct can_t_vcu_error_t errors;
+    struct can_t_vcu_launch_ctrl_t launch_ctrl;
     struct can_t_vcu_pdm_t pdm;
 } canbc_states_t;
 
