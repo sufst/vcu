@@ -105,11 +105,11 @@ static const config_t config_instance = {
         .bps_on_threshold = 50, // brake threshold (% * 10) for entering R2D when r2d_requires_brake = true
         .apps_bps_fault_bps_threshold = 150, // brake threshold (% * 10) to trigger apps bps fault
 	    .apps_bps_low_threshold = 50, // required APPS (% * 10) to go out of a APPS bps fault
-	    .apps_bps_high_threshold = 300, // required APPS (% * 10) to go into a APPS bps fault - set this to a big number (e.g. 2000), instead of default 300 (30%) to temporarily disable for scrut hardware demos
+	    .apps_bps_high_threshold = 2000, // TEMPORARY (testing, 25 Oct): 2000 = brake + throttle check off. Put back 300 before competition. Required APPS (% * 10) to go into a APPS bps fault - set this to a big number (e.g. 2000), instead of default 300 (30%) to temporarily disable for scrut hardware demos
         .precharge_timeout_ticks = SECONDS_TO_TICKS(3),
         .error_led_toggle_ticks = SECONDS_TO_TICKS(0.1),
         .hard_max_torque = 2500,
-        .endurance_max_torque = 1100,
+        .endurance_max_torque = 2300, // 230 Nm
         .crawl_max_torque = 200
     },
     .rtds = {
@@ -123,7 +123,7 @@ static const config_t config_instance = {
         .function = TORQUE_MAP_EXPONENTIAL,
         .input_max = 1000, // percent * 10 so 100%
         .output_max = 1000, // initial default before R2D; torque_map_set_output_max() is called with .ctrl.{hard,endurance,crawl}_max_torque when entering R2D depending on the current mode
-        .deadzone_fraction = 0.05f,
+        .deadzone_fraction = 0.25f, // 25%, every mode: the pedal doesn't fully return (rested at up to ~21%). Not rescaled
         .exponent = 1.7f
     },
     .pm100 = {
@@ -227,7 +227,7 @@ static const config_t config_instance = {
 
         .stationary_mps = 0.3f,
         .trigger_pedal = 900,            // 90% pedal starts the launch
-        .pedal_pressed = 200,            // 20% pedal counts as pressed; below it LAUNCH_CTRL also requests 0 torque (pedal does not fully return)
+        .pedal_pressed = 250,            // 25% pedal counts as pressed (arming); matches .torque_map.deadzone_fraction
         .arm_press_window_s = 0.5f,      // pressed 0.5 s without flooring it -> disarm
         .abort_torque = 300,             // 30 Nm
         .exit_speed_mps = 20.0f,
@@ -235,13 +235,15 @@ static const config_t config_instance = {
 
         .slip_ratio = 0.10f,             // 10%: dry tyres peak ~10-15%; less scrubbing than 12% (sim)
         .slip_min_mps = 0.5f,            // was 0.8: allowed 27% slip at 3 m/s
-        .kp = 200.0f,                    // 20 Nm per m/s of excess slip speed (400 cut to the floor in the 24 Oct wet runs)
+        .kp = 180.0f,                    // 18 Nm per m/s of excess slip speed (200 + raw motor speed kept a 25 Hz shake going on 25 Oct)
         .ki = 3000.0f,                   // SIM
         .ramp_up_max = 3000.0f,          // 300 Nm/s
         .ki_recover = 6000.0f,           // 2 x ki: back up faster after a wheelspin cut
         .recover_max = 15000.0f,         // 1500 Nm/s: refill after a cut, up to the grip memory knee
         .recover_frac = 0.85f,          // after a cut, refill fast to 85% of the torque the wheels broke loose at
         .ramp_min_s = 0.2f,            // cuts in the first 0.2 s (motor speed noise) don't end the initial ramp
+        .speed_avg_n = 3,               // controller averages motor speed over 30 ms (with err_band: stops the ~25 Hz driveshaft shake seen on 25 Oct)
+        .err_band_mps = 0.3f,           // slip hysteresis: wobbles within +-0.3 m/s don't trigger cuts or fast refills
         .torque_start = 900,             // 90 Nm: first torque command of a launch (and the cap while ARMED)
         .torque_floor = 400,             // 40 Nm
         .torque_max = 2300,              // planned 220-230 Nm cap (<= .ctrl.hard_max_torque)

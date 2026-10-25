@@ -26,9 +26,8 @@ status_t torque_map_init(torque_map_t *map_ptr, const config_torque_map_t *confi
     // pre-compute deadzone parameters
     map_ptr->deadzone_end = config_ptr->deadzone_fraction * config_ptr->input_max;
 
-    map_ptr->deadzone_scale = ((float)config_ptr->input_max) /
-        ((float)(config_ptr->input_max - map_ptr->deadzone_end));
-    
+    map_ptr->deadzone_scale = 1.0f; // not rescaled (see apply_deadzone)
+
     map_ptr->output_max = config_ptr->output_max;
     
     switch (config_ptr->function)
@@ -78,15 +77,9 @@ void torque_map_set_output_max(torque_map_t *map_ptr, uint16_t output_max)
  */
 uint16_t apply_deadzone(const torque_map_t *map_ptr, uint16_t input)
 {
-    if (input <= map_ptr->deadzone_end)
-    {
-        return 0;
-    }
-    else
-    {
-        const uint16_t shifted_input = input - map_ptr->deadzone_end;
-        return (uint16_t)(shifted_input * map_ptr->deadzone_scale);
-    }
+    // not rescaled: above the deadzone the pedal maps as if there were none
+    // (21% pedal = the normal 21% request, 100% = full torque)
+    return (input <= map_ptr->deadzone_end) ? 0 : input;
 }
 
 /**

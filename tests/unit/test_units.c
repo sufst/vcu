@@ -128,13 +128,24 @@ static void test_mode_switch(void)
 
 static void test_torque_map(void)
 {
-    print_section("torque map (config: exponential 1.7, 5% deadzone)");
+    print_section("torque map (config: exponential 1.7, 25% deadzone, not rescaled)");
     const config_t *cfg = config_get();
     torque_map_t map;
     CHECK(torque_map_init(&map, &cfg->torque_map) == STATUS_OK, "init ok");
 
     CHECK(torque_map_apply(&map, 0) == 0, "0%% pedal -> 0");
-    CHECK(torque_map_apply(&map, 50) == 0, "5%% pedal (deadzone end) -> 0");
+    CHECK(torque_map_apply(&map, 50) == 0, "5%% pedal -> 0");
+    CHECK(torque_map_apply(&map, 210) == 0, "21%% pedal -> 0");
+    CHECK(torque_map_apply(&map, 250) == 0, "25%% pedal (deadzone end) -> 0");
+    {
+        config_torque_map_t nodz = cfg->torque_map;
+        nodz.deadzone_fraction = 0.0f;
+        torque_map_t ref;
+        torque_map_init(&ref, &nodz);
+        CHECK(torque_map_apply(&map, 260) > 0 && torque_map_apply(&map, 260) == torque_map_apply(&ref, 260),
+              "26%% pedal -> the normal 26%% request, not rescaled (%u)", torque_map_apply(&map, 260));
+        CHECK(torque_map_apply(&map, 600) == torque_map_apply(&ref, 600), "60%% pedal -> the normal 60%% request");
+    }
     CHECK(torque_map_apply(&map, 1000) == cfg->torque_map.output_max,
           "100%% pedal -> output_max (%u)", torque_map_apply(&map, 1000));
 
@@ -166,9 +177,9 @@ static void test_torque_map(void)
     config_torque_map_t lin = cfg->torque_map;
     lin.function = TORQUE_MAP_LINEAR;
     CHECK(torque_map_init(&map, &lin) == STATUS_OK, "linear map init ok");
-    CHECK(torque_map_apply(&map, 50) == 0, "linear: deadzone -> 0");
-    uint16_t l = torque_map_apply(&map, 525);
-    CHECK(l >= 495 && l <= 505, "linear: 52.5%% pedal -> ~50%% torque (%u)", l);
+    CHECK(torque_map_apply(&map, 250) == 0, "linear: deadzone -> 0");
+    uint16_t l = torque_map_apply(&map, 500);
+    CHECK(l >= 495 && l <= 505, "linear: 50%% pedal -> 50%% torque, not rescaled (%u)", l);
 
     config_torque_map_t bad = cfg->torque_map;
     bad.function = (torque_map_func_e)99;

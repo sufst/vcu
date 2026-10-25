@@ -559,11 +559,14 @@ static void test_first_command_and_ramp(void)
     }
     CHECK(!ctx.ramping, "a wheelspin cut ends the initial ramp");
     uint16_t cut = out;
-    in = inputs(2300, 5.0f, 5.0f, 0); // gripping again
-    out = launch_ctrl_apply(&ctx, &in);
+    for (int i = 0; i < 3; i++) // gripping again (the controller's 30 ms speed average has to catch up)
+    {
+        in = inputs(2300, 5.0f, 5.0f, i);
+        out = launch_ctrl_apply(&ctx, &in);
+    }
     CHECK((float)out > (float)cut + 5.0f * c->ramp_up_max * in.dt_s,
-          "after a cut the limit jumps back at once when the wheels grip (not one ramp step)");
-    for (int i = 1; i < 10; i++)
+          "after a cut the limit jumps back within 30 ms when the wheels grip (not ramp steps)");
+    for (int i = 3; i < 10; i++)
     {
         in = inputs(2300, 5.0f, 5.0f, i);
         out = launch_ctrl_apply(&ctx, &in);
@@ -709,6 +712,46 @@ static void test_early_noise_keeps_ramp(void)
     CHECK(ctx.limit < 2000.0f, "no snap to the full request in the first 0.2 s");
 }
 
+static void test_driveshaft_shake_ignored(void)
+{
+    printf("a 25 Hz +-1 m/s motor speed shake around steady slip doesn't make the limit chatter\n");
+    const config_launch_ctrl_t *c = &launch_ctrl_config_default;
+    launch_ctrl_context_t ctx;
+    launch_ctrl_inputs_t in;
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(2300, 0.0f, 0.0f, 0);
+    launch_ctrl_apply(&ctx, &in);
+    int step = 1;
+    for (int i = 0; i < 60; i++, step++) // build up with grip
+    {
+        float v = 0.08f * (float)i;
+        in = inputs(2300, v, v, step);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    // car at 5 m/s, rears at 10% slip on average, shaking +-1 m/s at 25 Hz (40 ms period)
+    const int shake[4] = {1, 1, -1, -1};
+    float sum_dd = 0.0f, prev = -1.0f, prev2 = -1.0f;
+    int n = 0, ok = 1;
+    for (int i = 0; i < 200; i++, step++)
+    {
+        float vd = 5.5f + 1.0f * (float)shake[i % 4];
+        in = inputs(2300, vd, 5.0f, step);
+        uint16_t out = launch_ctrl_apply(&ctx, &in);
+        ok &= (ctx.state == LAUNCH_CTRL_STATE_ACTIVE);
+        if (i > 40 && prev2 >= 0.0f)
+        {
+            sum_dd += fabsf((float)out - 2.0f * prev + prev2) / 2.0f;
+            n++;
+        }
+        prev2 = prev;
+        prev = (float)out;
+    }
+    CHECK(ok, "stays ACTIVE through the shake (no fault)");
+    printf("    zigzag %.1f Nm\n", sum_dd/(float)n/10.0f); printf("    zigzag %.1f Nm\n", sum_dd/(float)n/10.0f); printf("    zigzag %.1f Nm\n", sum_dd/(float)n/10.0f); CHECK(n > 0 && sum_dd / (float)n < 50.0f, "limit zig-zag under 5 Nm per step during the shake");
+}
+
 static void test_timeout_and_exit_speed(void)
 {
     printf("hands back after exit speed or timeout\n");
@@ -743,6 +786,7 @@ int main(void)
     test_timeout_and_exit_speed();
     test_grip_memory_recovery();
     test_early_noise_keeps_ramp();
+    test_driveshaft_shake_ignored();
     printf("\nRESULT: %s (%d/%d checks)\n", failures ? "FAIL" : "PASS", checks - failures, checks);
     return failures ? 1 : 0;
 }

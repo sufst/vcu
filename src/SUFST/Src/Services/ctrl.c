@@ -545,15 +545,6 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 
         ctrl_ptr->torque_request =
             torque_map_apply(&ctrl_ptr->torque_map, ctrl_ptr->apps_reading);
-
-        // LAUNCH_CTRL only: the pedal doesn't fully return, so ignore it up to
-        // the launch "pressed" threshold. Not rescaled: above it the map is
-        // unchanged (21% pedal = the normal 21% request)
-        if (ctrl_ptr->current_mode == CTRL_MODE_LAUNCH_CTRL &&
-            ctrl_ptr->apps_reading <= ctrl_ptr->launch_ctrl_config_ptr->pedal_pressed)
-        {
-            ctrl_ptr->torque_request = 0;
-        }
     }
     else
     {

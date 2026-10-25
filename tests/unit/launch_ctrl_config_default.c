@@ -34,13 +34,15 @@ const config_launch_ctrl_t launch_ctrl_config_default = {
 
     .slip_ratio = 0.12f,    // SIM
     .slip_min_mps = 0.8f,   // SIM
-    .kp = 200.0f,           // 20 Nm per m/s of excess slip speed
+    .kp = 180.0f,                    // 18 Nm per m/s of excess slip speed (200 + raw motor speed kept a 25 Hz shake going on 25 Oct)
     .ki = 3000.0f,          // SIM
     .ramp_up_max = 3000.0f, // 300 Nm/s
     .ki_recover = 6000.0f,
     .recover_max = 15000.0f, // 1500 Nm/s
     .recover_frac = 0.85f,          // after a cut, refill fast to 85% of the torque the wheels broke loose at
     .ramp_min_s = 0.2f,            // cuts in the first 0.2 s (motor speed noise) don't end the initial ramp
+    .speed_avg_n = 3,               // controller averages motor speed over 30 ms (with err_band: stops the ~25 Hz driveshaft shake seen on 25 Oct)
+    .err_band_mps = 0.3f,           // slip hysteresis: wobbles within +-0.3 m/s don't trigger cuts or fast refills
     .torque_start = 1000,   // 100 Nm
     .torque_floor = 400,    // 40 Nm
     .torque_max = 2300,     // matches the planned 220-230 Nm cap

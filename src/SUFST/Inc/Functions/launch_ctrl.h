@@ -108,6 +108,8 @@ typedef struct
     float recover_max;     // refill rate after a cut up to recover_frac x slip_torque, Nm x 10 per second
     float recover_frac;    // after a cut, refill fast to this fraction of the torque the wheels broke loose at
     float ramp_min_s;      // a cut this early in the launch doesn't end the initial ramp (motor speed noise)
+    uint8_t speed_avg_n;   // controller uses the motor speed averaged over this many steps (1..8); 4 = 40 ms cancels the ~25 Hz driveshaft shake
+    float err_band_mps;    // hysteresis: slipping above +this slip-speed error, gripping (fast refill) below -this
     uint16_t torque_start; // first torque command of a launch (and the integrator start); also the cap while ARMED
     uint16_t torque_floor; // limit never goes below this while active
     uint16_t torque_max;   // integrator ceiling (normally the mode's max torque)
@@ -156,7 +158,11 @@ typedef struct
     float ramp_ref;     // Nm x 10, last limit while ACTIVE (< 0: first step)
     bool ramping;       // initial build-up from torque_start, ends at the first cut
     float slip_torque;  // Nm x 10, limit when the wheels last broke loose (grip memory)
-    float prev_err;     // m/s, last slip-speed error (to spot the wheels breaking loose)
+    float prev_err;     // m/s, last slip-speed error
+    bool slipping;      // inside a wheelspin episode (err went above +err_band_mps, not yet below -err_band_mps)
+    float vd_hist[8];   // m/s, last motor-derived driven speeds
+    uint8_t vd_i;       // next slot in vd_hist
+    float v_driven_f;   // m/s, v_driven averaged over speed_avg_n steps (what the controller uses)
     float limit;        // Nm x 10, what the launch part wants (logged even in shadow mode)
     uint16_t output;    // Nm x 10, what was returned (after the power limit)
 } launch_ctrl_context_t;

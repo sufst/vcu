@@ -119,9 +119,9 @@ static void update_estimate(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     ctx->v_ground_est = clampf(ctx->v_ground_est, lo, hi);
 
     /* under drive the car cannot be faster than its driven wheels */
-    if (ctx->v_driven >= 0.0f)
+    if (ctx->v_driven_f >= 0.0f)
     {
-        ctx->v_ground_est = minf(ctx->v_ground_est, ctx->v_driven);
+        ctx->v_ground_est = minf(ctx->v_ground_est, ctx->v_driven_f);
     }
 }
 
@@ -131,12 +131,21 @@ static float control_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_t
 
     ctx->v_target = maxf(ctx->v_ground_est * (1.0f + c->slip_ratio),
                          ctx->v_ground_est + c->slip_min_mps);
-    float err = ctx->v_driven - ctx->v_target; // > 0: too much wheelspin
+    /* averaged motor speed: the raw reading shakes at the driveshaft's ~25 Hz,
+     * and reacting to that every step keeps the shake going */
+    float err = ctx->v_driven_f - ctx->v_target; // > 0: too much wheelspin
 
-    /* grip memory: the limit at the moment the wheels broke loose */
-    if (err > 0.0f && ctx->prev_err <= 0.0f && ctx->ramp_ref >= 0.0f)
+    /* wheelspin episodes with hysteresis, so wobbles around the target don't
+     * count as new spins (grip memory: the limit when the wheels broke loose) */
+    if (!ctx->slipping && err > c->err_band_mps)
     {
-        ctx->slip_torque = ctx->ramp_ref;
+        ctx->slipping = true;
+        if (ctx->ramp_ref >= 0.0f)
+            ctx->slip_torque = ctx->ramp_ref;
+    }
+    else if (ctx->slipping && err < -c->err_band_mps)
+    {
+        ctx->slipping = false;
     }
     ctx->prev_err = err;
 
@@ -145,7 +154,7 @@ static float control_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_t
      * (ramp_up_max) to look for more grip. Snapping straight back to the full
      * request just spins them up again */
     float d;
-    if (!ctx->ramping && err < 0.0f)
+    if (!ctx->ramping && !ctx->slipping && err < 0.0f)
     {
         float knee = c->recover_frac * ctx->slip_torque;
         if (ctx->integrator < knee)
@@ -189,6 +198,11 @@ void launch_ctrl_init(launch_ctrl_context_t *ctx, const config_launch_ctrl_t *cf
     ctx->ramping = false;
     ctx->slip_torque = 0.0f;
     ctx->prev_err = 0.0f;
+    ctx->slipping = false;
+    for (int k = 0; k < 8; k++)
+        ctx->vd_hist[k] = 0.0f;
+    ctx->vd_i = 0;
+    ctx->v_driven_f = 0.0f;
     ctx->limit = 0.0f;
     ctx->output = 0;
 }
@@ -213,6 +227,15 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     /* measurements */
     float motor_rpm_signed = c->motor_rpm_sign * (float)in->motor_rpm;
     ctx->v_driven = motor_rpm_signed / c->gear_ratio * (2.0f * LC_PI / 60.0f) * c->driven_radius_m;
+    {
+        uint8_t n = (c->speed_avg_n < 1) ? 1 : (c->speed_avg_n > 8 ? 8 : c->speed_avg_n);
+        ctx->vd_hist[ctx->vd_i] = ctx->v_driven;
+        ctx->vd_i = (uint8_t)((ctx->vd_i + 1) % 8);
+        float sum = 0.0f;
+        for (uint8_t k = 0; k < n; k++)
+            sum += ctx->vd_hist[(ctx->vd_i + 8 - 1 - k) % 8];
+        ctx->v_driven_f = sum / (float)n;
+    }
     update_front(ctx, in);
     ctx->since_front_s = in->front_new_sample ? 0.0f : ctx->since_front_s + in->dt_s;
     ctx->limit = (float)driver;
@@ -267,6 +290,7 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
             ctx->ramping = true;
             ctx->slip_torque = (float)c->torque_max;
             ctx->prev_err = 0.0f;
+            ctx->slipping = false;
         }
         else if (ctx->press_s > c->arm_press_window_s)
         {
