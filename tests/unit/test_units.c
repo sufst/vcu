@@ -176,13 +176,15 @@ static void test_torque_map(void)
     CHECK(torque_map_apply(&map, 1000) == 0, "invalid map function always gives 0 torque");
 }
 
-/* one launch control step with the real config, launch mode not selected */
+/* one launch control step with the real config; the pedal is part pressed, so
+ * launch mode doesn't arm and only the power limit acts */
 static uint16_t power_limited(uint16_t torque, float power_w, bool launch_mode)
 {
     launch_ctrl_context_t ctx;
     launch_ctrl_init(&ctx, &config_get()->launch_ctrl);
     launch_ctrl_inputs_t in = { .dt_s = 0.01f,
                                 .driver_torque = torque,
+                                .pedal = 500,
                                 .front_new_sample = true,
                                 .launch_mode_selected = launch_mode,
                                 .electrical_power_w = power_w };
@@ -220,7 +222,6 @@ static void test_launch_ctrl_config(void)
           "floor <= start <= max");
     CHECK(lc->pedal_pressed < lc->trigger_pedal && lc->trigger_pedal <= 1000,
           "pedal pressed threshold below trigger pedal, trigger reachable");
-    CHECK(lc->arm_hold_s > 0.0f, "arming needs a brake hold");
 
     // with the real config a spinning launch must never raise the request
     launch_ctrl_context_t ctx;

@@ -1177,14 +1177,12 @@ static int launch_setup(const config_launch_ctrl_t *lc_cfg, ctrl_mode_t mode)
 
 static config_launch_ctrl_t lc_live_cfg;
 
-/* the driver's arming routine: standing still, hold the brake for 5 s, let go */
+/* launch mode arms by itself: the car standing still with the pedal released */
 static void lc_arm(void)
 {
     set_pedal(0);
-    set_brake(BRAKE_ON);
-    vTaskDelay(5200);
     set_brake(BRAKE_OFF);
-    vTaskDelay(50);
+    vTaskDelay(200);
 }
 
 static void sc_launch_ctrl(void)
@@ -1194,33 +1192,20 @@ static void sc_launch_ctrl(void)
     const launch_ctrl_context_t *lc = &vcu.ctrl.launch_ctrl;
 
     CHECK(launch_setup(&lc_live_cfg, CTRL_MODE_LAUNCH_CTRL), "driving in LAUNCH_CTRL, launch control live (shadow mode off)");
-    vTaskDelay(1000);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake -> not armed (%d)", lc->state);
-    CHECK(last_bc_lc_state == LAUNCH_CTRL_STATE_OFF && last_bc_lc_progress == 0 && last_bc_lc_stationary == 1,
-          "CAN: launch control OFF, 0%%, stopped (%d, %d%%, %d)", last_bc_lc_state, last_bc_lc_progress,
-          last_bc_lc_stationary);
     unsigned lc0 = lc_frames;
-    set_brake(BRAKE_ON);
-    vTaskDelay(2500);
-    CHECK(last_bc_lc_progress >= 40 && last_bc_lc_progress <= 55, "CAN: arming progress ~50%% after 2.5 s (%d%%)",
-          last_bc_lc_progress);
-    vTaskDelay(2000);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_OFF, "brake held 4.5 s -> not armed yet (%d)", lc->state);
-    vTaskDelay(700);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake held 5 s -> ARMED (%d)", lc->state);
-    vTaskDelay(150);
-    CHECK(last_bc_lc_state == LAUNCH_CTRL_STATE_ARMED && last_bc_lc_progress == 100,
-          "CAN: launch control ARMED, 100%% (%d, %d%%)", last_bc_lc_state, last_bc_lc_progress);
-    CHECK(lc_frames - lc0 >= 50 && lc_frames - lc0 <= 56, "CAN: launch control message at 10 Hz (%u in 5.35 s)",
-          lc_frames - lc0);
-    set_brake(BRAKE_OFF);
     vTaskDelay(1000);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake released, still ARMED (%d)", lc->state);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "standing still in launch mode, no brake -> ARMED by itself (%d)",
+          lc->state);
+    CHECK(last_bc_lc_state == LAUNCH_CTRL_STATE_ARMED && last_bc_lc_progress == 100 && last_bc_lc_stationary == 1,
+          "CAN: launch control ARMED, 100%%, stopped (%d, %d%%, %d)", last_bc_lc_state, last_bc_lc_progress,
+          last_bc_lc_stationary);
+    CHECK(lc_frames - lc0 >= 8 && lc_frames - lc0 <= 12, "CAN: launch control message at 10 Hz (%u in 1 s)",
+          lc_frames - lc0);
 
     launch_result_t r = launch(6000);
     print_launch("launch control live", &r);
-    CHECK(r.first_torque >= lc_live_cfg.torque_start + 200 && r.first_torque <= lc_live_cfg.torque_start + 400,
-          "launch starts near torque_start + slip term (%.1f Nm)", r.first_torque / 10.0);
+    CHECK(r.first_torque == lc_live_cfg.torque_start, "first torque command is torque_start (%.1f Nm)",
+          r.first_torque / 10.0);
     CHECK(r.min_torque < 2300, "wheelspin -> torque cut below the driver request (min %.1f Nm)",
           r.min_torque / 10.0);
     CHECK(r.min_torque >= lc_live_cfg.torque_floor, "never below torque_floor (%.1f Nm)", r.min_torque / 10.0);
@@ -1233,12 +1218,10 @@ static void sc_launch_ctrl(void)
     CHECK(lc->state == LAUNCH_CTRL_STATE_DONE && lc->fault == LAUNCH_CTRL_FAULT_NONE, "DONE, no fault");
     CHECK(vcu.ctrl.state == CTRL_STATE_TS_ON, "still driving");
 
-    // stopping alone does not re-arm; the brake hold does
+    // stopped again with the pedal released: re-arms by itself, no brake
     car_stop();
     vTaskDelay(300);
-    CHECK(lc->state == LAUNCH_CTRL_STATE_DONE, "stopped -> still DONE, no automatic re-arm (%d)", lc->state);
-    lc_arm();
-    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "brake hold -> ARMED again (%d)", lc->state);
+    CHECK(lc->state == LAUNCH_CTRL_STATE_ARMED, "stopped, pedal released -> ARMED again by itself (%d)", lc->state);
 
     // lift-off ends a launch
     set_pedal(1000);
@@ -1277,7 +1260,8 @@ static void sc_launch_ctrl(void)
     vTaskDelay(30);
     CHECK(faulted && lc->fault == LAUNCH_CTRL_FAULT_MOTOR_REVERSE, "wrong motor speed sign -> MOTOR_REVERSE fault (%d)",
           lc->fault);
-    CHECK(last_torque == 2500, "fault -> full driver torque passed through (%d)", last_torque);
+    CHECK(last_torque == vcu.ctrl.launch_ctrl_config_ptr->fault_torque,
+          "fault -> capped at crawl torque, not the full request (%d)", last_torque);
     set_pedal(0);
     car_motor_sign = -1;
     car_stop();

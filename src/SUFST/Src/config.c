@@ -213,7 +213,7 @@ static const config_t config_instance = {
         // runs in shadow mode (computes and logs its limit, always passes the
         // driver request through) until it has been checked on the car
         .enable = true,
-        .shadow_mode = true,
+        .shadow_mode = false,
 
         .gear_ratio = 3.18f,             // motor : wheel reduction
         .driven_radius_m = 0.20f,        // 16 in tyre = 0.203 m unloaded, ~0.20 loaded
@@ -226,29 +226,31 @@ static const config_t config_instance = {
         .motor_rpm_sign = -1.0f,         // measured: PM100 reports forward as negative
 
         .stationary_mps = 0.3f,
-        .arm_hold_s = 5.0f,              // stopped + brake held 5 s -> ARMED
         .trigger_pedal = 900,            // 90% pedal starts the launch
-        .pedal_pressed = 50,             // 5% pedal counts as pressed
+        .pedal_pressed = 200,            // 20% pedal counts as pressed; below it LAUNCH_CTRL also requests 0 torque (pedal does not fully return)
         .arm_press_window_s = 0.5f,      // pressed 0.5 s without flooring it -> disarm
         .abort_torque = 300,             // 30 Nm
         .exit_speed_mps = 20.0f,
         .timeout_s = 10.0f,
 
-        .slip_ratio = 0.12f,             // SIM
-        .slip_min_mps = 0.8f,            // SIM
-        .kp = 400.0f,                    // SIM: 40 Nm per m/s of excess slip speed
+        .slip_ratio = 0.10f,             // 10%: dry tyres peak ~10-15%; less scrubbing than 12% (sim)
+        .slip_min_mps = 0.5f,            // was 0.8: allowed 27% slip at 3 m/s
+        .kp = 200.0f,                    // 20 Nm per m/s of excess slip speed (400 cut to the floor in the 24 Oct wet runs)
         .ki = 3000.0f,                   // SIM
         .ramp_up_max = 3000.0f,          // 300 Nm/s
-        .torque_start = 1000,            // 100 Nm: torque the launch starts at
+        .ki_recover = 6000.0f,           // 2 x ki: back up faster after a wheelspin cut
+        .recover_max = 15000.0f,         // 1500 Nm/s: refill after a cut, up to the grip memory knee
+        .recover_frac = 0.85f,          // after a cut, refill fast to 85% of the torque the wheels broke loose at
+        .ramp_min_s = 0.2f,            // cuts in the first 0.2 s (motor speed noise) don't end the initial ramp
+        .torque_start = 900,             // 90 Nm: first torque command of a launch (and the cap while ARMED)
         .torque_floor = 400,             // 40 Nm
         .torque_max = 2300,              // planned 220-230 Nm cap (<= .ctrl.hard_max_torque)
         .est_gain = 0.5f,
 
         .front_stale_s = 0.1f,           // 5 missed 20 ms samples
-        .disagree_ratio = 0.5f,          // FR reads ~30% low; faster front is used, this only catches a dead sensor
-        .disagree_min_mps = 5.0f,
-        .front_ahead_mps = 3.0f,
+        .front_ahead_mps = 4.5f,         // FL jitters up to ~2 pulse steps (2.7 m/s) above the rears in the 24 Oct log
         .motor_reverse_rpm = 100.0f,
+        .fault_torque = 200,             // 20 Nm while FAULT: same as .ctrl.crawl_max_torque
 
         // power limit: applies in every mode, also in shadow mode
         .power_limit_w = 75000.0f,       // 75 kW -> start of torque cut

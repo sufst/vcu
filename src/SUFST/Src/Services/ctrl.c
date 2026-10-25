@@ -85,7 +85,6 @@ status_t ctrl_init(ctrl_context_t *ctrl_ptr,
     ctrl_ptr->current_reading = 0;
     ctrl_ptr->motor_speed_reading = 0;
     ctrl_ptr->fl_wheel_rpm = 0;
-    ctrl_ptr->fr_wheel_rpm = 0;
     ctrl_ptr->wheelspeed_sample_count = 0;
     ctrl_ptr->front_new_sample = false;
     ctrl_ptr->launch_ctrl_config_ptr = launch_ctrl_config_ptr;
@@ -175,7 +174,6 @@ static void ctrl_thread_entry(void *arg)
                 (wheelspeed_reading.sample_count != ctrl_ptr->wheelspeed_sample_count);
             ctrl_ptr->wheelspeed_sample_count = wheelspeed_reading.sample_count;
             ctrl_ptr->fl_wheel_rpm = wheelspeed_reading.fl_rpm;
-            ctrl_ptr->fr_wheel_rpm = wheelspeed_reading.fr_rpm;
         }
 
         ctrl_ptr->max_temp = ctrl_ptr->motor_temp > ctrl_ptr->inv_temp ?
@@ -547,6 +545,15 @@ static ctrl_state_t ctrl_proc_ts_on(ctrl_context_t *ctrl_ptr, bool r2d_pressed)
 
         ctrl_ptr->torque_request =
             torque_map_apply(&ctrl_ptr->torque_map, ctrl_ptr->apps_reading);
+
+        // LAUNCH_CTRL only: the pedal doesn't fully return, so ignore it up to
+        // the launch "pressed" threshold. Not rescaled: above it the map is
+        // unchanged (21% pedal = the normal 21% request)
+        if (ctrl_ptr->current_mode == CTRL_MODE_LAUNCH_CTRL &&
+            ctrl_ptr->apps_reading <= ctrl_ptr->launch_ctrl_config_ptr->pedal_pressed)
+        {
+            ctrl_ptr->torque_request = 0;
+        }
     }
     else
     {
@@ -809,6 +816,12 @@ static void ctrl_state_machine_tick(ctrl_context_t *ctrl_ptr)
             xTaskGetTickCount() - ctrl_ptr->config_ptr->schedule_ticks;
         ctrl_ptr->apps_bps_start = xTaskGetTickCount();
     }
+    else if (next_state != CTRL_STATE_TS_ON && ctrl_ptr->state == CTRL_STATE_TS_ON)
+    {
+        // launch control only runs in TS_ON: reset it on the way out so the
+        // dash doesn't keep showing ARMED/ACTIVE while the car can't drive
+        launch_ctrl_init(&ctrl_ptr->launch_ctrl, ctrl_ptr->launch_ctrl_config_ptr);
+    }
 
     dash_clear_buttons(ctrl_ptr->dash_ptr);
 
@@ -832,7 +845,6 @@ static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver
         .driver_torque = driver_torque,
         .motor_rpm = ctrl_ptr->motor_speed_reading,
         .fl_rpm = ctrl_ptr->fl_wheel_rpm,
-        .fr_rpm = ctrl_ptr->fr_wheel_rpm,
         .front_new_sample = ctrl_ptr->front_new_sample,
         .pedal = ctrl_ptr->apps_reading,
         .launch_mode_selected = (ctrl_ptr->current_mode == CTRL_MODE_LAUNCH_CTRL),
@@ -866,7 +878,7 @@ static uint16_t ctrl_apply_launch_ctrl(ctrl_context_t *ctrl_ptr, uint16_t driver
  *              driver: request into launch control, limit: what it wants,
  *              output: what it passed on (= driver in shadow mode)
  *              v_ground: estimated car speed, v_rear: from motor speed,
- *              v_front: faster front wheel
+ *              v_front: front left wheel
  *              torques in Nm * 10, speeds in cm/s. The lines go straight to
  *              the SD queue, not over UART, so they cannot hold up the
  *              control loop.

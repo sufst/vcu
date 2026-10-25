@@ -50,28 +50,26 @@ static launch_ctrl_inputs_t inputs(uint16_t drv, float v_driven, float v_front, 
     in.pedal = (uint16_t)((drv >= 2300) ? 1000 : drv * 1000 / 2300); // 2300 = floored
     in.motor_rpm = rpm_for(v_driven);
     in.fl_rpm = front_rpm_for(v_front);
-    in.fr_rpm = in.fl_rpm;
     in.front_new_sample = (step % 2) == 0; // 20 ms window, 10 ms loop
     in.launch_mode_selected = true;
     in.brake_pressed = false;
     return in;
 }
 
-/* stand still with the brake held for t seconds */
-static void hold_brake(launch_ctrl_context_t *ctx, float t)
+/* stand still with the pedal released for t seconds */
+static void stand_still(launch_ctrl_context_t *ctx, float t)
 {
     for (int i = 0; i < (int)lroundf(t / 0.01f); i++)
     {
         launch_ctrl_inputs_t in = inputs(0, 0.0f, 0.0f, i);
-        in.brake_pressed = true;
         launch_ctrl_apply(ctx, &in);
     }
 }
 
-/* the driver's arming routine: stop, hold the brake for arm_hold_s (+ a bit) */
+/* launch mode arms by itself: just stop with the pedal released */
 static void arm(launch_ctrl_context_t *ctx)
 {
-    hold_brake(ctx, launch_ctrl_config_default.arm_hold_s + 0.05f);
+    stand_still(ctx, 0.05f);
 }
 
 static void test_disabled_passes_through(void)
@@ -103,7 +101,7 @@ static void test_arms_only_when_stationary(void)
     launch_ctrl_context_t ctx;
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     arm(&ctx);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stationary + brake held 5 s -> ARMED");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stationary + pedal released -> ARMED");
 
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     for (int i = 0; i < 50; i++)
@@ -161,14 +159,13 @@ static void test_never_exceeds_driver_fuzz(void)
     for (int i = 0; i < 200000; i++)
     {
         if (i % 2000 == 0)
-            arm(&ctx); // random inputs never hold the brake for 5 s, so arm now and then
+            arm(&ctx); // random inputs rarely stand still, so arm now and then
         launch_ctrl_inputs_t in;
         in.dt_s = (rand() % 50 == 0) ? 0.0f : 0.01f;
         in.driver_torque = (uint16_t)(rand() % 2600);
         in.pedal = (uint16_t)(rand() % 1001);
         in.motor_rpm = (int16_t)(launch_ctrl_config_default.motor_rpm_sign * (float)(rand() % 8000 - 500));
         in.fl_rpm = (float)(rand() % 1500);
-        in.fr_rpm = (rand() % 3) ? in.fl_rpm : (float)(rand() % 1500);
         in.front_new_sample = rand() % 2;
         in.launch_mode_selected = rand() % 20 != 0;
         in.brake_pressed = rand() % 30 == 0;
@@ -179,7 +176,6 @@ static void test_never_exceeds_driver_fuzz(void)
             in.pedal = 0;
             in.motor_rpm = 0;
             in.fl_rpm = 0;
-            in.fr_rpm = 0;
         }
         uint16_t out = launch_ctrl_apply(&ctx, &in);
         ok &= (out <= in.driver_torque);
@@ -214,64 +210,55 @@ static void test_lift_off_and_brake_end_launch(void)
     launch_ctrl_apply(&ctx, &in);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "brake -> DONE");
 
-    /* stopping alone does not re-arm: the driver has to hold the brake again */
-    for (int i = 0; i < 1000; i++)
+    /* still moving: stays DONE; stopped with the pedal released: re-arms */
+    for (int i = 0; i < 100; i++)
     {
-        in = inputs(0, 0.0f, 0.0f, i);
+        in = inputs(0, 2.0f, 1.5f, i);
         launch_ctrl_apply(&ctx, &in);
     }
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "no re-arm from just standing still");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_DONE, "still moving after the launch -> stays DONE");
     arm(&ctx);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "re-arms after stop + 5 s brake hold");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stopped again -> re-arms by itself");
 }
 
 static void run_to_active(launch_ctrl_context_t *ctx);
 
 static void test_arming_protocol(void)
 {
-    printf("arming: stop + 5 s brake hold, then full pedal starts the launch\n");
+    printf("arming: launch mode + stopped + pedal released arms; full pedal starts the launch\n");
     const config_launch_ctrl_t *c = &launch_ctrl_config_default;
     launch_ctrl_context_t ctx;
     launch_ctrl_inputs_t in;
 
     launch_ctrl_init(&ctx, c);
-    for (int i = 0; i < 1000; i++)
-    {
-        in = inputs(0, 0.0f, 0.0f, i);
-        launch_ctrl_apply(&ctx, &in);
-    }
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "standing still without the brake does not arm");
-
-    CHECK(launch_ctrl_arm_progress(&ctx) == 0, "no brake hold -> progress 0%");
-    hold_brake(&ctx, c->arm_hold_s / 2.0f);
-    CHECK(launch_ctrl_arm_progress(&ctx) >= 48 && launch_ctrl_arm_progress(&ctx) <= 52,
-          "half the hold -> progress ~50%");
-    hold_brake(&ctx, c->arm_hold_s / 2.0f - 0.1f);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "brake held a little under 5 s -> not armed yet");
+    CHECK(launch_ctrl_arm_progress(&ctx) == 0, "not armed -> progress 0%");
     in = inputs(0, 0.0f, 0.0f, 0);
-    launch_ctrl_apply(&ctx, &in); // brake released for one step
-    CHECK(launch_ctrl_arm_progress(&ctx) == 0, "releasing the brake -> progress back to 0%");
-    hold_brake(&ctx, c->arm_hold_s - 0.1f);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "releasing the brake restarts the 5 s");
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stopped, pedal released -> ARMED straight away, no brake");
     CHECK(ctx.stationary, "stationary flag set while stopped");
-    hold_brake(&ctx, 0.2f);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "5 s unbroken brake hold -> ARMED");
     CHECK(launch_ctrl_arm_progress(&ctx) == 100, "ARMED -> progress 100%");
 
     launch_ctrl_init(&ctx, c);
-    for (int i = 0; i < 600; i++)
+    for (int i = 0; i < 100; i++)
     {
-        in = inputs(0, 1.0f, 0.0f, i); // creeping
-        in.brake_pressed = true;
+        in = inputs(300, 0.0f, 0.0f, i); // foot on the pedal while stopped
         launch_ctrl_apply(&ctx, &in);
     }
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "brake held while moving does not arm");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "pedal pressed while stopped -> does not arm");
+
+    launch_ctrl_init(&ctx, c);
+    for (int i = 0; i < 100; i++)
+    {
+        in = inputs(0, 1.0f, 0.0f, i); // creeping
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "moving -> does not arm");
 
     launch_ctrl_init(&ctx, c);
     arm(&ctx);
-    in = inputs(0, 1.0f, 0.0f, 0); // rolls with the pedal released
+    in = inputs(0, 1.0f, 0.0f, 0); // rolls with the pedal released (slope)
     launch_ctrl_apply(&ctx, &in);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_OFF, "armed car rolls -> disarmed");
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "armed car rolls -> stays armed");
 
     launch_ctrl_init(&ctx, c);
     arm(&ctx);
@@ -309,14 +296,35 @@ static void test_arming_protocol(void)
 
     launch_ctrl_init(&ctx, c);
     run_to_active(&ctx);
-    in = inputs(2300, 2.0f, 9.0f, 0); // front spike -> FAULT
+    in = inputs(2300, 2.0f, 0.0f, 0);
+    in.motor_rpm = rpm_for(-1.2f); // rolling backwards -> FAULT
     launch_ctrl_apply(&ctx, &in);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT, "FAULT");
-    hold_brake(&ctx, 1.0f);
-    CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT, "FAULT stays until a full brake hold");
     arm(&ctx);
     CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED && ctx.fault == LAUNCH_CTRL_FAULT_NONE,
-          "brake hold after a fault re-arms and clears the fault");
+          "stopped with good inputs after a fault -> re-arms and clears the fault");
+
+    // a fault that persists (no new front samples) must not flip FAULT <-> ARMED
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    for (int i = 0; i < 20; i++) // becomes stale after front_stale_s
+    {
+        in = inputs(0, 0.0f, 0.0f, i);
+        in.front_new_sample = false; // wheelspeed thread stopped
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT, "no new front samples while armed -> FAULT");
+    int stayed = 1;
+    for (int i = 0; i < 100; i++)
+    {
+        in = inputs(0, 0.0f, 0.0f, i);
+        in.front_new_sample = false;
+        launch_ctrl_apply(&ctx, &in);
+        stayed &= (ctx.state == LAUNCH_CTRL_STATE_FAULT);
+    }
+    CHECK(stayed, "persistent fault while stopped -> stays FAULT, no re-arm flapping");
+    arm(&ctx); // samples arriving again
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "fault gone -> re-arms");
 }
 
 static void run_to_active(launch_ctrl_context_t *ctx)
@@ -331,7 +339,7 @@ static void run_to_active(launch_ctrl_context_t *ctx)
 
 static void test_faults_fall_back_to_driver(void)
 {
-    printf("bad sensor data -> FAULT -> driver torque\n");
+    printf("bad sensor data -> FAULT -> crawl torque (fault_torque)\n");
     launch_ctrl_context_t ctx;
 
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
@@ -344,28 +352,100 @@ static void test_faults_fall_back_to_driver(void)
         out = launch_ctrl_apply(&ctx, &in);
     }
     CHECK(ctx.fault == LAUNCH_CTRL_FAULT_FRONT_STALE, "stale front -> FRONT_STALE");
-    CHECK(out == 2300, "fault -> driver torque");
+    CHECK(out == launch_ctrl_config_default.fault_torque, "fault -> capped at fault_torque (crawl), not the full request");
+    for (int i = 0; i < 100; i++) // keeps driving on with bad data: stays capped
+    {
+        launch_ctrl_inputs_t in = inputs(2300, 6.0f, 0.0f, i);
+        in.front_new_sample = false;
+        out = launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_FAULT && out == launch_ctrl_config_default.fault_torque,
+          "still moving -> stays FAULT at crawl torque");
+    {
+        launch_ctrl_inputs_t in = inputs(100, 6.0f, 0.0f, 0); // 10 Nm request, below the cap
+        in.front_new_sample = false;
+        CHECK(launch_ctrl_apply(&ctx, &in) == 100, "fault cap never raises a smaller request");
+    }
+    stand_still(&ctx, 0.2f);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "stop + pedal released -> fault clears, re-armed");
 
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     run_to_active(&ctx);
-    launch_ctrl_inputs_t in = inputs(2300, 12.0f, 10.0f, 0);
-    in.fr_rpm = in.fl_rpm * 0.3f; // FR sensor dropping out
-    out = launch_ctrl_apply(&ctx, &in);
-    CHECK(ctx.fault == LAUNCH_CTRL_FAULT_FRONT_DISAGREE, "FL/FR disagree -> FRONT_DISAGREE");
-    CHECK(out == 2300, "fault -> driver torque");
-
-    launch_ctrl_init(&ctx, &launch_ctrl_config_default);
-    run_to_active(&ctx);
-    in = inputs(2300, 2.0f, 0.0f, 0);
+    launch_ctrl_inputs_t in = inputs(2300, 2.0f, 0.0f, 0);
     in.motor_rpm = rpm_for(-1.2f); // wrong sign convention (or rolling backwards)
     launch_ctrl_apply(&ctx, &in);
     CHECK(ctx.fault == LAUNCH_CTRL_FAULT_MOTOR_REVERSE, "negative motor rpm -> MOTOR_REVERSE");
 
+    // logged on the car: FL read 6.8 m/s for 0.1 s with the motor still
+    // stopped, as the inverter switched on at launch
+    launch_ctrl_init(&ctx, &launch_ctrl_config_default);
+    arm(&ctx);
+    for (int i = 0; i < 10; i++)
+    {
+        in = inputs(2300, 0.0f, 6.8f, i);
+        out = launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE && ctx.fault == LAUNCH_CTRL_FAULT_NONE,
+          "FL spike with the motor stopped -> ignored, launch stays ACTIVE");
+    CHECK(ctx.v_front == 0.0f, "motor stopped -> front speed taken as 0");
+    CHECK(out < 2300, "FL spike with the motor stopped -> torque still limited");
+
+    launch_ctrl_init(&ctx, &launch_ctrl_config_default);
+    for (int i = 0; i < 510; i++)
+    {
+        in = inputs(0, 0.0f, (i % 7 == 0) ? 6.8f : 0.0f, i); // noisy FL while stopped
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "FL noise while stopped does not stop arming");
+
+    // rolling at 1 m/s (motor turning) when the driver floors it, and FL
+    // spikes to 6.8 m/s for 0.1 s as the inverter switches on
+    launch_ctrl_init(&ctx, &launch_ctrl_config_default);
+    arm(&ctx);
+    for (int i = 0; i < 20; i++)
+    {
+        in = inputs(0, 1.0f, 0.0f, i); // brake off, rolling, pedal not pressed yet
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "rolling at 1 m/s -> still ARMED");
+    float front_max = 0.0f;
+    for (int i = 0; i < 10; i++)
+    {
+        in = inputs(2300, 1.0f, 6.8f, i);
+        out = launch_ctrl_apply(&ctx, &in);
+        front_max = (ctx.v_front > front_max) ? ctx.v_front : front_max;
+    }
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE && ctx.fault == LAUNCH_CTRL_FAULT_NONE,
+          "FL spike while rolling -> ignored, launch stays ACTIVE");
+    CHECK(front_max < 0.1f, "FL spike while rolling -> front speed kept at the last good value");
+    CHECK(out < 2300, "FL spike while rolling -> torque still limited");
+
+    // FL drops to 0 for one window mid-launch, then reads normally again
+    launch_ctrl_init(&ctx, &launch_ctrl_config_default);
+    arm(&ctx);
+    for (int i = 0; i < 100; i++)
+    {
+        float v = 0.5f + 0.1f * (float)i; // 0.5 -> 10.4 m/s in 1 s
+        in = inputs(2300, v + 1.0f, v, i);
+        if (i == 80)
+            in.fl_rpm = 0.0f; // dropout
+        launch_ctrl_apply(&ctx, &in);
+        if (i == 80)
+            CHECK(ctx.v_front > 7.0f, "FL dropout to 0 at speed -> ignored");
+    }
+    CHECK(ctx.v_front > 8.5f, "FL back after the dropout -> taken again");
+    CHECK(ctx.fault == LAUNCH_CTRL_FAULT_NONE, "steady 10 m/s/s launch -> every FL reading taken, no fault");
+
+    // a stuck/wrong FL that stays wrong is still caught
     launch_ctrl_init(&ctx, &launch_ctrl_config_default);
     run_to_active(&ctx);
-    in = inputs(2300, 2.0f, 9.0f, 0); // front spike
-    launch_ctrl_apply(&ctx, &in);
-    CHECK(ctx.fault == LAUNCH_CTRL_FAULT_FRONT_AHEAD, "front much faster than rears -> FRONT_AHEAD");
+    for (int i = 0; i < 100 && ctx.state == LAUNCH_CTRL_STATE_ACTIVE; i++)
+    {
+        in = inputs(2300, 2.0f, 9.0f, i); // front reads 8 m/s, rears 2 m/s, for up to 1 s
+        launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(ctx.fault == LAUNCH_CTRL_FAULT_FRONT_AHEAD,
+          "front stays much faster than rears -> FRONT_AHEAD");
 }
 
 static void test_shadow_mode(void)
@@ -435,6 +515,200 @@ static void test_power_limit(void)
     CHECK(ctx.output == out, "output records the torque after the power limit");
 }
 
+static void test_first_command_and_ramp(void)
+{
+    printf("first command = torque_start, then at most ramp_up_max; capped while ARMED\n");
+    const config_launch_ctrl_t *c = &launch_ctrl_config_default;
+    launch_ctrl_context_t ctx;
+    launch_ctrl_inputs_t in;
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(1800, 0.0f, 0.0f, 0);
+    in.pedal = 800; // on its way to the floor, below trigger_pedal
+    uint16_t out = launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ARMED, "pedal at 80% -> still ARMED");
+    CHECK(out == c->torque_start, "ARMED, pedal on its way down -> capped at torque_start");
+
+    in = inputs(2300, 0.0f, 0.0f, 1);
+    out = launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE, "floored -> ACTIVE");
+    CHECK(out == c->torque_start, "first command of the launch is torque_start");
+
+    // the car grips (rears roll with the fronts): the limit climbs, no faster than the ramp
+    int ok = 1;
+    uint16_t prev = out;
+    for (int i = 0; i < 100; i++)
+    {
+        float v = 0.05f * (float)i;
+        in = inputs(2300, v, v, i + 2);
+        out = launch_ctrl_apply(&ctx, &in);
+        if (ctx.ramping)
+            ok &= ((float)out <= (float)prev + c->ramp_up_max * in.dt_s + 1.0f);
+        prev = out;
+    }
+    CHECK(ok, "limit never rises faster than ramp_up_max during the initial build-up");
+    CHECK(out > c->torque_start, "limit does rise when the wheels grip");
+
+    // after a wheelspin cut the limit comes back as soon as the wheels grip,
+    // not at ramp_up_max
+    for (int i = 0; i < 30; i++)
+    {
+        in = inputs(2300, 9.0f, 5.0f, i); // rears spinning well past the target
+        out = launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK(!ctx.ramping, "a wheelspin cut ends the initial ramp");
+    uint16_t cut = out;
+    in = inputs(2300, 5.0f, 5.0f, 0); // gripping again
+    out = launch_ctrl_apply(&ctx, &in);
+    CHECK((float)out > (float)cut + 5.0f * c->ramp_up_max * in.dt_s,
+          "after a cut the limit jumps back at once when the wheels grip (not one ramp step)");
+    for (int i = 1; i < 10; i++)
+    {
+        in = inputs(2300, 5.0f, 5.0f, i);
+        out = launch_ctrl_apply(&ctx, &in);
+    }
+    CHECK((float)out > (float)cut + 1.5f * c->ramp_up_max * 0.1f,
+          "after a cut, 0.1 s of grip brings back more than ramp_up_max would");
+}
+
+/* the wheels spin at v + 4 m/s for n steps (a wheelspin cut), front at v */
+static uint16_t spin(launch_ctrl_context_t *ctx, float v, int n, int *step)
+{
+    uint16_t out = 0;
+    for (int i = 0; i < n; i++, (*step)++)
+    {
+        launch_ctrl_inputs_t in = inputs(2300, v + 4.0f, v, *step);
+        out = launch_ctrl_apply(ctx, &in);
+    }
+    return out;
+}
+
+/* the rears roll with the fronts at v (grip) for n steps; returns the last output,
+ * *max_step gets the biggest single rise seen above the knee */
+static uint16_t grip(launch_ctrl_context_t *ctx, float v, int n, int *step, float knee, float *max_step)
+{
+    uint16_t out = ctx->output, prev = ctx->output;
+    for (int i = 0; i < n; i++, (*step)++)
+    {
+        launch_ctrl_inputs_t in = inputs(2300, v, v, *step);
+        out = launch_ctrl_apply(ctx, &in);
+        if (max_step && ctx->integrator > knee + 1.0f && (float)out - (float)prev > *max_step)
+            *max_step = (float)out - (float)prev;
+        prev = out;
+    }
+    return out;
+}
+
+static void test_grip_memory_recovery(void)
+{
+    printf("after a cut: fast refill to recover_frac x the torque it slipped at, then creep\n");
+    const config_launch_ctrl_t *c = &launch_ctrl_config_default;
+    launch_ctrl_context_t ctx;
+    launch_ctrl_inputs_t in;
+    int step = 0;
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(2300, 0.0f, 0.0f, step++);
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.state == LAUNCH_CTRL_STATE_ACTIVE, "floored -> ACTIVE");
+
+    // grip for 0.5 s: the ramp builds the limit up
+    for (int i = 0; i < 50; i++, step++)
+    {
+        float v = 0.06f * (float)i;
+        in = inputs(2300, v, v, step);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    float before = ctx.limit;
+    CHECK(before > c->torque_start + 500, "limit built up during 0.5 s of grip");
+
+    // the wheels break loose: grip memory takes the limit it slipped at
+    uint16_t cut = spin(&ctx, 3.0f, 20, &step);
+    CHECK(fabsf(ctx.slip_torque - before) < 0.05f * before + 50.0f,
+          "slip_torque = the limit when the wheels broke loose");
+    CHECK(!ctx.ramping, "a wheelspin cut after ramp_min_s ends the initial ramp");
+    CHECK((float)cut < before - 300.0f, "the spin is cut");
+    CHECK(cut >= c->torque_floor, "never below torque_floor");
+
+    // grip again: back to ~recover_frac x slip_torque fast (within 0.15 s)
+    float knee = c->recover_frac * ctx.slip_torque;
+    uint16_t back = grip(&ctx, 3.0f, 15, &step, 1e9f, NULL);
+    CHECK(ctx.integrator >= knee - 1.0f, "integrator refilled to the knee within 0.15 s of grip");
+    CHECK((float)back >= knee - 1.0f, "output back at (at least) the knee within 0.15 s");
+    float t_needed = (knee - (float)c->torque_floor) / c->ramp_up_max;
+    CHECK(t_needed > 0.15f, "(so the refill really is faster than ramp_up_max would allow)");
+
+    // above the knee the integrator only creeps (ki_recover, capped at ramp_up_max)
+    float i0 = ctx.integrator;
+    grip(&ctx, 3.0f, 10, &step, knee, NULL);
+    CHECK(ctx.integrator - i0 <= c->ramp_up_max * 0.1f + 1.0f, "above the knee: integrator rises at most ramp_up_max");
+
+    // a second spin at a lower torque lowers the memory
+    float lim2 = ctx.limit;
+    spin(&ctx, 3.5f, 20, &step);
+    CHECK(fabsf(ctx.slip_torque - lim2) < 0.05f * lim2 + 50.0f, "a new spin updates slip_torque");
+
+    // safety: never above the driver request, even with grip memory high
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(2300, 0.0f, 0.0f, 0);
+    launch_ctrl_apply(&ctx, &in);
+    step = 1;
+    for (int i = 0; i < 40; i++, step++)
+    {
+        in = inputs(2300, 0.05f * i, 0.05f * i, step);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    spin(&ctx, 2.0f, 15, &step);
+    int ok = 1;
+    for (int i = 0; i < 50; i++, step++)
+    {
+        in = inputs(600, 2.0f, 2.0f, step); // driver backs off to 60 Nm (still above abort_torque)
+        uint16_t out = launch_ctrl_apply(&ctx, &in);
+        ok &= (out <= 600);
+    }
+    CHECK(ok, "refill never goes above the driver request");
+}
+
+static void test_early_noise_keeps_ramp(void)
+{
+    printf("a cut in the first ramp_min_s (motor speed noise) doesn't end the gentle ramp\n");
+    const config_launch_ctrl_t *c = &launch_ctrl_config_default;
+    launch_ctrl_context_t ctx;
+    launch_ctrl_inputs_t in;
+
+    launch_ctrl_init(&ctx, c);
+    arm(&ctx);
+    in = inputs(2300, 0.0f, 0.0f, 0);
+    launch_ctrl_apply(&ctx, &in);
+    int step = 1;
+    // 0.05 s in: one noisy motor sample says 2 m/s while the car has barely moved
+    for (; step < 5; step++)
+    {
+        in = inputs(2300, 0.05f * step, 0.0f, step);
+        launch_ctrl_apply(&ctx, &in);
+    }
+    in = inputs(2300, 2.5f, 0.0f, step++);
+    launch_ctrl_apply(&ctx, &in);
+    CHECK(ctx.ramping, "noise cut at 0.05 s keeps the initial ramp");
+
+    // grip afterwards: the limit keeps to the ramp, no jump to the full request
+    int ok = 1;
+    float prev = ctx.limit;
+    for (int i = 0; i < 15; i++, step++)
+    {
+        float v = 0.3f + 0.05f * i;
+        in = inputs(2300, v, v, step);
+        launch_ctrl_apply(&ctx, &in);
+        ok &= (ctx.limit <= prev + c->ramp_up_max * 0.01f + 1.0f);
+        prev = ctx.limit;
+    }
+    CHECK(ok, "limit still rises no faster than ramp_up_max after the noise");
+    CHECK(ctx.limit < 2000.0f, "no snap to the full request in the first 0.2 s");
+}
+
 static void test_timeout_and_exit_speed(void)
 {
     printf("hands back after exit speed or timeout\n");
@@ -465,7 +739,10 @@ int main(void)
     test_faults_fall_back_to_driver();
     test_shadow_mode();
     test_power_limit();
+    test_first_command_and_ramp();
     test_timeout_and_exit_speed();
+    test_grip_memory_recovery();
+    test_early_noise_keeps_ramp();
     printf("\nRESULT: %s (%d/%d checks)\n", failures ? "FAIL" : "PASS", checks - failures, checks);
     return failures ? 1 : 0;
 }

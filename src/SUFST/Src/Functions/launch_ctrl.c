@@ -31,6 +31,36 @@ static float front_step_mps(const config_launch_ctrl_t *c)
     return c->front_circumference_m / (c->front_pulses_per_rev * c->front_window_s);
 }
 
+/* Front speed from FL only: the FR sensor picks up noise when the inverter
+ * switches on. FL does too (logged: 0 -> 6.8 m/s in one 20 ms window, and
+ * 0 for one window while moving), so:
+ *  - while the motor is stopped the car is stopped (the rears are geared to
+ *    the motor): the front speed is 0
+ *  - otherwise a reading is only taken if it is within what the car could do
+ *    since the last good reading: one pulse step of rounding plus accel_max
+ *    for the time since then. A jump outside that keeps the last good value.
+ *    A wrong reading that stays wrong is taken once the allowance has grown
+ *    to it, so a stuck sensor still ends up in FRONT_AHEAD. */
+static void update_front(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_t *in)
+{
+    const config_launch_ctrl_t *c = ctx->cfg;
+    float raw = in->fl_rpm / 60.0f * c->front_circumference_m;
+
+    ctx->front_age_s += in->dt_s;
+    float allowed = front_step_mps(c) + c->accel_max_mps2 * ctx->front_age_s;
+
+    if (absf(ctx->v_driven) < c->stationary_mps)
+    {
+        ctx->v_front = 0.0f;
+        ctx->front_age_s = 0.0f;
+    }
+    else if (absf(raw - ctx->v_front) <= allowed)
+    {
+        ctx->v_front = raw;
+        ctx->front_age_s = 0.0f;
+    }
+}
+
 static bool is_stationary(const launch_ctrl_context_t *ctx)
 {
     const config_launch_ctrl_t *c = ctx->cfg;
@@ -52,15 +82,6 @@ static launch_ctrl_fault_t check_inputs(const launch_ctrl_context_t *ctx,
 
     if (motor_rpm_signed < -c->motor_reverse_rpm)
         return LAUNCH_CTRL_FAULT_MOTOR_REVERSE;
-
-    float fl = in->fl_rpm / 60.0f * c->front_circumference_m;
-    float fr = in->fr_rpm / 60.0f * c->front_circumference_m;
-    float fmax = maxf(fl, fr);
-    /* allow one pulse step of rounding on top of the ratio, or two coarse
-     * counts one pulse apart look like a big disagreement at low speed */
-    if (fmax > c->disagree_min_mps &&
-        absf(fl - fr) > c->disagree_ratio * fmax + front_step_mps(c))
-        return LAUNCH_CTRL_FAULT_FRONT_DISAGREE;
 
     if (ctx->v_front > ctx->v_driven + c->front_ahead_mps)
         return LAUNCH_CTRL_FAULT_FRONT_AHEAD;
@@ -112,8 +133,34 @@ static float control_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs_t
                          ctx->v_ground_est + c->slip_min_mps);
     float err = ctx->v_driven - ctx->v_target; // > 0: too much wheelspin
 
-    float d = -c->ki * err * in->dt_s;
-    d = minf(d, c->ramp_up_max * in->dt_s);
+    /* grip memory: the limit at the moment the wheels broke loose */
+    if (err > 0.0f && ctx->prev_err <= 0.0f && ctx->ramp_ref >= 0.0f)
+    {
+        ctx->slip_torque = ctx->ramp_ref;
+    }
+    ctx->prev_err = err;
+
+    /* after the first cut, while the wheels grip: refill fast (recover_max) to
+     * just under the torque they broke loose at, then only creep above it
+     * (ramp_up_max) to look for more grip. Snapping straight back to the full
+     * request just spins them up again */
+    float d;
+    if (!ctx->ramping && err < 0.0f)
+    {
+        float knee = c->recover_frac * ctx->slip_torque;
+        if (ctx->integrator < knee)
+        {
+            d = minf(c->recover_max * in->dt_s, knee - ctx->integrator);
+        }
+        else
+        {
+            d = minf(-c->ki_recover * err * in->dt_s, c->ramp_up_max * in->dt_s);
+        }
+    }
+    else
+    {
+        d = minf(-c->ki * err * in->dt_s, c->ramp_up_max * in->dt_s);
+    }
     ctx->integrator += d;
 
     /* anti-windup: never sit above what the driver is asking for */
@@ -129,15 +176,19 @@ void launch_ctrl_init(launch_ctrl_context_t *ctx, const config_launch_ctrl_t *cf
     ctx->state = LAUNCH_CTRL_STATE_OFF;
     ctx->fault = LAUNCH_CTRL_FAULT_NONE;
     ctx->t_active_s = 0.0f;
-    ctx->brake_hold_s = 0.0f;
     ctx->press_s = 0.0f;
     ctx->stationary = false;
     ctx->since_front_s = 0.0f;
     ctx->v_ground_est = 0.0f;
     ctx->v_driven = 0.0f;
     ctx->v_front = 0.0f;
+    ctx->front_age_s = 0.0f;
     ctx->v_target = 0.0f;
     ctx->integrator = 0.0f;
+    ctx->ramp_ref = -1.0f;
+    ctx->ramping = false;
+    ctx->slip_torque = 0.0f;
+    ctx->prev_err = 0.0f;
     ctx->limit = 0.0f;
     ctx->output = 0;
 }
@@ -162,7 +213,7 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     /* measurements */
     float motor_rpm_signed = c->motor_rpm_sign * (float)in->motor_rpm;
     ctx->v_driven = motor_rpm_signed / c->gear_ratio * (2.0f * LC_PI / 60.0f) * c->driven_radius_m;
-    ctx->v_front = maxf(in->fl_rpm, in->fr_rpm) / 60.0f * c->front_circumference_m;
+    update_front(ctx, in);
     ctx->since_front_s = in->front_new_sample ? 0.0f : ctx->since_front_s + in->dt_s;
     ctx->limit = (float)driver;
     ctx->stationary = is_stationary(ctx);
@@ -171,8 +222,7 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     {
         ctx->state = LAUNCH_CTRL_STATE_OFF;
         ctx->fault = LAUNCH_CTRL_FAULT_NONE;
-        ctx->brake_hold_s = 0.0f;
-        return driver;
+            return driver;
     }
 
     bool stationary = ctx->stationary;
@@ -194,22 +244,14 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
     case LAUNCH_CTRL_STATE_OFF:
     case LAUNCH_CTRL_STATE_DONE:
     case LAUNCH_CTRL_STATE_FAULT:
-        /* arm only when the driver asks for it: stopped, brake held for
-         * arm_hold_s without a break */
-        if (stationary && in->brake_pressed)
+        /* arm by itself in launch mode: car stopped with the pedal released.
+         * After a fault only once the inputs look right again, so a fault
+         * that persists can't flip FAULT <-> ARMED every step */
+        if (stationary && !pressed && check_inputs(ctx, in, motor_rpm_signed) == LAUNCH_CTRL_FAULT_NONE)
         {
-            ctx->brake_hold_s += in->dt_s;
-            if (ctx->brake_hold_s >= c->arm_hold_s)
-            {
-                ctx->state = LAUNCH_CTRL_STATE_ARMED;
-                ctx->fault = LAUNCH_CTRL_FAULT_NONE;
-                ctx->brake_hold_s = 0.0f;
-                ctx->press_s = 0.0f;
-            }
-        }
-        else
-        {
-            ctx->brake_hold_s = 0.0f;
+            ctx->state = LAUNCH_CTRL_STATE_ARMED;
+            ctx->fault = LAUNCH_CTRL_FAULT_NONE;
+            ctx->press_s = 0.0f;
         }
         break;
 
@@ -221,10 +263,16 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
             ctx->t_active_s = 0.0f;
             ctx->v_ground_est = 0.0f;
             ctx->integrator = (float)c->torque_start;
+            ctx->ramp_ref = -1.0f; // first step: limit = torque_start
+            ctx->ramping = true;
+            ctx->slip_torque = (float)c->torque_max;
+            ctx->prev_err = 0.0f;
         }
-        else if ((!stationary && !pressed) || ctx->press_s > c->arm_press_window_s)
+        else if (ctx->press_s > c->arm_press_window_s)
         {
-            ctx->state = LAUNCH_CTRL_STATE_OFF; // rolled or just driving: disarm
+            /* just driving: disarm. Rolling with the pedal released does
+             * not disarm, so a launch can start on a slope */
+            ctx->state = LAUNCH_CTRL_STATE_OFF;
         }
         break;
 
@@ -240,10 +288,45 @@ static uint16_t launch_step(launch_ctrl_context_t *ctx, const launch_ctrl_inputs
 
     uint16_t out = driver;
 
-    if (ctx->state == LAUNCH_CTRL_STATE_ACTIVE)
+    if (ctx->state == LAUNCH_CTRL_STATE_FAULT)
+    {
+        /* bad sensor data: limp at crawl torque rather than handing the
+         * driver the full request with no wheelspin control */
+        ctx->limit = (float)c->fault_torque;
+        if (!c->shadow_mode && ctx->limit < (float)driver)
+        {
+            out = (uint16_t)ctx->limit;
+        }
+    }
+    else if (ctx->state == LAUNCH_CTRL_STATE_ARMED)
+    {
+        /* the pedal on its way to trigger_pedal: no more than the launch's
+         * first command (a part-pedal drive-off disarms after
+         * arm_press_window_s and then gets the full request) */
+        ctx->limit = (float)c->torque_start;
+        if (!c->shadow_mode && ctx->limit < (float)driver)
+        {
+            out = (uint16_t)ctx->limit;
+        }
+    }
+    else if (ctx->state == LAUNCH_CTRL_STATE_ACTIVE)
     {
         update_estimate(ctx, in);
-        ctx->limit = control_step(ctx, in);
+        /* the first command is torque_start, then the limit rises by at most
+         * ramp_up_max until the controller first asks for less than the
+         * limit it already has (the first wheelspin cut). From then on the controller alone sets the limit,
+         * so it comes back as soon as the wheels grip again */
+        float want = control_step(ctx, in);
+        if (ctx->ramping)
+        {
+            float cap = (ctx->ramp_ref < 0.0f) ? (float)c->torque_start :
+                                                 ctx->ramp_ref + c->ramp_up_max * in->dt_s;
+            if (ctx->ramp_ref >= 0.0f && want < ctx->ramp_ref && ctx->t_active_s >= c->ramp_min_s)
+                ctx->ramping = false; // a real cut, not just a slower rise or early noise
+            want = minf(want, cap);
+        }
+        ctx->limit = want;
+        ctx->ramp_ref = ctx->limit;
         if (!c->shadow_mode && ctx->limit < (float)driver)
         {
             out = (uint16_t)ctx->limit;
@@ -267,9 +350,6 @@ bool launch_ctrl_is_active(const launch_ctrl_context_t *ctx)
 
 uint8_t launch_ctrl_arm_progress(const launch_ctrl_context_t *ctx)
 {
-    if (ctx->state == LAUNCH_CTRL_STATE_ARMED || ctx->state == LAUNCH_CTRL_STATE_ACTIVE)
-        return 100;
-    if (ctx->cfg == NULL || !(ctx->cfg->arm_hold_s > 0.0f)) // NULL: ctrl init failed early
-        return 0;
-    return (uint8_t)clampf(100.0f * ctx->brake_hold_s / ctx->cfg->arm_hold_s, 0.0f, 100.0f);
+    /* arming is immediate now (no brake hold): 100% once armed */
+    return (ctx->state == LAUNCH_CTRL_STATE_ARMED || ctx->state == LAUNCH_CTRL_STATE_ACTIVE) ? 100 : 0;
 }

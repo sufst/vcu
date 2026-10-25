@@ -3,22 +3,27 @@
  * @brief   Launch control for standing starts (accel event).
  *
  * @details A torque LIMITER with a state machine:
- *            OFF -> ARMED (launch mode selected, car stopped, driver holds
- *                          the brake for arm_hold_s)
+ *            OFF -> ARMED (launch mode selected, car stopped, pedal
+ *                          released: arms by itself, no brake hold)
  *                -> ACTIVE (brake off, pedal floored to trigger_pedal)
  *                -> DONE (exit speed / lift-off / brake / timeout)
- *            ARMED -> OFF (car rolls with the pedal released, or the pedal
- *                          is pressed without reaching trigger_pedal within
- *                          arm_press_window_s: the driver is just driving)
+ *            ARMED -> OFF (the pedal is pressed without reaching
+ *                          trigger_pedal within arm_press_window_s: the
+ *                          driver is just driving; rolling with the pedal
+ *                          released stays ARMED, for launches on a slope)
  *            any -> FAULT (bad sensor data) -> plain driver torque
- *          OFF, DONE and FAULT all need the same stop + brake hold to arm
- *          again, so a launch never starts without the driver asking for it.
+ *          OFF, DONE and FAULT arm again the next time the car is stopped
+ *          with the pedal released (FAULT only once the inputs look right).
  *
  *          While ACTIVE it holds the driven wheels at a target slip:
  *            target wheel speed = max(v_ground * (1 + slip_ratio),
  *                                     v_ground + slip_min)
  *          using a PI controller whose integrator starts at a feedforward
- *          torque (torque_start). Ground speed comes from an estimator that
+ *          torque (torque_start). The first command is torque_start, and the
+ *          limit then rises by at most ramp_up_max until the first wheelspin
+ *          cut; after that the controller alone sets it, so it recovers as
+ *          soon as the wheels grip. While ARMED the torque is capped at
+ *          torque_start. Ground speed comes from an estimator that
  *          predicts with the applied torque and is kept inside the band the
  *          coarse front wheel speed count allows. This is what lets it work
  *          from 0 m/s, where the front wheels still read 0.
@@ -58,7 +63,7 @@ typedef enum
 {
     LAUNCH_CTRL_FAULT_NONE = 0,
     LAUNCH_CTRL_FAULT_FRONT_STALE = 1,    // no new front wheel sample for too long
-    LAUNCH_CTRL_FAULT_FRONT_DISAGREE = 2, // FL and FR disagree strongly at speed
+    LAUNCH_CTRL_FAULT_FRONT_DISAGREE = 2, // unused since FR was dropped (kept for the CAN value table)
     LAUNCH_CTRL_FAULT_MOTOR_REVERSE = 3,  // motor rpm negative (sign wrong?)
     LAUNCH_CTRL_FAULT_FRONT_AHEAD = 4,    // fronts much faster than driven wheels
     LAUNCH_CTRL_FAULT_BAD_DT = 5          // nonsense time step
@@ -86,7 +91,6 @@ typedef struct
 
     // arming / exit
     float stationary_mps;      // below this the car counts as stationary
-    float arm_hold_s;          // brake held this long at a standstill -> ARMED
     uint16_t trigger_pedal;    // pedal (% x 10) that starts a launch when ARMED
     uint16_t pedal_pressed;    // pedal (% x 10) above this counts as pressed
     float arm_press_window_s;  // pressed this long without reaching trigger_pedal -> disarm
@@ -99,18 +103,21 @@ typedef struct
     float slip_min_mps;    // minimum target slip speed at low speed
     float kp;              // Nm x 10 per (m/s) of slip-speed error
     float ki;              // Nm x 10 per (m/s x s)
-    float ramp_up_max;     // max rise of the integrator, Nm x 10 per second
-    uint16_t torque_start; // feedforward: integrator value at launch
+    float ramp_up_max;     // max rise of the integrator, and of the limit until the first cut, Nm x 10 per second
+    float ki_recover;      // ki while the wheels grip after the first cut, above the grip memory
+    float recover_max;     // refill rate after a cut up to recover_frac x slip_torque, Nm x 10 per second
+    float recover_frac;    // after a cut, refill fast to this fraction of the torque the wheels broke loose at
+    float ramp_min_s;      // a cut this early in the launch doesn't end the initial ramp (motor speed noise)
+    uint16_t torque_start; // first torque command of a launch (and the integrator start); also the cap while ARMED
     uint16_t torque_floor; // limit never goes below this while active
     uint16_t torque_max;   // integrator ceiling (normally the mode's max torque)
     float est_gain;        // 0..1, how hard a new front sample pulls the estimate
 
     // plausibility
     float front_stale_s;     // fault if no new front sample for this long
-    float disagree_ratio;    // fault if |FL-FR|/max > this ...
-    float disagree_min_mps;  // ... while the faster front is above this speed
     float front_ahead_mps;   // fault if front speed > driven speed + this
     float motor_reverse_rpm; // fault if motor rpm (after sign) below -this
+    uint16_t fault_torque;   // cap while FAULT (crawl torque), until stopped with the pedal released
 
     // power limit (every mode)
     float power_limit_w; // DC-bus power above which torque is cut (W)
@@ -122,8 +129,7 @@ typedef struct
     float dt_s;                // time since last call (control period, 0.01)
     uint16_t driver_torque;    // driver request after the torque map, Nm x 10
     int16_t motor_rpm;         // PM100 motor speed
-    float fl_rpm;              // front left wheel rpm (wheelspeed.c)
-    float fr_rpm;              // front right wheel rpm
+    float fl_rpm;              // front left wheel rpm (wheelspeed.c), the only front wheel used
     bool front_new_sample;     // true on the first call after a new 20 ms count
     uint16_t pedal;            // APPS reading, % x 10
     bool launch_mode_selected; // current_mode == CTRL_MODE_LAUNCH_CTRL
@@ -138,15 +144,19 @@ typedef struct
     launch_ctrl_fault_t fault;
 
     float t_active_s;
-    float brake_hold_s; // how long the brake has been held at a standstill (for arming)
     float press_s;      // how long the pedal has been pressed while ARMED
     bool stationary;    // car counts as stopped (for the dash)
     float since_front_s;
     float v_ground_est; // m/s
     float v_driven;     // m/s, from motor rpm
-    float v_front;      // m/s, faster front wheel (as measured)
+    float v_front;      // m/s, front left wheel (impossible jumps rejected, 0 while the motor is stopped)
+    float front_age_s;  // time since the front reading last passed the jump check
     float v_target;     // m/s, target driven-wheel speed
     float integrator;   // Nm x 10
+    float ramp_ref;     // Nm x 10, last limit while ACTIVE (< 0: first step)
+    bool ramping;       // initial build-up from torque_start, ends at the first cut
+    float slip_torque;  // Nm x 10, limit when the wheels last broke loose (grip memory)
+    float prev_err;     // m/s, last slip-speed error (to spot the wheels breaking loose)
     float limit;        // Nm x 10, what the launch part wants (logged even in shadow mode)
     uint16_t output;    // Nm x 10, what was returned (after the power limit)
 } launch_ctrl_context_t;

@@ -25,7 +25,6 @@ const config_launch_ctrl_t launch_ctrl_config_default = {
     .motor_rpm_sign = -1.0f,         // measured: PM100 reports forward as negative
 
     .stationary_mps = 0.3f,
-    .arm_hold_s = 5.0f,
     .trigger_pedal = 900,      // 90%
     .pedal_pressed = 50,       // 5%
     .arm_press_window_s = 0.5f,
@@ -35,19 +34,22 @@ const config_launch_ctrl_t launch_ctrl_config_default = {
 
     .slip_ratio = 0.12f,    // SIM
     .slip_min_mps = 0.8f,   // SIM
-    .kp = 400.0f,           // SIM: 40 Nm per m/s of excess slip speed
+    .kp = 200.0f,           // 20 Nm per m/s of excess slip speed
     .ki = 3000.0f,          // SIM
     .ramp_up_max = 3000.0f, // 300 Nm/s
+    .ki_recover = 6000.0f,
+    .recover_max = 15000.0f, // 1500 Nm/s
+    .recover_frac = 0.85f,          // after a cut, refill fast to 85% of the torque the wheels broke loose at
+    .ramp_min_s = 0.2f,            // cuts in the first 0.2 s (motor speed noise) don't end the initial ramp
     .torque_start = 1000,   // 100 Nm
     .torque_floor = 400,    // 40 Nm
     .torque_max = 2300,     // matches the planned 220-230 Nm cap
     .est_gain = 0.5f,
 
     .front_stale_s = 0.1f,  // 5 missed 20 ms samples
-    .disagree_ratio = 0.5f, // FR reads ~30% low; faster front is used, this only catches a dead sensor
-    .disagree_min_mps = 5.0f,
     .front_ahead_mps = 3.0f,
     .motor_reverse_rpm = 100.0f,
+    .fault_torque = 200,  // 20 Nm (crawl torque) while FAULT
 
     .power_limit_w = 75000.0f, // 75 kW
     .power_kp = 0.2f,          // -100 Nm at 80 kW

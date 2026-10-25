@@ -96,7 +96,6 @@ typedef struct
     uint16_t current_reading;    // current reading (% * 40)
     int16_t motor_speed_reading; // motor speed reading (rpm)
     float fl_wheel_rpm;       // front left wheel rpm
-    float fr_wheel_rpm;       // front right wheel rpm
     uint32_t wheelspeed_sample_count; // wheelspeed sample counter (new front data when it changes)
     bool front_new_sample;    // a new wheelspeed sample arrived since the last control tick
     float electrical_power_w; // DC-bus power reading (W)
