@@ -180,4 +180,23 @@ void HAL_CAN_TxMailbox0CompleteCallback(CAN_HandleTypeDef *hcan);
 
 void Error_Handler(void);
 
+/* DWT cycle counter / core debug (wheelspeed edge timestamps): the counter runs
+ * at SystemCoreClock off the host's monotonic clock, read through DWT->CYCCNT */
+typedef struct
+{
+    volatile uint32_t CTRL, LAR, CYCCNT;
+} DWT_Type;
+typedef struct
+{
+    volatile uint32_t DEMCR;
+} CoreDebug_Type;
+
+extern uint32_t SystemCoreClock;
+DWT_Type *sim_dwt(void);
+extern CoreDebug_Type sim_coredebug;
+#define DWT (sim_dwt())
+#define CoreDebug (&sim_coredebug)
+#define CoreDebug_DEMCR_TRCENA_Msk (1UL << 24)
+#define DWT_CTRL_CYCCNTENA_Msk (1UL << 0)
+
 #endif

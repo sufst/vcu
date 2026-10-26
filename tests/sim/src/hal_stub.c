@@ -1,12 +1,26 @@
 /* Fake HAL for host simulation: GPIO, UART, CAN bus model */
 #include <stdio.h>
 #include <string.h>
+#include <time.h>
 
 #include <FreeRTOS.h>
 #include <task.h>
 
 #include "main.h"
 #include "sim.h"
+
+uint32_t SystemCoreClock = 216000000U;
+CoreDebug_Type sim_coredebug;
+
+DWT_Type *sim_dwt(void)
+{
+    static DWT_Type dwt;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    uint64_t ns = (uint64_t)ts.tv_sec * 1000000000ULL + (uint64_t)ts.tv_nsec;
+    dwt.CYCCNT = (uint32_t)(ns * (SystemCoreClock / 1000000U) / 1000U);
+    return &dwt;
+}
 
 GPIO_TypeDef sim_gpio[7] = {
     { 0, 0xFFFF, 0 }, { 0, 0xFFFF, 1 }, { 0, 0xFFFF, 2 }, { 0, 0xFFFF, 3 },
