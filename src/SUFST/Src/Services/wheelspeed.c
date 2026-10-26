@@ -17,6 +17,12 @@ status_t wheelspeed_init(wheelspeed_context_t *wh,
     wh->tx_error_log_tick = 0;
     wh->rtcan_h = rtcan_h;
 
+    /* free running cycle counter used to timestamp wheel edges */
+    CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
+    DWT->LAR = 0xC5ACCE55U; // unlock (required on Cortex-M7)
+    DWT->CYCCNT = 0;
+    DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
+
     status_t status = STATUS_OK;
 
     wh->reading_mutex = xSemaphoreCreateMutexStatic(&wh->reading_mutex_cb);
@@ -53,15 +59,69 @@ static void wheelspeed_thread_entry(void *arg)
     }
 }
 
+/**
+ * @brief       Wheel speed from edge timestamps
+ *
+ * @details     Counting pulses in a fixed window quantises the speed (one pulse
+ *              is ~5 km/h in 20 ms) and is wrong if the thread runs late. Instead
+ *              the ISR timestamps each edge with the DWT cycle counter and the
+ *              speed is whole pulses divided by the time between the first and
+ *              last edge since the previous reading, so the sample window length
+ *              no longer matters. With no new edge the reading can only fall
+ *              (at most one pulse per time since the last edge) and reads 0 once
+ *              the wheel has been quiet for stopped_timeout_s.
+ */
 static float compute_wheel_rpm(wheel_state_t *wheel, const config_wheelspeed_t *config)
 {
-    uint32_t current = wheel->isr_count;
-    uint32_t delta = current - wheel->prev_count;
-    wheel->prev_count = current;
+    uint32_t count, edge;
+    for (int i = 0; i < 3; i++) // ISR updates edge then count: retry if it ran mid-read
+    {
+        count = wheel->isr_count;
+        edge = wheel->last_edge;
+        if (count == wheel->isr_count)
+            break;
+    }
 
-    float revs_per_second = (float)delta * configTICK_RATE_HZ /
-        ((float)config->ticks_per_wheel * (float)config->sample_period_ticks);
-    return revs_per_second * 60.0;
+    const float cycles_per_rev = (float)SystemCoreClock * 60.0f / (float)config->ticks_per_wheel;
+    uint32_t delta = count - wheel->ref_count;
+
+    if (delta > 0 && wheel->ref_valid)
+    {
+        uint32_t dt = edge - wheel->ref_edge;
+        float rpm = (dt > 0) ? (float)delta * cycles_per_rev / (float)dt : config->max_wheel_rpm + 1.0f;
+        wheel->ref_count = count;
+        wheel->ref_edge = edge;
+        if (rpm <= config->max_wheel_rpm) // reject implausible readings, keep the last good one
+            wheel->rpm = rpm;
+    }
+    else if (delta > 0) // first edge since standstill: nothing to time against yet
+    {
+        wheel->ref_count = count;
+        wheel->ref_edge = edge;
+        wheel->ref_valid = true;
+        wheel->rpm = 0.0f;
+    }
+    else if (wheel->ref_valid)
+    {
+        uint32_t quiet = DWT->CYCCNT - edge;
+        if ((float)quiet > config->stopped_timeout_s * (float)SystemCoreClock)
+        {
+            wheel->ref_valid = false;
+            wheel->rpm = 0.0f;
+        }
+        else
+        {
+            float bound = (quiet > 0) ? cycles_per_rev / (float)quiet : wheel->rpm;
+            if (bound < wheel->rpm)
+                wheel->rpm = bound;
+        }
+    }
+    else
+    {
+        wheel->rpm = 0.0f;
+    }
+
+    return wheel->rpm;
 }
 
 static void compute_and_broadcast(wheelspeed_context_t *wh)
@@ -140,13 +200,25 @@ static void compute_and_broadcast(wheelspeed_context_t *wh)
 void wheelspeed_handle_exti(wheelspeed_context_t *wh, uint16_t gpio_pin)
 {
     if (gpio_pin == WHEELSPEED_FR_Pin)
+    {
+        wh->wheel_fr.last_edge = DWT->CYCCNT;
         wh->wheel_fr.isr_count++;
+    }
     else if (gpio_pin == WHEELSPEED_FL_Pin)
+    {
+        wh->wheel_fl.last_edge = DWT->CYCCNT;
         wh->wheel_fl.isr_count++;
+    }
     else if (gpio_pin == WHEELSPEED_RR_Pin)
+    {
+        wh->wheel_rr.last_edge = DWT->CYCCNT;
         wh->wheel_rr.isr_count++;
+    }
     else if (gpio_pin == WHEELSPEED_RL_Pin)
+    {
+        wh->wheel_rl.last_edge = DWT->CYCCNT;
         wh->wheel_rl.isr_count++;
+    }
 }
 
 status_t wheelspeed_get_speeds(wheelspeed_context_t *wh, wheelspeed_reading_t *result)

@@ -206,7 +206,9 @@ static const config_t config_instance = {
         },
         .ticks_per_wheel = 48,
         .wheel_circumference_meters = 1.305,
-        .sample_period_ticks = SECONDS_TO_TICKS(0.02) // min viable speed approx 100rpm
+        .sample_period_ticks = SECONDS_TO_TICKS(0.02),
+        .max_wheel_rpm = 3000.0f, // ~65 m/s, well above the car's top speed
+        .stopped_timeout_s = 0.25f, // ~5 rpm: slower than this reads as stopped
     },
     .launch_ctrl = {
         // NOT REVIEWED, NOT BENCH TESTED, NOT RUN ON THE CAR: the launch part

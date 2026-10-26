@@ -197,6 +197,8 @@ typedef struct
     uint8_t ticks_per_wheel;
     float wheel_circumference_meters;
     uint32_t sample_period_ticks;
+    float max_wheel_rpm;       // readings above this are rejected as noise
+    float stopped_timeout_s;   // no edge for this long reads as 0 rpm
 } config_wheelspeed_t;
 
 typedef struct

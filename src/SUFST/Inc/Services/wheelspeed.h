@@ -13,6 +13,7 @@
 #include <FreeRTOS.h>
 #include <rtcan.h>
 #include <semphr.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <task.h>
 
@@ -21,8 +22,12 @@
 
 typedef struct
 {
-    volatile uint32_t isr_count; // live count updated by ISR
-    uint32_t prev_count;         // snapshot from last sample
+    volatile uint32_t isr_count;     // live count updated by ISR
+    volatile uint32_t last_edge;     // DWT cycle count of the latest edge, set by ISR
+    uint32_t ref_count;              // pulse count at the reference edge
+    uint32_t ref_edge;               // cycle count at the reference edge
+    bool ref_valid;                  // false until an edge has been seen after standstill
+    float rpm;                       // last accepted reading
 } wheel_state_t;
 
 typedef struct
