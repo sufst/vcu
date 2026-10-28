@@ -209,6 +209,8 @@ static const config_t config_instance = {
         .sample_period_ticks = SECONDS_TO_TICKS(0.02),
         .max_wheel_rpm = 3000.0f, // ~65 m/s, well above the car's top speed
         .stopped_timeout_s = 0.25f, // ~5 rpm: slower than this reads as stopped
+        .max_drop_fraction = 0.3f,  // rolling wheel: ~2 g loses ~0.4 m/s per 20 ms, far less than 30%
+        .drop_confirm_samples = 3,  // missed-tooth dips last 1-2 samples, so 60 ms rides them out
     },
     .launch_ctrl = {
         // NOT REVIEWED, NOT BENCH TESTED, NOT RUN ON THE CAR: the launch part

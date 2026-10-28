@@ -28,6 +28,8 @@ typedef struct
     uint32_t ref_edge;               // cycle count at the reference edge
     bool ref_valid;                  // false until an edge has been seen after standstill
     float rpm;                       // last accepted reading
+    float rpm_out;                   // reading after the drop filter (what is reported)
+    uint8_t drop_samples;            // consecutive samples a sudden drop has been held for
 } wheel_state_t;
 
 typedef struct

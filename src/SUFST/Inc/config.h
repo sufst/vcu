@@ -199,6 +199,8 @@ typedef struct
     uint32_t sample_period_ticks;
     float max_wheel_rpm;       // readings above this are rejected as noise
     float stopped_timeout_s;   // no edge for this long reads as 0 rpm
+    float max_drop_fraction;   // a fall bigger than this in one sample is held...
+    uint8_t drop_confirm_samples; // ...for up to this many samples before it is believed
 } config_wheelspeed_t;
 
 typedef struct

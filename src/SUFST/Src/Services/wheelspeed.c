@@ -124,14 +124,42 @@ static float compute_wheel_rpm(wheel_state_t *wheel, const config_wheelspeed_t *
     return wheel->rpm;
 }
 
+/**
+ * @brief       Rejects one or two sample dips from missed teeth
+ *
+ * @details     The sensor misses a few teeth at the same point every revolution
+ *              (logged on FL: one or two sample dips to 25-50% of the real speed,
+ *              about one per revolution). A rolling wheel cannot lose that much
+ *              speed in one sample, so a drop bigger than max_drop_fraction keeps
+ *              the previous value and is only believed if it is still there
+ *              after drop_confirm_samples. 0 rpm (stopped timeout) is already
+ *              confirmed, so it goes straight through.
+ */
+static float filter_wheel_rpm(wheel_state_t *wheel, float rpm, const config_wheelspeed_t *config)
+{
+    bool sudden_drop = (rpm > 0.0f) && (rpm < wheel->rpm_out * (1.0f - config->max_drop_fraction));
+
+    if (sudden_drop && wheel->drop_samples < config->drop_confirm_samples)
+    {
+        wheel->drop_samples++;
+    }
+    else
+    {
+        wheel->drop_samples = 0;
+        wheel->rpm_out = rpm;
+    }
+
+    return wheel->rpm_out;
+}
+
 static void compute_and_broadcast(wheelspeed_context_t *wh)
 {
     const config_wheelspeed_t *cfg = wh->config_ptr;
 
-    float rpm_fr = compute_wheel_rpm(&wh->wheel_fr, cfg);
-    float rpm_fl = compute_wheel_rpm(&wh->wheel_fl, cfg);
-    float rpm_rr = compute_wheel_rpm(&wh->wheel_rr, cfg);
-    float rpm_rl = compute_wheel_rpm(&wh->wheel_rl, cfg);
+    float rpm_fr = filter_wheel_rpm(&wh->wheel_fr, compute_wheel_rpm(&wh->wheel_fr, cfg), cfg);
+    float rpm_fl = filter_wheel_rpm(&wh->wheel_fl, compute_wheel_rpm(&wh->wheel_fl, cfg), cfg);
+    float rpm_rr = filter_wheel_rpm(&wh->wheel_rr, compute_wheel_rpm(&wh->wheel_rr, cfg), cfg);
+    float rpm_rl = filter_wheel_rpm(&wh->wheel_rl, compute_wheel_rpm(&wh->wheel_rl, cfg), cfg);
 
     float mps_fr = rpm_fr / 60.0 * cfg->wheel_circumference_meters;
     float mps_fl = rpm_fl / 60.0 * cfg->wheel_circumference_meters;
