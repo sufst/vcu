@@ -192,7 +192,7 @@ fi
 
 # ----------------------------------------------------------------- common flags
 INC="-I$SIM/inc -I$V/SUFST/Inc -I$V/SUFST/Inc/Functions -I$V/SUFST/Inc/Interfaces -I$V/SUFST/Inc/Services
--I$V/SUFST/Middlewares/rtcan/inc -I$V/SUFST/Middlewares/can-defs/out -I$V/Middlewares/Third_Party/FreeRTOS/Source/include
+-I$V/Middlewares/rtcan/inc -I$V/Middlewares/can-defs/out -I$V/Middlewares/Third_Party/FreeRTOS/Source/include
 -I$SIM/posix_port -I$SIM/posix_port/utils -I$V/Drivers/CMSIS/RTOS2/Include
 -I$V/Middlewares/Third_Party/FatFs/src -I$V/FATFS/Target"
 CFLAGS="-std=gnu11 -g -O1 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare -Wno-missing-field-initializers
@@ -241,8 +241,8 @@ $CC -std=gnu11 -O1 -I"$B/fatimg_conf" -I"$V/Middlewares/Third_Party/FatFs/src" \
 
 SRCS="$(ls "$V"/SUFST/Src/*.c "$V"/SUFST/Src/Services/*.c "$V"/SUFST/Src/Functions/*.c "$V"/SUFST/Src/Interfaces/*.c \
         | grep -v -e 'adc_scan.c' -e 'sd_card.c' -e 'rtos_utils.c' -e 'watchdog.c')
-$V/SUFST/Middlewares/rtcan/src/rtcan.c $V/SUFST/Middlewares/rtcan/src/rtcan_osal_freertos.c
-$V/SUFST/Middlewares/can-defs/out/can_t.c $V/SUFST/Middlewares/can-defs/out/can_s.c
+$V/Middlewares/rtcan/src/rtcan.c $V/Middlewares/rtcan/src/rtcan_osal_freertos.c
+$V/Middlewares/can-defs/out/can_t.c $V/Middlewares/can-defs/out/can_s.c
 $V/Middlewares/Third_Party/FatFs/src/ff.c $V/FATFS/Target/sd_diskio.c
 $(ls "$V"/Middlewares/Third_Party/FreeRTOS/Source/*.c) $V/Middlewares/Third_Party/FreeRTOS/Source/portable/MemMang/heap_4.c
 $SIM/posix_port/port.c $SIM/posix_port/utils/wait_for_event.c

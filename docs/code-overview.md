@@ -17,7 +17,7 @@ This project depends on two submodules:
 - [can-defs](https://github.com/sufst/can-defs) - CAN dbc definitions, with generated [cantools](https://github.com/cantools/cantools) C source helpers
 - [rtcan](https://github.com/sufst/rtcan) - RTOS service for managing concurrent access to CAN peripherals (built with its FreeRTOS / CMSIS-RTOS2 OSAL backend, `rtcan_osal_freertos.c`)
 
-Both of these are located in `src/SUFST/Middlewares` and added as git submodules.
+Both of these are located in `src/Middlewares` and added as git submodules.
 
 ## RTOS (FreeRTOS)
 

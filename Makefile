@@ -161,10 +161,10 @@ src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_spi_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_hal_pcd_ex.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_usb.c \
-src/SUFST/Middlewares/rtcan/src/rtcan.c \
-src/SUFST/Middlewares/rtcan/src/rtcan_osal_freertos.c \
-src/SUFST/Middlewares/can-defs/out/can_t.c \
-src/SUFST/Middlewares/can-defs/out/can_s.c \
+src/Middlewares/rtcan/src/rtcan.c \
+src/Middlewares/rtcan/src/rtcan_osal_freertos.c \
+src/Middlewares/can-defs/out/can_t.c \
+src/Middlewares/can-defs/out/can_s.c \
 src/Core/Src/sdmmc.c \
 src/Core/Src/iwdg.c \
 src/Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_sdmmc.c \
@@ -213,8 +213,8 @@ C_INCLUDES =  \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
 -Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
 -Isrc/Drivers/CMSIS/Include \
--Isrc/SUFST/Middlewares/rtcan/inc/ \
--Isrc/SUFST/Middlewares/can-defs/out/ \
+-Isrc/Middlewares/rtcan/inc/ \
+-Isrc/Middlewares/can-defs/out/ \
 -Isrc/Drivers/CMSIS/RTOS2/Include \
 -Isrc/Middlewares/Third_Party/FreeRTOS/Source/include \
 -Isrc/Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2 \

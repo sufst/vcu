@@ -18,7 +18,7 @@ If you don't already have a license, you'll be able to use the one that's associ
 
 ## Opening the workspace
 
-Download a zip of this repository (or use a clone if you already have it cloned), and open `./scripts/canoe/Stag_12.cfg`. When it asks for DBC files, point it to `./src/SUFST/Middlewares/can-defs/dbc/CAN-{T,S}.dbc` respectively. It should only ask you for these once if you save the cfg.
+Download a zip of this repository (or use a clone if you already have it cloned), and open `./scripts/canoe/Stag_12.cfg`. When it asks for DBC files, point it to `./src/Middlewares/can-defs/dbc/CAN-{T,S}.dbc` respectively. It should only ask you for these once if you save the cfg.
 
 ## Overview
 
