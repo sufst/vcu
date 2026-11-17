@@ -191,7 +191,7 @@ if [ $FIRMWARE -eq 1 ]; then
 fi
 
 # ----------------------------------------------------------------- common flags
-INC="-I$SIM/inc -I$V/SUFST/Inc -I$V/SUFST/Inc/Functions -I$V/SUFST/Inc/Interfaces -I$V/SUFST/Inc/Services
+INC="-I$SIM/inc -I$V/Inc -I$V/Inc/Functions -I$V/Inc/Interfaces -I$V/Inc/Services
 -I$V/Middlewares/rtcan/inc -I$V/Middlewares/can-defs/out -I$V/Middlewares/Third_Party/FreeRTOS/Source/include
 -I$SIM/posix_port -I$SIM/posix_port/utils -I$V/Drivers/CMSIS/RTOS2/Include
 -I$V/Middlewares/Third_Party/FatFs/src -I$V/FATFS/Target"
@@ -220,7 +220,7 @@ if $CC -fsanitize=address "$B/asan_probe.c" -o "$B/asan_probe" 2>/dev/null && sh
     SANITIZE="-fsanitize=address,undefined"
 fi
 if $CC -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion -O2 -g \
-    $SANITIZE -I"$V/SUFST/Inc/Functions" \
+    $SANITIZE -I"$V/Inc/Functions" \
     "$TESTS/unit/test_launch_ctrl.c" "$TESTS/unit/launch_ctrl_config_default.c" \
     "$V/SUFST/Src/Functions/launch_ctrl.c" -lm -o "$B/launch_ctrl_tests" 2>"$B/logs/launch_ctrl_build.log"; then
     if "$B/launch_ctrl_tests" >"$B/logs/launch_ctrl_tests.log" 2>&1; then

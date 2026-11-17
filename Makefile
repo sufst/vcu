@@ -204,11 +204,11 @@ src/startup_stm32f746xx.s
 ###############################################################################
 
 C_INCLUDES =  \
--Isrc/SUFST/Inc \
+-Isrc/Inc \
 -Isrc/Core/Inc \
--Isrc/SUFST/Inc/Functions \
--Isrc/SUFST/Inc/Interfaces \
--Isrc/SUFST/Inc/Services \
+-Isrc/Inc/Functions \
+-Isrc/Inc/Interfaces \
+-Isrc/Inc/Services \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc \
 -Isrc/Drivers/STM32F7xx_HAL_Driver/Inc/Legacy \
 -Isrc/Drivers/CMSIS/Device/ST/STM32F7xx/Include \
@@ -343,7 +343,7 @@ ccd:
 .PHONY: format
 format:
 	tput setaf 5; tput bold; echo "Formatting source code..."; tput sgr0
-	find src/SUFST/Src src/SUFST/Inc \( -iname '*.c' -o -iname '*.h' \) -print0 | xargs -0 clang-format -i
+	find src/SUFST/Src src/Inc \( -iname '*.c' -o -iname '*.h' \) -print0 | xargs -0 clang-format -i
 	tput setaf 2; echo "Done"; tput sgr0
 
 ###############################################################################
