@@ -1,6 +1,6 @@
 /*
  * Unit tests for the VCU's pure logic, using the real calibration in
- * src/SUFST/Src/config.c:
+ * src/config.c:
  *   clip_to_range, mode switch decoding, torque map, power limit and
  *   launch control config, SCS validation/mapping, APPS, BPS.
  *

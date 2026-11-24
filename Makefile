@@ -89,35 +89,35 @@ LDFLAGS = $(MCU) -specs=nano.specs -T$(LDSCRIPT) $(LIBDIR) $(LIBS) \
 ###############################################################################
 
 C_SOURCES =  \
-src/SUFST/Src/vcu.c \
-src/SUFST/Src/config.c \
-src/SUFST/Src/rtos_utils.c \
-src/SUFST/Src/Functions/clip_to_range.c \
-src/SUFST/Src/Functions/torque_map.c \
-src/SUFST/Src/Functions/launch_ctrl.c \
-src/SUFST/Src/Functions/mode_switch_values.c \
-src/SUFST/Src/Interfaces/usb_mass_storage_mode.c \
-src/SUFST/Src/Interfaces/sd_card.c \
-src/SUFST/Src/Interfaces/watchdog.c \
-src/SUFST/Src/Interfaces/adc_scan.c \
-src/SUFST/Src/Interfaces/apps.c \
-src/SUFST/Src/Interfaces/bps.c \
-src/SUFST/Src/Interfaces/io.c \
-src/SUFST/Src/Interfaces/rs232.c \
-src/SUFST/Src/Interfaces/rtds.c \
-src/SUFST/Src/Interfaces/scs.c \
-src/SUFST/Src/Interfaces/trc.c \
-src/SUFST/Src/Services/canbc.c \
-src/SUFST/Src/Services/ctrl.c \
-src/SUFST/Src/Services/remote_ctrl.c \
-src/SUFST/Src/Services/dash.c \
-src/SUFST/Src/Services/pm100.c \
-src/SUFST/Src/Services/tick.c \
-src/SUFST/Src/Services/log.c \
-src/SUFST/Src/Services/heartbeat.c \
-src/SUFST/Src/Services/wheelspeed.c \
-src/SUFST/Src/Services/fans.c \
-src/SUFST/Src/Services/sd_logging.c \
+src/vcu.c \
+src/config.c \
+src/rtos_utils.c \
+src/Functions/clip_to_range.c \
+src/Functions/torque_map.c \
+src/Functions/launch_ctrl.c \
+src/Functions/mode_switch_values.c \
+src/Interfaces/usb_mass_storage_mode.c \
+src/Interfaces/sd_card.c \
+src/Interfaces/watchdog.c \
+src/Interfaces/adc_scan.c \
+src/Interfaces/apps.c \
+src/Interfaces/bps.c \
+src/Interfaces/io.c \
+src/Interfaces/rs232.c \
+src/Interfaces/rtds.c \
+src/Interfaces/scs.c \
+src/Interfaces/trc.c \
+src/Services/canbc.c \
+src/Services/ctrl.c \
+src/Services/remote_ctrl.c \
+src/Services/dash.c \
+src/Services/pm100.c \
+src/Services/tick.c \
+src/Services/log.c \
+src/Services/heartbeat.c \
+src/Services/wheelspeed.c \
+src/Services/fans.c \
+src/Services/sd_logging.c \
 src/Core/Src/main.c \
 src/Core/Src/adc.c \
 src/Core/Src/can.c \
@@ -343,7 +343,7 @@ ccd:
 .PHONY: format
 format:
 	tput setaf 5; tput bold; echo "Formatting source code..."; tput sgr0
-	find src/SUFST/Src src/Inc \( -iname '*.c' -o -iname '*.h' \) -print0 | xargs -0 clang-format -i
+	find src/ src/Inc \( -iname '*.c' -o -iname '*.h' \) -print0 | xargs -0 clang-format -i
 	tput setaf 2; echo "Done"; tput sgr0
 
 ###############################################################################

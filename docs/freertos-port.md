@@ -16,7 +16,7 @@ For how the RTOS is now organised (task table, priorities, rules), see
 | —                         | CMSIS-RTOS2 wrapper (`cmsis_os2.c`), only because the RTCAN FreeRTOS OSAL uses it |
 | FileX (SD logging)        | FatFs R0.16 (ST `stm32_mw_fatfs`) + `FATFS/Target/sd_diskio.c`     |
 | USBX device, MSC class    | ST USB Device library, MSC class (`USB_DEVICE/`)                   |
-| `fx_stm32_sd_driver_glue` | `SUFST/Src/Interfaces/sd_card.c` (shared by FatFs and USB MSC)     |
+| `fx_stm32_sd_driver_glue` | `Interfaces/sd_card.c` (shared by FatFs and USB MSC)     |
 | `app_threadx.c`, `app_azure_rtos.c`, `tx_initialize_low_level.s` | `Core/Src/freertos.c`, `Core/Inc/FreeRTOSConfig.h` |
 | RTCAN `rtcan_osal_threadx.c` | RTCAN `rtcan_osal_freertos.c` (submodule not modified)          |
 

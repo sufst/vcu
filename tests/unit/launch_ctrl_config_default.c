@@ -2,7 +2,7 @@
  * @file    launch_ctrl_config_default.c
  * @brief   Starting values for config_launch_ctrl_t, used by the laptop tests
  *          and the simulation. The car's real values are the
- *          `.launch_ctrl = { ... }` block in src/SUFST/Src/config.c.
+ *          `.launch_ctrl = { ... }` block in src/config.c.
  *
  *          Values marked SIM were tuned in launch_sim_v0.py only, which is
  *          tuned on itself. Values marked MEASURE must be checked on the car.

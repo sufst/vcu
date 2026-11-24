@@ -65,8 +65,8 @@ lint:
         - scripts/**
     - linters: [clang-format]
       paths:
-        - src/SUFST/Inc/config.h
-        - src/SUFST/Src/config.c
+        - src/Inc/config.h
+        - src/config.c
 actions:
   disabled:
     - trunk-announce

@@ -1,5 +1,5 @@
 /*
- * VCU host simulation: runs the real VCU application (src/SUFST, RTCAN,
+ * VCU host simulation: runs the real VCU application (src, RTCAN,
  * FatFs, FreeRTOS kernel) on a PC using the FreeRTOS POSIX port and a fake
  * HAL. Each scenario plays the driver, the dash, the shutdown circuit, the
  * PM100 inverter, the remote control and the CAN buses, and checks how the

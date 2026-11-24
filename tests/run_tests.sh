@@ -200,8 +200,8 @@ CFLAGS="-std=gnu11 -g -O1 -Wall -Wextra -Wno-unused-parameter -Wno-sign-compare 
 
 # ----------------------------------------------------------------- 2. unit tests
 section "Unit tests"
-if $CC $CFLAGS $INC "$TESTS/unit/test_units.c" "$V/SUFST/Src/config.c" "$V"/SUFST/Src/Functions/*.c \
-    "$V/SUFST/Src/Interfaces/scs.c" "$V/SUFST/Src/Interfaces/apps.c" "$V/SUFST/Src/Interfaces/bps.c" \
+if $CC $CFLAGS $INC "$TESTS/unit/test_units.c" "$V/config.c" "$V"/Functions/*.c \
+    "$V/Interfaces/scs.c" "$V/Interfaces/apps.c" "$V/Interfaces/bps.c" \
     -lm -o "$B/unit_tests" 2>"$B/logs/unit_build.log"; then
     if "$B/unit_tests" >"$B/logs/unit_tests.log" 2>&1; then
         echo "PASS  $(grep RESULT "$B/logs/unit_tests.log")"
@@ -222,7 +222,7 @@ fi
 if $CC -std=c11 -Wall -Wextra -Werror -Wconversion -Wno-sign-conversion -O2 -g \
     $SANITIZE -I"$V/Inc/Functions" \
     "$TESTS/unit/test_launch_ctrl.c" "$TESTS/unit/launch_ctrl_config_default.c" \
-    "$V/SUFST/Src/Functions/launch_ctrl.c" -lm -o "$B/launch_ctrl_tests" 2>"$B/logs/launch_ctrl_build.log"; then
+    "$V/Functions/launch_ctrl.c" -lm -o "$B/launch_ctrl_tests" 2>"$B/logs/launch_ctrl_build.log"; then
     if "$B/launch_ctrl_tests" >"$B/logs/launch_ctrl_tests.log" 2>&1; then
         echo "PASS  launch control $(grep RESULT "$B/logs/launch_ctrl_tests.log")"
     else
@@ -239,7 +239,7 @@ sed -E 's/^#define FF_USE_MKFS[[:space:]]+0/#define FF_USE_MKFS 1/' "$V/FATFS/Ta
 $CC -std=gnu11 -O1 -I"$B/fatimg_conf" -I"$V/Middlewares/Third_Party/FatFs/src" \
     "$TESTS/tools/fatimg.c" "$V/Middlewares/Third_Party/FatFs/src/ff.c" -o "$B/fatimg" || { echo "FAIL  fatimg"; exit 1; }
 
-SRCS="$(ls "$V"/SUFST/Src/*.c "$V"/SUFST/Src/Services/*.c "$V"/SUFST/Src/Functions/*.c "$V"/SUFST/Src/Interfaces/*.c \
+SRCS="$(ls "$V"/*.c "$V"/Services/*.c "$V"/Functions/*.c "$V"/Interfaces/*.c \
         | grep -v -e 'adc_scan.c' -e 'sd_card.c' -e 'rtos_utils.c' -e 'watchdog.c')
 $V/Middlewares/rtcan/src/rtcan.c $V/Middlewares/rtcan/src/rtcan_osal_freertos.c
 $V/Middlewares/can-defs/out/can_t.c $V/Middlewares/can-defs/out/can_s.c
@@ -249,7 +249,7 @@ $SIM/posix_port/port.c $SIM/posix_port/utils/wait_for_event.c
 $(ls "$SIM"/src/*.c)"
 
 # rtos_utils.c is built separately so task creation failures can be injected
-if $CC $CFLAGS $INC -DxTaskCreate=sim_xTaskCreate -c "$V/SUFST/Src/rtos_utils.c" -o "$B/rtos_utils.o" \
+if $CC $CFLAGS $INC -DxTaskCreate=sim_xTaskCreate -c "$V/rtos_utils.c" -o "$B/rtos_utils.o" \
         2>"$B/logs/sim_build.log" &&
    $CC $CFLAGS $INC $SRCS "$B/rtos_utils.o" -lm -o "$B/vcu_sim" 2>>"$B/logs/sim_build.log"; then
     if grep -q "warning:" "$B/logs/sim_build.log"; then

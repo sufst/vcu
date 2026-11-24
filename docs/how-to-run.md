@@ -275,7 +275,7 @@ Watch the buses with the CAN tool:
 
 The independent watchdog (IWDG) restarts the VCU if the control loop stops running for longer
 than about 0.5 s (0.34-0.94 s depending on the chip's internal oscillator). See
-`src/SUFST/Src/Interfaces/watchdog.c` for the details.
+`../src/Interfaces` for the details.
 
 - [ ] Normal boot: no `VCU was restarted by the watchdog` line in the log, and bit 0x20 is not set
       in the control error field of the VCU error frame (0x102).
@@ -440,7 +440,7 @@ These are not changed by the port; the tests document them.
 - Run `tests/run_tests.sh` (step 1).
 - New folders that must be added to git: `src/Middlewares/Third_Party/`,
   `src/Middlewares/ST/STM32_USB_Device_Library/`, `src/Drivers/CMSIS/RTOS2/`, `src/FATFS/`,
-  `src/USB_DEVICE/`, `tests/`, and the new files in `src/SUFST` and `src/Core`
+  `src/USB_DEVICE/`, `tests/`, and the new files in `src/` and `src/Core`
   (`git status` lists them). `tests/build/` is ignored.
 - If you regenerate code with STM32CubeMX, read the notes in
   [code-overview.md](code-overview.md#stm32cubemx-generation) first.
